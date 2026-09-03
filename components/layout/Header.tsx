@@ -136,11 +136,20 @@ export function Header() {
       {/* Main nav */}
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
         <Link href="/" className="flex shrink-0 items-center gap-2">
+          {/* Mobile: full logo (icon + wordmark) — keeps the brand visible
+              on small screens instead of only a favicon-sized icon. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-full.svg"
+            alt="ChinaRhinestone — Custom Heat Transfer Manufacturer"
+            className="h-9 w-auto sm:hidden"
+          />
+          {/* Desktop: hexagon icon + inline wordmark */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
             alt="ChinaRhinestone — Custom Heat Transfer Manufacturer"
-            className="h-9 w-auto"
+            className="hidden h-9 w-auto sm:block"
           />
           <span className="hidden text-lg font-black tracking-tight text-slate-900 sm:inline">
             China<span className="text-blue-700">Rhinestone</span>
