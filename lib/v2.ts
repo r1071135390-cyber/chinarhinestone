@@ -228,6 +228,22 @@ export const INDUSTRIES: Industry[] = [
       "Names, numbers, logos and graphics for team jerseys and sports uniforms. Fast-turnaround customization programs for team decoration.",
     image: "/images/industry-teamwear.jpg",
   },
+  {
+    slug: "pakistan-garment-exporters",
+    name: "Pakistan Garment Exporters",
+    tagline: "Heat transfers for Pakistan's knitwear, jersey and readymade garment exporters — Karachi, Lahore, Faisalabad.",
+    description:
+      "Heat transfer supplier for Pakistan's garment export industry. We support knitwear factories, jersey manufacturers, cricket and football apparel makers, and RMG exporters in Karachi, Lahore, Faisalabad, Sialkot and Multan with custom rhinestone, silicone, reflective, DTF, 3D and PU heat transfers. Sampling, bulk production and reliable repeat orders — designed for the export lead times of Karachi Port and Port Qasim.",
+    image: "/images/industry-garment.jpg",
+  },
+  {
+    slug: "bangladesh-knitwear-manufacturers",
+    name: "Bangladesh Knitwear Manufacturers",
+    tagline: "Heat transfers for Bangladesh knitwear, jersey and sweater manufacturers — Dhaka, Gazipur, Narayanganj.",
+    description:
+      "Heat transfer supplier for Bangladesh's knitwear and sweater industry. We support knit and woven garment factories, jersey manufacturers, T-shirt and polo makers, and RMG exporters in Dhaka, Gazipur, Narayanganj, Chittagong and Savar with custom rhinestone, silicone, reflective, DTF, 3D and PU heat transfers. Designed for the production rhythm of Bangladesh's knit sector and the export cycle out of Chittagong Port.",
+    image: "/images/industry-garment.jpg",
+  },
 ];
 
 /* ── Applications (6) ────────────────────────────────────── */

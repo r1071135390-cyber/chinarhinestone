@@ -24,6 +24,8 @@ const COLUMNS = [
       { href: "/industries/fashion-apparel-manufacturers", label: "Fashion Apparel" },
       { href: "/industries/activewear-manufacturers", label: "Activewear" },
       { href: "/industries/teamwear-manufacturers", label: "Teamwear" },
+      { href: "/industries/pakistan-garment-exporters", label: "Pakistan Exporters" },
+      { href: "/industries/bangladesh-knitwear-manufacturers", label: "Bangladesh Knitwear" },
     ],
   },
   {

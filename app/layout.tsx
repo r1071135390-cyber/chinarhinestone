@@ -60,7 +60,17 @@ const organizationSchema = {
     telephone: "+86-13764593988",
     email: "info@chinarhinestone.com",
     contactType: "sales",
-    availableLanguage: ["English", "Chinese"],
+    availableLanguage: ["English", "Chinese", "Urdu", "Bengali"],
+    areaServed: [
+      { "@type": "Country", name: "United States" },
+      { "@type": "Country", name: "United Kingdom" },
+      { "@type": "Country", name: "Pakistan" },
+      { "@type": "Country", name: "Bangladesh" },
+      { "@type": "Country", name: "India" },
+      { "@type": "Country", name: "Turkey" },
+      { "@type": "Country", name: "Mexico" },
+      { "@type": "Country", name: "Brazil" },
+    ],
   },
 };
 

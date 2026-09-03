@@ -1,10 +1,58 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, MapPin, Ship, Globe2 } from "lucide-react";
 import { Breadcrumb } from "@/components/layout/PageHero";
 import { CtaBand } from "@/components/layout/CtaBand";
 import { INDUSTRIES, TECHNOLOGIES, APPLICATIONS, getIndustry } from "@/lib/v2";
+
+export const DYNAMIC_INDUSTRY_EXTRAS: Record<
+  string,
+  { countries: string[]; cities: string[]; shipping: string; highlights: string[] }
+> = {
+  "pakistan-garment-exporters": {
+    countries: ["Pakistan"],
+    cities: [
+      "Karachi",
+      "Lahore",
+      "Faisalabad",
+      "Sialkot",
+      "Multan",
+      "Gujranwala",
+      "Islamabad",
+      "Rawalpindi",
+    ],
+    shipping: "Karachi Port & Port Qasim",
+    highlights: [
+      "Custom development and bulk production aligned with Pakistan's garment export cycle",
+      "Cricket, football and teamwear transfer programs — jerseys, shorts, caps, training wear",
+      "Sialkot sports manufacturing support — match-grade transfers for export programs",
+      "Faisalabad knit & sweater transfer programs (winterwear for EU/US buyers)",
+      "Shipping scheduled to Karachi Port / Port Qasim with full export documentation",
+    ],
+  },
+  "bangladesh-knitwear-manufacturers": {
+    countries: ["Bangladesh"],
+    cities: [
+      "Dhaka",
+      "Gazipur",
+      "Narayanganj",
+      "Chittagong",
+      "Savar",
+      "Tongi",
+      "Mymensingh",
+      "Khulna",
+    ],
+    shipping: "Chittagong Port & Mongla Port",
+    highlights: [
+      "Knit & sweater transfer programs designed for Bangladesh's knit sector production rhythm",
+      "T-shirt, polo and jersey transfers for RMG exporters — buyer-ready quality and packaging",
+      "Repeat order support with consistent specifications across seasonal programs",
+      "Sampling turnaround compatible with Bangladesh's compressed lead times",
+      "Shipping scheduled to Chittagong / Mongla Port with full export documentation",
+    ],
+  },
+};
 
 export function generateStaticParams() {
   return INDUSTRIES.map((i) => ({ slug: i.slug }));
@@ -26,7 +74,6 @@ export async function generateMetadata({
     },
   };
 }
-
 export default async function IndustryPage({
   params,
 }: {
@@ -37,6 +84,7 @@ export default async function IndustryPage({
   if (!industry) notFound();
 
   const others = INDUSTRIES.filter((i) => i.slug !== industry.slug);
+  const extras = DYNAMIC_INDUSTRY_EXTRAS[industry.slug];
 
   return (
     <div className="bg-white">
@@ -80,6 +128,67 @@ export default async function IndustryPage({
           </div>
         </div>
       </section>
+
+      {/* Country-specific coverage (Pakistan / Bangladesh) */}
+      {extras && (
+        <section className="border-b border-slate-200 bg-emerald-50/50 py-16 lg:py-20">
+          <div className="mx-auto max-w-7xl px-4 lg:px-8">
+            <div className="grid gap-10 lg:grid-cols-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
+                  Regional Coverage
+                </p>
+                <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900">
+                  Serving {extras.countries.join(" & ")} Garment Manufacturers
+                </h2>
+                <p className="mt-4 text-sm leading-relaxed text-slate-600">
+                  We actively support apparel manufacturers in {extras.countries.join(" and ")} —
+                  with the right transfer technology, lead time and shipping schedule for the
+                  local export cycle.
+                </p>
+              </div>
+              <div>
+                <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-700">
+                  <MapPin className="h-4 w-4 text-emerald-600" />
+                  Cities & Manufacturing Hubs
+                </h3>
+                <ul className="mt-4 grid grid-cols-2 gap-2 text-sm text-slate-800">
+                  {extras.cities.map((c) => (
+                    <li
+                      key={c}
+                      className="rounded-md border border-slate-200 bg-white px-3 py-2"
+                    >
+                      {c}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-700">
+                  <Ship className="h-4 w-4 text-emerald-600" />
+                  Export Shipping
+                </h3>
+                <p className="mt-4 text-sm leading-relaxed text-slate-800">
+                  {extras.shipping} — full export documentation, C/O, packing list and
+                  invoice for smooth customs clearance.
+                </p>
+                <h3 className="mt-6 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-700">
+                  <Globe2 className="h-4 w-4 text-emerald-600" />
+                  Program Highlights
+                </h3>
+                <ul className="mt-4 space-y-2.5 text-sm text-slate-700">
+                  {extras.highlights.map((h) => (
+                    <li key={h} className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                      <span>{h}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* What we provide */}
       <section className="py-16 lg:py-20">

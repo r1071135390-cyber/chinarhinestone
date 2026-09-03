@@ -74,9 +74,18 @@ export function ContactForm() {
                 </div>
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 shrink-0 text-blue-700" />
-                  <span>Mon–Sat 9:00–18:00 (GMT+8)</span>
+                  <span>Mon–Sat 9:00–18:00 (GMT+8) — overlapping with PK/Dhaka time zones</span>
                 </div>
               </div>
+            </div>
+
+            <div className="rounded-xl bg-emerald-50 p-5">
+              <h4 className="font-bold text-emerald-900">For Pakistan &amp; Bangladesh Buyers</h4>
+              <p className="mt-2 text-sm leading-relaxed text-emerald-900">
+                We&apos;re online during Karachi / Lahore business hours and Dhaka / Chittagong
+                business hours — WhatsApp us directly for fastest response. Shipping to Karachi
+                Port / Port Qasim and Chittagong Port is part of our regular export schedule.
+              </p>
             </div>
 
             <div className="rounded-xl bg-blue-50 p-5">
