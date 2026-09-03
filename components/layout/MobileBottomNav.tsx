@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import {
-  Shirt,
-  Layers,
+  Flame,
   Factory,
-  Sparkles,
-  Wrench,
-  Truck,
+  Layers,
+  Shirt,
+  BookOpen,
+  Info,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -17,13 +17,16 @@ type Item = {
   icon: React.ComponentType<{ className?: string }>;
 };
 
+// Mirrors the six top-level entries of the desktop main menu in
+// components/layout/Header.tsx, so the mobile bar is a true 1:1 shortcut
+// to the same destinations — labels and hrefs identical.
 const ITEMS: Item[] = [
-  { href: "/heat-transfers", label: "Products", icon: Shirt },
-  { href: "/applications", label: "Solutions", icon: Layers },
-  { href: "/fabrics", label: "Fabrics", icon: Factory },
-  { href: "/manufacturing", label: "Techniques", icon: Sparkles },
-  { href: "/designer.html", label: "Tools", icon: Wrench },
-  { href: "/contact", label: "Shipping", icon: Truck },
+  { href: "/heat-transfers", label: "Heat Transfers", icon: Flame },
+  { href: "/industries", label: "Industries", icon: Factory },
+  { href: "/applications", label: "Applications", icon: Layers },
+  { href: "/fabrics", label: "Fabrics", icon: Shirt },
+  { href: "/resources", label: "Resources", icon: BookOpen },
+  { href: "/about", label: "About", icon: Info },
 ];
 
 /**
