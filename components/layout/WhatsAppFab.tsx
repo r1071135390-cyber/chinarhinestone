@@ -29,7 +29,7 @@ export function WhatsAppFab() {
 
   return (
     <div
-      className="fixed bottom-5 right-4 z-50 flex flex-col items-end gap-2 sm:bottom-6 sm:right-6"
+      className="fixed bottom-20 right-4 z-50 flex flex-col items-end gap-2 sm:bottom-6 sm:right-6"
       aria-label="Contact us on WhatsApp"
     >
       {/* 气泡提示 — 首次访问显示一次 */}

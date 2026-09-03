@@ -5,54 +5,7 @@ import { ArrowRight, CheckCircle2, MapPin, Ship, Globe2 } from "lucide-react";
 import { Breadcrumb } from "@/components/layout/PageHero";
 import { CtaBand } from "@/components/layout/CtaBand";
 import { INDUSTRIES, TECHNOLOGIES, APPLICATIONS, getIndustry } from "@/lib/v2";
-
-export const DYNAMIC_INDUSTRY_EXTRAS: Record<
-  string,
-  { countries: string[]; cities: string[]; shipping: string; highlights: string[] }
-> = {
-  "pakistan-garment-exporters": {
-    countries: ["Pakistan"],
-    cities: [
-      "Karachi",
-      "Lahore",
-      "Faisalabad",
-      "Sialkot",
-      "Multan",
-      "Gujranwala",
-      "Islamabad",
-      "Rawalpindi",
-    ],
-    shipping: "Karachi Port & Port Qasim",
-    highlights: [
-      "Custom development and bulk production aligned with Pakistan's garment export cycle",
-      "Cricket, football and teamwear transfer programs — jerseys, shorts, caps, training wear",
-      "Sialkot sports manufacturing support — match-grade transfers for export programs",
-      "Faisalabad knit & sweater transfer programs (winterwear for EU/US buyers)",
-      "Shipping scheduled to Karachi Port / Port Qasim with full export documentation",
-    ],
-  },
-  "bangladesh-knitwear-manufacturers": {
-    countries: ["Bangladesh"],
-    cities: [
-      "Dhaka",
-      "Gazipur",
-      "Narayanganj",
-      "Chittagong",
-      "Savar",
-      "Tongi",
-      "Mymensingh",
-      "Khulna",
-    ],
-    shipping: "Chittagong Port & Mongla Port",
-    highlights: [
-      "Knit & sweater transfer programs designed for Bangladesh's knit sector production rhythm",
-      "T-shirt, polo and jersey transfers for RMG exporters — buyer-ready quality and packaging",
-      "Repeat order support with consistent specifications across seasonal programs",
-      "Sampling turnaround compatible with Bangladesh's compressed lead times",
-      "Shipping scheduled to Chittagong / Mongla Port with full export documentation",
-    ],
-  },
-};
+import { getIndustryExtras } from "@/lib/industry-extras";
 
 export function generateStaticParams() {
   return INDUSTRIES.map((i) => ({ slug: i.slug }));
@@ -84,7 +37,7 @@ export default async function IndustryPage({
   if (!industry) notFound();
 
   const others = INDUSTRIES.filter((i) => i.slug !== industry.slug);
-  const extras = DYNAMIC_INDUSTRY_EXTRAS[industry.slug];
+  const extras = getIndustryExtras(industry.slug);
 
   return (
     <div className="bg-white">

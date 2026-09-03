@@ -3,6 +3,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppFab } from "@/components/layout/WhatsAppFab";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 
 const SITE_URL = "https://chinarhinestone.com";
 
@@ -79,7 +80,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-white antialiased">
+      <body className="min-h-screen bg-white antialiased pb-16 md:pb-0">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
@@ -88,6 +89,7 @@ export default function RootLayout({
         <main>{children}</main>
         <Footer />
         <WhatsAppFab />
+        <MobileBottomNav />
       </body>
     </html>
   );
