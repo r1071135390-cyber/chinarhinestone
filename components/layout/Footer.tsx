@@ -80,16 +80,13 @@ export function Footer() {
         {/* Brand row */}
         <div className="grid gap-8 border-b border-slate-800 pb-10 lg:grid-cols-2">
           <div>
-            <Link href="/" className="inline-flex items-center gap-2">
+            <Link href="/" className="inline-flex items-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo.png"
                 alt="ChinaRhinestone — Custom Heat Transfer Manufacturer"
                 className="h-9 w-auto rounded"
               />
-              <span className="text-lg font-black tracking-tight text-white">
-                China<span className="text-blue-400">Rhinestone</span>
-              </span>
             </Link>
             <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-400">
               Custom heat transfer manufacturer in Yiwu, China. Rhinestone, silicone,
