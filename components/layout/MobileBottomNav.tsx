@@ -46,7 +46,7 @@ export function MobileBottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="rounded-2xl border border-slate-200/80 bg-white/90 shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur">
-        <ul className="grid grid-cols-6 px-1 py-1">
+        <ul className="grid grid-cols-5 px-1 py-1">
           {ITEMS.map(({ href, label, icon: Icon }) => {
             const active =
               pathname === href || pathname.startsWith(href + "/");

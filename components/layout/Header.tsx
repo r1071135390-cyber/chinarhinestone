@@ -140,7 +140,7 @@ export function Header() {
           <img
             src="/logo.png"
             alt="ChinaRhinestone — Custom Heat Transfer Manufacturer"
-            className="h-9 w-auto"
+            className="h-10 w-auto lg:h-9"
           />
         </Link>
 
