@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { WhatsAppFab } from "@/components/layout/WhatsAppFab";
 
 const SITE_URL = "https://chinarhinestone.com";
 
@@ -76,6 +77,7 @@ export default function RootLayout({
         <Header />
         <main>{children}</main>
         <Footer />
+        <WhatsAppFab />
       </body>
     </html>
   );
