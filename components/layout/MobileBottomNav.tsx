@@ -8,7 +8,6 @@ import {
   Sparkles,
   Wrench,
   Truck,
-  Home,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -28,10 +27,11 @@ const ITEMS: Item[] = [
 ];
 
 /**
- * Mobile-only bottom navigation bar.
- * Shown on screens < md (Tailwind default = 768px).
- * Sticks to the bottom of the viewport, matches the pattern in the
- * reference screenshot (Products / Solutions / Fabrics / Techniques / Tools / Shipping).
+ * Mobile-only bottom navigation bar styled like an iOS tab bar.
+ * - Floats above the bottom edge with rounded corners and a subtle shadow.
+ * - Active item: full rounded-rectangle (pill) background in light blue,
+ *   matching the iOS tab bar selected state.
+ * - Shown on screens < md (Tailwind default = 768px).
  */
 export function MobileBottomNav() {
   const pathname = usePathname() || "/";
@@ -39,33 +39,37 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="Mobile primary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur shadow-[0_-4px_20px_rgba(15,23,42,0.08)] md:hidden"
+      className="fixed inset-x-3 bottom-3 z-40 md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className="grid grid-cols-6">
-        {ITEMS.map(({ href, label, icon: Icon }) => {
-          // Treat /products/<x> as active for /products, etc.
-          const active =
-            pathname === href || pathname.startsWith(href + "/");
-          return (
-            <li key={href}>
-              <Link
-                href={href}
-                className={`flex flex-col items-center justify-center gap-1 py-2 text-[10px] font-semibold transition ${
-                  active
-                    ? "text-blue-700"
-                    : "text-slate-600 hover:text-blue-700"
-                }`}
-              >
-                <Icon
-                  className={`h-5 w-5 ${active ? "text-blue-700" : "text-slate-500"}`}
-                />
-                <span className="leading-none">{label}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="rounded-2xl border border-slate-200/80 bg-white/90 shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur">
+        <ul className="grid grid-cols-6 px-1 py-1">
+          {ITEMS.map(({ href, label, icon: Icon }) => {
+            const active =
+              pathname === href || pathname.startsWith(href + "/");
+            return (
+              <li key={href}>
+                <Link
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  className={`flex flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-semibold transition ${
+                    active
+                      ? "bg-blue-100/80 text-blue-700"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  <Icon
+                    className={`h-5 w-5 ${
+                      active ? "text-blue-700" : "text-slate-400"
+                    }`}
+                  />
+                  <span className="leading-none">{label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </nav>
   );
 }
