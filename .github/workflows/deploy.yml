@@ -20,14 +20,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Build with OpenNext for Cloudflare. The output goes to .open-next/
-      # which the Pages deploy step uploads directly. The previous Workers
-      # build (wrangler deploy) hit the 10ms CPU limit on the free plan and
-      # the request would fail with "worker exceeded resource limit". Pages
-      # serves static assets from the edge cache and only invokes a function
-      # for true dynamic routes, so we stay within the free plan.
-      - name: Build with OpenNext
-        run: npx opennextjs-cloudflare build
+      # Build with Next.js static export. The output goes to ./out/ which
+      # the Pages deploy step uploads directly. We use static export because
+      # the previous Workers (OpenNext SSR) build hit the 10ms CPU limit on
+      # the free plan and returned "worker exceeded resource limit". The
+      # site is fully static content — no SSR / cookies / headers needed —
+      # so serving plain HTML from the edge cache is the right fit.
+      - name: Build with Next.js static export
+        run: npx next build
 
       # Check the build size before uploading. Cloudflare Pages free plan
       # caps a single deployment at 25 MiB (any single file). If the build
@@ -35,14 +35,14 @@ jobs:
       # log will tell us which folder is too heavy.
       - name: Check build size
         run: |
-          echo "Build size by top-level entry under .open-next:"
-          du -sh .open-next/* 2>/dev/null | sort -hr || true
+          echo "Build size by top-level entry under out:"
+          du -sh out/* 2>/dev/null | sort -hr || true
           echo
-          echo "Total .open-next size:"
-          du -sh .open-next 2>/dev/null || true
+          echo "Total out size:"
+          du -sh out 2>/dev/null || true
 
       - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy .open-next --project-name chinarhinestone --commit-dirty=true --branch=main
+        run: npx wrangler pages deploy out --project-name chinarhinestone --branch=main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
