@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhinestone Designer — Free Online Tool | ChinaRhinestone.com</title>
+<meta name="description" content="Free online rhinestone design tool. Upload your artwork, choose stone sizes and colors, and download a production-ready SVG template. Design custom rhinestone heat transfers in minutes — no software needed." />
+<link rel="canonical" href="https://chinarhinestone.com/designer.html" />
+<style>
+  :root {
+    --bg: #09090b; --panel: #111114; --panel2: #18181c; --line: #27272a;
+    --text: #f4f4f5; --muted: #a1a1aa; --accent: #d9a441; --accent2: #e8c77a;
+    --ok: #22c55e; --warn: #f59e0b; --danger: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { min-height: 100vh; }
+
+  header {
+    position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding: 7px 14px; background: rgba(9,9,11,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .logo-chip { display: inline-flex; align-items: center; background: #fff; border-radius: 8px; padding: 3px 8px; flex-shrink: 0; }
+  .logo-chip img { display: block; height: 26px; width: auto; }
+  .demo-tag { font-size: 10px; color: var(--muted); border: 1px solid var(--line); padding: 1px 7px; border-radius: 99px; }
+  .demo-tag:hover { color: var(--text); border-color: var(--accent); }
+  .steps { display: flex; gap: 4px; flex-wrap: wrap; }
+  .step {
+    display: flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px;
+    border-radius: 99px; border: 1px solid var(--line); color: var(--muted); background: var(--panel);
+  }
+  .step.active { color: #111; background: var(--accent); border-color: var(--accent); font-weight: 700; }
+  .step.done { color: var(--ok); border-color: rgba(34,197,94,.4); }
+  .step .n { font-weight: 800; }
+
+  .layout {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 10px 14px; max-width: 1400px; margin: 0 auto; align-items: stretch;
+  }
+  @media (min-width: 901px) {
+    .layout { min-height: calc(100vh - 44px); } /* fill below sticky header (≈44px) */
+  }
+
+  /* settings bar — 5 equal-height compact cards on desktop */
+  .controls { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+  @media (min-width: 901px) {
+    .controls { display: grid; grid-template-columns: 0.75fr 0.85fr 0.8fr 0.9fr 1.5fr; gap: 8px; align-items: stretch; }
+    .controls .card { height: 100%; display: flex; flex-direction: column; }
+    .controls .card .card-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .controls .c-upload .card-body, .controls .c-size .card-body, .controls .c-stone .card-body, .controls .c-stonesel .card-body { justify-content: center; }
+    .controls .c-colors .layers { flex: 1; min-height: 0; overflow-y: auto; max-height: 110px; }
+    /* preview fills remaining viewport height on desktop */
+    .previewcol { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .previewcol .canvas-wrap { flex: 1; min-height: 0; }
+    canvas#preview { max-height: 100%; max-width: 100%; object-fit: contain; }
+  }
+  @media (max-width: 900px) {
+    .controls { flex-direction: column; gap: 8px; }
+  }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; }
+
+  /* mobile: compact floating preview */
+  @media (max-width: 900px) {
+    .layout { padding: 8px; gap: 8px; }
+    .card { padding: 8px 9px; border-radius: 10px; }
+    .previewcol {
+      order: -1; position: sticky; top: 0; z-index: 30;
+      background: var(--bg); border: 1px solid var(--line); border-radius: 12px;
+      padding: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.45);
+    }
+    .previewcol .toolbar { margin-bottom: 4px; }
+    .previewcol .subline { display: none; }
+    .canvas-wrap { min-height: 0; padding: 6px; border-radius: 8px; }
+    canvas#preview { max-height: 32vw; max-width: 100%; }
+    .canvas-hint { padding: 10px 8px; font-size: 11px; }
+    .sizegrid { gap: 3px; }
+    .sizebtn { padding: 3px 1px; border-radius: 6px; }
+    .sizebtn .mm { font-size: 10px; }
+    .sizehint { font-size: 8.5px; }
+    .sizerow2 { grid-template-columns: 14px 56px auto 12px 60px auto; gap: 3px; }
+    .sizerow2 input { width: 56px; padding: 4px 2px; font-size: 12px; text-align: center; }
+    .sizerow2 .dimlbl { font-size: 9px; }
+    .sizerow2 .unitlbl { font-size: 9px; }
+    .sizerow2 .eq { font-size: 10px; }
+    header { position: static; padding: 6px 8px; }
+    .demo-tag { font-size: 9px; padding: 1px 5px; white-space: nowrap; }
+    .lb-title span { display: none; }
+    .lb-actions { margin-left: 0; width: 100%; }
+    .lb-actions button { flex: 1; }
+    .lb-price-row { gap: 6px; }
+    .lb-price-main { font-size: 17px; }
+    .lb-tiers { gap: 4px; }
+  }
+  .card h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 7px; }
+  .card h3 em { color: var(--accent); font-style: normal; }
+
+  .dropzone {
+    border: 2px dashed var(--line); border-radius: 8px; padding: 9px 6px; text-align: center;
+    color: var(--muted); cursor: pointer; transition: .15s;
+  }
+  .dropzone:hover, .dropzone.drag { border-color: var(--accent); color: var(--text); background: rgba(217,164,65,.05); }
+  .dropzone .big { font-size: 12px; font-weight: 700; color: var(--text); }
+  .btnrow { display: flex; gap: 6px; margin-top: 7px; }
+  button {
+    background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 7px;
+    padding: 6px 8px; cursor: pointer; font-size: 12px; transition: .12s; flex: 1;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #111; font-weight: 700; border-color: var(--accent); }
+  button.primary:hover { background: var(--accent2); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+
+  .field { display: block; margin-bottom: 7px; }
+  .field:last-child { margin-bottom: 0; }
+  .field > span { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .sizerow2 { display: grid; grid-template-columns: 18px 1fr 20px 14px 1fr 22px; gap: 4px; align-items: center; margin-bottom: 4px; }
+  .sizerow2:last-of-type { margin-bottom: 0; }
+  .sizerow2 input { width: 100%; min-width: 0; }
+  .sizerow2 .dimlbl { font-size: 10px; font-weight: 700; color: var(--accent); text-align: center; }
+  .sizerow2 .unitlbl { font-size: 10px; color: var(--muted); }
+  .sizerow2 .eq { color: var(--muted); text-align: center; font-size: 11px; }
+  .mini { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); margin-top: 4px; cursor: pointer; user-select: none; }
+  .mini input { accent-color: var(--accent); }
+  .dualsize { font-size: 10.5px; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+  .dualsize b { color: var(--accent); font-weight: 700; }
+  input[type=range] { width: 100%; accent-color: var(--accent); height: 18px; }
+  select {
+    width: 100%; background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 4px 6px; font-size: 12px;
+  }
+  input[type=number] {
+    width: 100%; background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 4px 6px; font-size: 12px;
+  }
+  .field-k { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+  .field-k > span { flex: none; font-size: 11px; color: var(--muted); }
+  .pillrow { display: flex; gap: 4px; flex: 1; min-width: 0; }
+  .pillbtn { flex: 1; min-width: 0; font-size: 11px; padding: 4px 1px; border-radius: 6px; white-space: nowrap; }
+  .pillbtn.sel { border-color: var(--accent); color: var(--accent); background: rgba(217,164,65,.12); font-weight: 700; }
+  .autonote { margin-top: 6px; font-size: 9.5px; color: var(--muted); line-height: 1.35; }
+
+  .layers { display: flex; flex-direction: column; gap: 4px; }
+  .layer {
+    display: grid; grid-template-columns: 17px 1fr 16px; gap: 5px; align-items: center;
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 4px 5px;
+  }
+  .layer .swatch { width: 17px; height: 17px; border-radius: 50%; border: 2px solid #000; box-shadow: inset -1px -2px 3px rgba(0,0,0,.5), inset 1px 2px 3px rgba(255,255,255,.4); }
+  .layer select { font-size: 10.5px; padding: 2px 4px; min-width: 0; }
+  .layer .cnt { grid-column: 1 / 4; font-size: 9.5px; color: var(--muted); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .layer.off { opacity: .45; }
+  .layer input[type=checkbox] { accent-color: var(--accent); width: 13px; height: 13px; }
+
+  .sizegrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .sizebtn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 7px;
+    padding: 4px 1px; cursor: pointer; transition: .12s; min-width: 0; color: var(--text);
+  }
+  .sizebtn:hover { border-color: var(--accent); }
+  .sizebtn.sel { border-color: var(--accent); background: rgba(217,164,65,.12); }
+  .sizebtn .rstone { flex: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.55)); }
+  .sizebtn .mm { font-size: 10.5px; font-weight: 800; white-space: nowrap; line-height: 1; }
+  .sizebtn .ss { font-size: 9px; color: var(--muted); white-space: nowrap; line-height: 1; }
+  .sizebtn.sel .ss { color: var(--accent); font-weight: 700; }
+  .sizehint { display: flex; align-items: center; justify-content: center; text-align: center; font-size: 9px; color: var(--muted); line-height: 1.25; padding: 2px 3px; }
+
+  .canvas-wrap {
+    background: repeating-conic-gradient(#101014 0% 25%, #16161c 0% 50%) 50% / 20px 20px;
+    border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+    min-height: 240px; padding: 10px 8px; position: relative; overflow: auto;
+  }
+  canvas#preview { max-width: 100%; max-height: 65vh; image-rendering: auto; }
+  .canvas-wrap.has-art canvas#preview { cursor: zoom-in; }
+  .canvas-hint { color: var(--muted); font-size: 12px; text-align: center; padding: 24px 14px; }
+  .toolbar { display: flex; gap: 6px; margin-bottom: 7px; align-items: center; }
+  .toolbar .spacer { flex: 1; }
+  .togglebtn { flex: 0 0 auto; font-size: 11px; padding: 5px 9px; border-radius: 6px; }
+  .togglebtn.on { border-color: var(--accent); color: var(--accent); }
+
+  .warnbox { margin-top: 6px; font-size: 11px; color: var(--warn); background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.3); border-radius: 6px; padding: 5px 7px; line-height: 1.4; }
+
+  .subline { display: flex; align-items: center; gap: 6px; margin: 0 2px 6px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: baseline; background: var(--panel2); border: 1px solid var(--line); border-radius: 99px; padding: 2px 8px; }
+  .chip b { color: var(--accent); font-weight: 800; }
+  .zoom-pill {
+    display: none; font-size: 11px; padding: 5px 12px; border-radius: 99px; flex: none;
+    background: rgba(9,9,11,.85); border: 1px solid var(--accent); color: var(--accent);
+    cursor: pointer; backdrop-filter: blur(4px);
+  }
+  .canvas-wrap.has-art .zoom-pill { display: block; }
+
+  .lightbox { position: fixed; inset: 0; z-index: 100; display: none; flex-direction: column; background: rgba(5,5,7,.9); backdrop-filter: blur(10px); }
+  .lightbox.open { display: flex; }
+  .lb-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+  .lb-title { font-weight: 800; font-size: 14px; }
+  .lb-title span { font-weight: 400; font-size: 12px; color: var(--muted); margin-left: 8px; }
+  .lb-close { flex: 0 0 auto; }
+  .lb-stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; overflow: auto; }
+  .lightbox canvas#preview { max-width: 94vw; max-height: calc(100vh - 210px); border-radius: 6px; }
+  .lb-foot { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .lb-left { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+  .lb-stats { font-size: 13px; color: var(--muted); }
+  .lb-stats b { color: var(--accent); }
+  .lb-pricing { display: flex; flex-direction: column; gap: 5px; }
+  .lb-price-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .lb-price-main { font-size: 21px; font-weight: 900; color: var(--accent); letter-spacing: -.5px; line-height: 1; }
+  .lb-price-sub { font-size: 11.5px; color: var(--muted); }
+  .lb-tiers { display: flex; gap: 6px; flex-wrap: wrap; }
+  .lb-tier { font-size: 12px; color: var(--muted); background: var(--panel2); border: 1px solid var(--line); border-radius: 99px; padding: 3px 10px; white-space: nowrap; }
+  .lb-tier b { color: var(--text); }
+  .grade { display: flex; gap: 4px; }
+  .gradebtn { flex: none; font-size: 11.5px; padding: 5px 11px; border-radius: 99px; }
+  .gradebtn.sel { border-color: var(--accent); color: var(--accent); background: rgba(217,164,65,.12); font-weight: 700; }
+  .lb-note { font-size: 11px; color: var(--muted); }
+  .lb-empty { font-size: 12px; color: var(--muted); }
+  .lb-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .lb-actions button { flex: none; }
+  .lb-dl-note { width: 100%; font-size: 10.5px; color: #e8a33d; line-height: 1.35; }
+
+  #toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--accent); color: #111; font-weight: 700; padding: 10px 18px; border-radius: 99px;
+    transition: .25s; opacity: 0; z-index: 50; max-width: 90vw; text-align: center;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  .busy-overlay {
+    position: absolute; inset: 0; background: rgba(9,9,11,.6); display: none;
+    align-items: center; justify-content: center; color: var(--accent); font-weight: 700;
+    border-radius: 12px; z-index: 5;
+  }
+  .busy-overlay.show { display: flex; }
+  .spin { display: inline-block; width: 18px; height: 18px; border: 3px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; margin-right: 8px; vertical-align: -4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  footer { text-align: center; color: var(--muted); font-size: 11px; padding: 18px; }
+  footer b { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo-chip" href="/" title="Back to ChinaRhinestone.com">
+    <img src="/logo.png" alt="ChinaRhinestone.com" />
+  </a>
+  <div class="steps" id="steps"></div>
+  <a class="demo-tag" href="/" style="text-decoration:none">← Back to site · Free online tool</a>
+</header>
+
+<div class="layout">
+  <!-- TOP: settings bar (cards side by side on desktop, stacked on mobile) -->
+  <div class="controls">
+    <div class="card c-upload">
+      <h3><em>1</em> · Upload Artwork</h3>
+      <div class="card-body">
+        <div class="dropzone" id="dropzone">
+          <div class="big">Drop image here · or click to browse</div>
+        </div>
+        <input type="file" id="file" accept="image/*" hidden />
+        <div class="btnrow">
+          <button id="btnSample">Try sample artwork</button>
+          <button id="btnReset">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card c-size">
+      <h3><em>2</em> · Design Size</h3>
+      <div class="card-body">
+        <div class="field">
+          <div class="sizerow2">
+            <span class="dimlbl">W</span>
+            <input type="number" id="wSizeIn" step="0.25" />
+            <span class="unitlbl">in</span>
+            <span class="eq">=</span>
+            <input type="number" id="wSizeCm" step="0.1" />
+            <span class="unitlbl">cm</span>
+          </div>
+          <div class="sizerow2">
+            <span class="dimlbl">H</span>
+            <input type="number" id="hSizeIn" step="0.25" />
+            <span class="unitlbl">in</span>
+            <span class="eq">=</span>
+            <input type="number" id="hSizeCm" step="0.1" />
+            <span class="unitlbl">cm</span>
+          </div>
+          <label class="mini"><input type="checkbox" id="lockRatio" checked /> Keep artwork aspect ratio</label>
+          <div class="dualsize">Max board size: <b>36 × 36 in</b> (91.44 × 91.44 cm)</div>
+          <div class="dualsize" style="color:#e8a33d;">⚠ Cutting the template yourself? Check your cutter's working area — your design must fit YOUR machine, not just our max.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card c-stonesel">
+      <h3><em>3</em> · Select Stones</h3>
+      <div class="card-body">
+        <div class="field">
+          <span>Stone type</span>
+          <select id="stoneType">
+            <option value="austrian">Austrian quality</option>
+            <option value="czech">Czech quality</option>
+            <option value="leadfree">Lead-free crystal</option>
+            <option value="glass" selected>Glass rhinestone</option>
+            <option value="resin">Resin rhinestone</option>
+          </select>
+        </div>
+        <label class="abcheck" style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;margin-bottom:4px;">
+          <input type="checkbox" id="abFinish" /> AB finish
+        </label>
+        <div class="autonote">Colors auto-matched from our 32-color standard library. AB finish applies an iridescent coating.</div>
+      </div>
+    </div>
+
+    <div class="card c-stone">
+      <h3><em>4</em> · Stone Size</h3>
+      <div class="card-body">
+        <div class="sizegrid" id="sizeGrid"></div>
+        <div class="autonote" style="color:#e8a33d;">Template holes are precision-matched to the selected stone size. Exported files are generated at exact scale — <b>do NOT resize after import</b>, or stones won't fit the holes.</div>
+      </div>
+    </div>
+
+    <div class="card c-colors">
+      <h3><em>5</em> · Colors &amp; Fine-tune</h3>
+      <div class="card-body">
+        <div class="field-k">
+          <span>Colors</span>
+          <div class="pillrow" id="kRow"></div>
+        </div>
+        <div id="gradientWarn" style="display:none" class="warnbox">
+          This artwork has soft gradients — stones reproduce flat color zones best.
+          Consider fewer colors or a bolder, higher-contrast version.
+        </div>
+        <div class="layers" id="layers"></div>
+        <div class="field-k" style="margin-top:6px">
+          <span>Gap <small style="color:var(--muted);font-weight:400">(mm between stones)</small></span>
+          <div class="pillrow" id="gapRow"></div>
+        </div>
+        <div class="field-k" style="margin-bottom:0">
+          <span>Edge</span>
+          <div class="pillrow" id="edgeRow">
+            <button type="button" class="pillbtn" data-edge="loose">Loose</button>
+            <button type="button" class="pillbtn" data-edge="balanced">Balanced</button>
+            <button type="button" class="pillbtn" data-edge="tight">Tight</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: live preview (pinned/floating on mobile, click to enlarge) -->
+  <div class="previewcol">
+    <div class="toolbar">
+      <button class="togglebtn" id="btnSource">Show source</button>
+      <button class="togglebtn" id="btnGlow">Shine FX</button>
+      <div class="spacer"></div>
+      <button class="togglebtn" id="btnZoom">⤢ Enlarge</button>
+    </div>
+    <div class="subline">
+      <span class="chip" id="chipStones" style="display:none"><b>0</b>&nbsp;stones</span>
+      <span class="chip" id="chipColors" style="display:none"><b>0</b>&nbsp;colors</span>
+      <span style="margin-left:auto" id="dimInfo"></span>
+    </div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <div class="canvas-hint" id="hint">
+        <div style="font-size:38px;margin-bottom:10px">💎</div>
+        Upload artwork or load the sample to start designing.<br />
+        The preview updates live as you configure — click it for pricing &amp; downloads.
+      </div>
+      <div id="canvasSlot"><canvas id="preview" style="display:none"></canvas></div>
+      <button class="zoom-pill" id="btnZoom2" type="button">⤢ Click preview — pricing &amp; downloads</button>
+      <div class="busy-overlay" id="busy"><span class="spin"></span>Working…</div>
+    </div>
+  </div>
+</div>
+
+<!-- Enlarged preview — stats & export live here once the design is set -->
+<div class="lightbox" id="lightbox">
+  <div class="lb-bar">
+    <div class="lb-title">Design preview<span>click outside or press Esc to close</span></div>
+    <button id="lbClose" type="button">✕ Close</button>
+  </div>
+  <div class="lb-stage" id="lbStage"></div>
+  <div class="lb-foot">
+    <div class="lb-left">
+      <div class="lb-stats" id="lbStats"></div>
+      <div class="lb-pricing" id="lbPricing"></div>
+    </div>
+    <div class="lb-actions">
+      <button id="btnMock" disabled>Customer mockup SVG</button>
+      <button class="primary" id="btnProd" disabled>Download production SVG</button>
+      <div class="lb-dl-note">Files are cut-ready at exact scale for <span id="dlSizeLabel">SS10</span>. Do not resize when importing into your cutting software.</div>
+    </div>
+  </div>
+</div>
+
+<footer>ChinaRhinestone.com offline demo · same algorithm stack as the Next.js build (<b>quantize · fill · pricing · svg</b>) · nothing leaves your machine</footer>
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+/* ============================================================================
+ * stones.ts — SS size table, color card, color utils (ported verbatim)
+ * ==========================================================================*/
+const STONE_SIZES = [
+  { id: "ss6",  label: "SS6",  diameterMm: 2.0 },
+  { id: "ss8",  label: "SS8",  diameterMm: 2.4 },
+  { id: "ss10", label: "SS10", diameterMm: 2.9 },
+  { id: "ss12", label: "SS12", diameterMm: 3.3 },
+  { id: "ss16", label: "SS16", diameterMm: 3.9 },
+  { id: "ss20", label: "SS20", diameterMm: 4.7 },
+  { id: "ss30", label: "SS30", diameterMm: 6.4 },
+];
+const getSize = (id) => STONE_SIZES.find((s) => s.id === id) || STONE_SIZES[2];
+
+// 32-color universal standard palette — brand-neutral anchor colors.
+// Availability: "wide" = stocked across all materials, "medium" = most materials,
+// "special" = partial availability / batch-dependent.
+const STONE_COLORS = [
+  { id: "crystal",     cn: "透明",   name: "Crystal",     hex: "#EAF3F5", availability: "wide" },
+  { id: "white",       cn: "纯白",   name: "White",       hex: "#FFFFFF", availability: "wide" },
+  { id: "light-gray",  cn: "浅灰",   name: "Light Gray",  hex: "#C9CDD2", availability: "wide" },
+  { id: "gray",        cn: "中灰",   name: "Gray",        hex: "#808890", availability: "wide" },
+  { id: "silver",      cn: "银灰",   name: "Silver",      hex: "#C0C4C8", availability: "wide" },
+  { id: "jet-black",   cn: "黑",     name: "Jet Black",   hex: "#08080D", availability: "wide" },
+  { id: "beige",       cn: "米色",   name: "Beige",       hex: "#E8D9BE", availability: "wide" },
+  { id: "tan",         cn: "浅棕",   name: "Tan",         hex: "#B07B4F", availability: "medium" },
+  { id: "brown",       cn: "棕",     name: "Brown",       hex: "#6E4326", availability: "medium" },
+  { id: "chocolate",   cn: "深棕",   name: "Chocolate",   hex: "#3A2114", availability: "medium" },
+  { id: "gold",        cn: "金",     name: "Gold",        hex: "#D4AF37", availability: "wide" },
+  { id: "rose-gold",   cn: "玫瑰金", name: "Rose Gold",   hex: "#B76E79", availability: "medium" },
+  { id: "bronze",      cn: "古铜",   name: "Bronze",      hex: "#8C6A3F", availability: "medium" },
+  { id: "red",         cn: "大红",   name: "Red",         hex: "#D62828", availability: "wide" },
+  { id: "burgundy",    cn: "酒红",   name: "Burgundy",    hex: "#6E1423", availability: "medium" },
+  { id: "coral",       cn: "橙红",   name: "Coral",       hex: "#F2603E", availability: "medium" },
+  { id: "pink",        cn: "粉红",   name: "Pink",        hex: "#ED7FA0", availability: "wide" },
+  { id: "light-pink",  cn: "浅粉",   name: "Light Pink",  hex: "#F6C9D6", availability: "wide" },
+  { id: "magenta",     cn: "品红",   name: "Magenta",     hex: "#B5179E", availability: "medium" },
+  { id: "orange",      cn: "橙",     name: "Orange",      hex: "#EE7B1E", availability: "wide" },
+  { id: "amber",       cn: "琥珀",   name: "Amber",       hex: "#D98E04", availability: "medium" },
+  { id: "yellow",      cn: "黄",     name: "Yellow",      hex: "#F2C200", availability: "wide" },
+  { id: "green",       cn: "绿",     name: "Green",       hex: "#2E9E4F", availability: "wide" },
+  { id: "emerald",     cn: "墨绿",   name: "Emerald",     hex: "#0B6B3A", availability: "medium" },
+  { id: "mint",        cn: "浅绿",   name: "Mint",        hex: "#A8E0C0", availability: "medium" },
+  { id: "olive",       cn: "橄榄",   name: "Olive",       hex: "#6B6B2E", availability: "special" },
+  { id: "blue",        cn: "蓝",     name: "Blue",        hex: "#1E6FE0", availability: "wide" },
+  { id: "navy",        cn: "深蓝",   name: "Navy",        hex: "#15275E", availability: "medium" },
+  { id: "sky-blue",    cn: "天蓝",   name: "Sky Blue",    hex: "#87C5EB", availability: "wide" },
+  { id: "turquoise",   cn: "湖蓝",   name: "Turquoise",   hex: "#1FB6C9", availability: "medium" },
+  { id: "purple",      cn: "紫",     name: "Purple",      hex: "#7A3FA0", availability: "medium" },
+  { id: "lavender",    cn: "浅紫",   name: "Lavender",    hex: "#C9B6E4", availability: "medium" },
+];
+const getColor = (id) => STONE_COLORS.find((c) => c.id === id) || STONE_COLORS[0];
+
+function hexToRgb(hex) {
+  const h = hex.replace("#", "");
+  return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
+}
+function rgbToHex(r, g, b) {
+  const c = (v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
+  return `#${c(r)}${c(g)}${c(b)}`;
+}
+function shade(hex, amt) {
+  const { r, g, b } = hexToRgb(hex);
+  const target = amt < 0 ? 0 : 255;
+  const p = Math.min(1, Math.abs(amt));
+  const mix = (c) => (target - c) * p + c;
+  return rgbToHex(mix(r), mix(g), mix(b));
+}
+function nearestStoneColor(r, g, b) {
+  let best = STONE_COLORS[0], bestD = Infinity;
+  for (const c of STONE_COLORS) {
+    const { r: cr, g: cg, b: cb } = hexToRgb(c.hex);
+    const d = (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2;
+    if (d < bestD) { bestD = d; best = c; }
+  }
+  return best;
+}
+
+/* ============================================================================
+ * quantize.ts — deterministic k-means color separation (ported verbatim)
+ * ==========================================================================*/
+function mulberry32(seed) {
+  return function () {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function separateColors(img, k) {
+  const { data, width, height } = img;
+  const n = width * height;
+  const assignment = new Uint8Array(n).fill(255);
+
+  const opaque = [];
+  for (let i = 0; i < n; i++) if (data[i * 4 + 3] > 128) opaque.push(i);
+  if (opaque.length === 0 || k <= 0) return { assignment, centers: [], scatter: 0 };
+  const K = Math.min(k, 8);
+
+  // k-means++ init on subsample
+  const initStride = Math.max(1, Math.floor(opaque.length / 5000));
+  const initIdx = [];
+  for (let s = 0; s < opaque.length; s += initStride) initIdx.push(opaque[s]);
+
+  const rand = mulberry32(42);
+  const centers = [];
+  const first = initIdx[Math.floor(rand() * initIdx.length)];
+  centers.push([data[first * 4], data[first * 4 + 1], data[first * 4 + 2]]);
+
+  const dist2 = new Float64Array(initIdx.length).fill(Infinity);
+  while (centers.length < K) {
+    const last = centers[centers.length - 1];
+    let total = 0;
+    for (let j = 0; j < initIdx.length; j++) {
+      const p = initIdx[j] * 4;
+      const d = (data[p] - last[0]) ** 2 + (data[p + 1] - last[1]) ** 2 + (data[p + 2] - last[2]) ** 2;
+      if (d < dist2[j]) dist2[j] = d;
+      total += dist2[j];
+    }
+    if (total === 0) break;
+    let target = rand() * total;
+    let pick = initIdx.length - 1;
+    for (let j = 0; j < initIdx.length; j++) {
+      target -= dist2[j];
+      if (target <= 0) { pick = j; break; }
+    }
+    const pp = initIdx[pick] * 4;
+    centers.push([data[pp], data[pp + 1], data[pp + 2]]);
+  }
+
+  // Lloyd iterations on bounded subsample
+  const lloydStride = Math.max(1, Math.floor(opaque.length / 100000));
+  const lloydIdx = [];
+  for (let s = 0; s < opaque.length; s += lloydStride) lloydIdx.push(opaque[s]);
+
+  const KK = centers.length;
+  const sums = Array.from({ length: KK }, () => [0, 0, 0, 0]);
+  for (let iter = 0; iter < 10; iter++) {
+    for (const s of sums) s.fill(0);
+    for (const i of lloydIdx) {
+      const p = i * 4;
+      let best = 0, bestD = Infinity;
+      for (let c = 0; c < KK; c++) {
+        const d = (data[p] - centers[c][0]) ** 2 + (data[p + 1] - centers[c][1]) ** 2 + (data[p + 2] - centers[c][2]) ** 2;
+        if (d < bestD) { bestD = d; best = c; }
+      }
+      sums[best][0] += data[p]; sums[best][1] += data[p + 1]; sums[best][2] += data[p + 2]; sums[best][3]++;
+    }
+    let shift = 0;
+    for (let c = 0; c < KK; c++) {
+      if (sums[c][3] === 0) continue;
+      const nr = sums[c][0] / sums[c][3], ng = sums[c][1] / sums[c][3], nb = sums[c][2] / sums[c][3];
+      shift += Math.abs(nr - centers[c][0]) + Math.abs(ng - centers[c][1]);
+      centers[c] = [nr, ng, nb];
+    }
+    if (shift < 1) break;
+  }
+
+  // final assignment over every opaque pixel
+  const counts = new Array(KK).fill(0);
+  let scatterSum = 0;
+  for (const i of opaque) {
+    const p = i * 4;
+    let best = 0, bestD = Infinity;
+    for (let c = 0; c < KK; c++) {
+      const d = (data[p] - centers[c][0]) ** 2 + (data[p + 1] - centers[c][1]) ** 2 + (data[p + 2] - centers[c][2]) ** 2;
+      if (d < bestD) { bestD = d; best = c; }
+    }
+    assignment[i] = best;
+    counts[best]++;
+    scatterSum += bestD;
+  }
+
+  // order by pixel count desc, remap
+  const order = centers.map((_, c) => c).filter((c) => counts[c] > 0).sort((a, b) => counts[b] - counts[a]);
+  const remap = new Uint8Array(KK);
+  order.forEach((oldC, newC) => { remap[oldC] = newC; });
+  for (let i = 0; i < n; i++) if (assignment[i] !== 255) assignment[i] = remap[assignment[i]];
+
+  return {
+    assignment,
+    centers: order.map((c) => ({
+      r: Math.round(centers[c][0]), g: Math.round(centers[c][1]), b: Math.round(centers[c][2]), count: counts[c],
+    })),
+    scatter: opaque.length ? scatterSum / opaque.length : 0,
+  };
+}
+
+/* ============================================================================
+ * fill.ts — contour-traced edge stones + hexagonal interior packing
+ * Two-stage placement per color layer:
+ *   1. Marching-squares style contour extraction (crack following) traces the
+ *      layer outline; stones are placed at equal arc-length intervals along
+ *      the smoothed contour, inset toward the interior along the inward
+ *      normal. Edges follow diagonals & curves smoothly instead of
+ *      stair-stepping to the fixed hex grid.
+ *   2. The interior is filled with the hexagonal honeycomb grid; candidates
+ *      overlapping an edge stone (or any stone from an earlier layer) are
+ *      rejected through a shared spatial hash — stones never overlap.
+ * Layers are placed largest-area first; an orphan pass removes stones with no
+ * neighbor within ~1.5 pitches.
+ * ==========================================================================*/
+
+/* ---- shared spatial hash: O(1) stone collision / neighbor queries -------- */
+function makeSpatialHash(cellSize) {
+  const cs = Math.max(4, cellSize); // cell = largest stone diameter
+  const cells = new Map();          // cellKey -> stone[]
+  const ck = (cx, cy) => cx * 65536 + cy;
+  return {
+    insert(st) {
+      const k = ck(Math.floor(st.x / cs), Math.floor(st.y / cs));
+      let list = cells.get(k);
+      if (!list) cells.set(k, (list = []));
+      list.push(st);
+    },
+    remove(st) {
+      const list = cells.get(ck(Math.floor(st.x / cs), Math.floor(st.y / cs)));
+      if (!list) return;
+      const i = list.indexOf(st);
+      if (i >= 0) list.splice(i, 1);
+    },
+    /** true if a placed stone overlaps the circle (x, y, r) */
+    collides(x, y, r) {
+      // max query distance (r1 + r2) never exceeds cs by construction → 3×3 cells
+      const cx = Math.floor(x / cs), cy = Math.floor(y / cs);
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const list = cells.get(ck(cx + dx, cy + dy));
+          if (!list) continue;
+          for (let i = 0; i < list.length; i++) {
+            const s = list[i];
+            const md = s.r + r;
+            if ((s.x - x) * (s.x - x) + (s.y - y) * (s.y - y) < md * md) return true;
+          }
+        }
+      }
+      return false;
+    },
+    /** true if any other stone lies within maxDist of stone `st` */
+    hasNeighborWithin(st, maxDist) {
+      const range = Math.ceil(maxDist / cs);
+      const cx = Math.floor(st.x / cs), cy = Math.floor(st.y / cs);
+      const m2 = maxDist * maxDist;
+      for (let dy = -range; dy <= range; dy++) {
+        for (let dx = -range; dx <= range; dx++) {
+          const list = cells.get(ck(cx + dx, cy + dy));
+          if (!list) continue;
+          for (let i = 0; i < list.length; i++) {
+            const s = list[i];
+            if (s === st) continue;
+            if ((s.x - st.x) * (s.x - st.x) + (s.y - st.y) * (s.y - st.y) <= m2) return true;
+          }
+        }
+      }
+      return false;
+    },
+    /** true if any stone lies within sqrt(minDistSq) of (x, y) — used by edge fill */
+    _hasNear(x, y, minDistSq) {
+      const cx = Math.floor(x / cs), cy = Math.floor(y / cs);
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const list = cells.get(ck(cx + dx, cy + dy));
+          if (!list) continue;
+          for (let i = 0; i < list.length; i++) {
+            const s = list[i];
+            if ((s.x - x) * (s.x - x) + (s.y - y) * (s.y - y) < minDistSq) return true;
+          }
+        }
+      }
+      return false;
+    },
+  };
+}
+
+/* ---- marching-squares style contour extraction (crack following) ---------*/
+const EDGE_COUNT_LIMIT = 600000; // safety valve for pathological masks
+
+function extractContours(mask, w, h) {
+  // Directed edges run along pixel cracks with "inside" always on the right of
+  // travel, so outer loops and hole loops come out with consistent winding.
+  // Corner coords fit in 12 bits each (raster is capped well below 4096).
+  const KSHIFT = 12, KMASK = 4095;
+  const edges = new Map(); // startKey -> endKey[]
+  let edgeCount = 0;
+  const addEdge = (x0, y0, x1, y1) => {
+    const k = (x0 << KSHIFT) | y0;
+    let list = edges.get(k);
+    if (!list) edges.set(k, (list = []));
+    list.push((x1 << KSHIFT) | y1);
+    edgeCount++;
+  };
+  const inside = (x, y) => x >= 0 && y >= 0 && x < w && y < h && mask[y * w + x] === 1;
+
+  // Scan row runs of inside pixels; each run contributes top/bottom cracks
+  // (merged into straight runs) plus left/right end caps.
+  for (let y = 0; y < h; y++) {
+    const off = y * w;
+    let x = 0;
+    while (x < w) {
+      if (mask[off + x] !== 1) { x++; continue; }
+      let x1 = x;
+      while (x1 + 1 < w && mask[off + x1 + 1] === 1) x1++;
+      // top side: pixel above outside → inside is below → travel right
+      let a = x;
+      while (a <= x1) {
+        if (inside(a, y - 1)) { a++; continue; }
+        let b = a;
+        while (b <= x1 && !inside(b, y - 1)) b++;
+        addEdge(a, y, b, y);
+        a = b;
+      }
+      // bottom side: pixel below outside → inside is above → travel left
+      a = x;
+      while (a <= x1) {
+        if (inside(a, y + 1)) { a++; continue; }
+        let b = a;
+        while (b <= x1 && !inside(b, y + 1)) b++;
+        addEdge(b, y + 1, a, y + 1);
+        a = b;
+      }
+      // left cap: east pixel inside, west outside → travel up
+      if (!inside(x - 1, y)) addEdge(x, y + 1, x, y);
+      // right cap: west pixel inside, east outside → travel down
+      if (!inside(x1 + 1, y)) addEdge(x1 + 1, y, x1 + 1, y + 1);
+      x = x1 + 1;
+    }
+  }
+  if (edgeCount > EDGE_COUNT_LIMIT) return null; // bail → interior-only fill
+
+  // Trace closed loops: every vertex has equal in/out degree, so popping any
+  // available outgoing edge always yields properly closed loops.
+  const loops = [];
+  for (const [startKey, ends] of edges) {
+    while (ends.length) {
+      let nextKey = ends.pop();
+      const keys = [startKey];
+      let guard = 0;
+      while (nextKey !== startKey && guard++ < 1e7) {
+        keys.push(nextKey);
+        const lst = edges.get(nextKey);
+        if (!lst || !lst.length) break;
+        nextKey = lst.pop();
+      }
+      if (nextKey === startKey && keys.length >= 3) {
+        const pts = new Array(keys.length);
+        for (let i = 0; i < keys.length; i++) {
+          pts[i] = { x: keys[i] >>> KSHIFT, y: keys[i] & KMASK };
+        }
+        loops.push(pts);
+      }
+    }
+  }
+  return loops;
+}
+
+/** Chaikin corner-cutting on a closed polyline — smooths the pixel staircase. */
+function chaikinClosed(pts, iterations) {
+  let cur = pts;
+  for (let it = 0; it < iterations; it++) {
+    const n = cur.length;
+    if (n < 3) return cur;
+    const out = new Array(n * 2);
+    for (let i = 0; i < n; i++) {
+      const a = cur[i], b = cur[(i + 1) % n];
+      out[i * 2] = { x: a.x * 0.75 + b.x * 0.25, y: a.y * 0.75 + b.y * 0.25 };
+      out[i * 2 + 1] = { x: a.x * 0.25 + b.x * 0.75, y: a.y * 0.25 + b.y * 0.75 };
+    }
+    cur = out;
+  }
+  return cur;
+}
+
+function sampleMask(mask, w, h, x, y) {
+  const px = Math.floor(x), py = Math.floor(y);
+  if (px < 0 || py < 0 || px >= w || py >= h) return false;
+  return mask[py * w + px] === 1;
+}
+
+/** Hexagonal honeycomb fill — phase 1: fill the interior SOLID first.
+ *  Hard rule: if the cell CENTER lands inside the mask, the stone is placed.
+ *  The weighted surround only rescues thin lines/corners where the center
+ *  happens to fall outside but most of the footprint is inside. This
+ *  guarantees solid zones have NO gaps no matter the raster density. */
+function fillInterior(mask, w, h, params, hash, layer, out) {
+  const { diameterPx: d, gapPx: g } = params;
+  const coverage = params.coverage ?? 0.45;
+  const pitch = d + g;
+  const rowPitch = (pitch * Math.sqrt(3)) / 2;
+  const r = d / 2;
+  if (pitch <= 0 || r <= 0) return;
+
+  // 8 surround samples for thin-line / corner rescue only (center checked hard)
+  const sr = r * 0.7;
+  const surrounds = [
+    [sr * 0.6, 0], [-sr * 0.6, 0], [0, sr * 0.6], [0, -sr * 0.6],
+    [sr * 0.45, sr * 0.45], [-sr * 0.45, sr * 0.45],
+    [sr * 0.45, -sr * 0.45], [-sr * 0.45, -sr * 0.45],
+  ];
+  const surroundSum = surrounds.length;
+  // surround-only acceptance (center hit = auto-accept)
+  const surroundThreshold = coverage * surroundSum * 1.2;
+
+  const rows = Math.floor((h - r) / rowPitch) + 1;
+  for (let ry = 0; ry < rows; ry++) {
+    const y = r + ry * rowPitch;
+    if (y + r * 0.5 > h) break;
+    const rowOffset = ry % 2 === 1 ? pitch / 2 : 0;
+    const cols = Math.floor((w - r - rowOffset) / pitch) + 1;
+    for (let rx = 0; rx < cols; rx++) {
+      const x = r + rowOffset + rx * pitch;
+      const cx = Math.round(x), cy = Math.round(y);
+      const centerIn = cx >= 0 && cy >= 0 && cx < w && cy < h && mask[cy * w + cx] === 1;
+      if (!centerIn) {
+        let hits = 0;
+        for (const [dx, dy] of surrounds) {
+          const sx = Math.round(x + dx), sy = Math.round(y + dy);
+          if (sx < 0 || sy < 0 || sx >= w || sy >= h) continue;
+          if (mask[sy * w + sx] === 1) hits++;
+        }
+        if (hits < surroundThreshold) continue;
+      }
+      if (hash.collides(x, y, r)) continue;
+      const st = { x, y, r, layer };
+      hash.insert(st);
+      out.push(st);
+    }
+  }
+}
+
+/** Edge-filling — phase 2: walk the smoothed contour and DROP a stone only
+ *  when no existing stone is within ~0.95 pitch. This fills "notch" gaps
+ *  along diagonals/curves without pushing interior stones out (interior
+ *  already placed in phase 1). */
+function placeEdgeStones(loopPts, mask, w, h, params, hash, layer, out) {
+  const { diameterPx: d, gapPx: g } = params;
+  const pitch = d + g;
+  const r = d / 2;
+  const smooth = chaikinClosed(loopPts, 2);
+  const m = smooth.length;
+  if (m < 3) return;
+  const at = (i) => smooth[((i % m) + m) % m];
+  const fillMinSq = (pitch * 0.95) * (pitch * 0.95);
+
+  let along = pitch * 0.5; // start half a pitch in for even distribution
+  for (let i = 0; i < m; i++) {
+    const p = at(i), q = at(i + 1);
+    const dx = q.x - p.x, dy = q.y - p.y;
+    const segLen = Math.hypot(dx, dy);
+    if (segLen < 1e-6) continue;
+    while (along <= segLen + 1e-9) {
+      const t = along / segLen;
+      const x = p.x + dx * t, y = p.y + dy * t;
+      const pr = at(i - 1);
+      let tx = q.x - pr.x, ty = q.y - pr.y;
+      const tl = Math.hypot(tx, ty) || 1;
+      tx /= tl; ty /= tl;
+      let nx = -ty, ny = tx;
+      const eps = Math.max(1.5, r * 0.3);
+      if (!sampleMask(mask, w, h, x + nx * eps, y + ny * eps)) { nx = -nx; ny = -ny; }
+      const cx = x + nx * r * 0.85, cy = y + ny * r * 0.85;
+      let step = pitch; // default: advance full pitch after placing
+      let placed = false;
+      if (sampleMask(mask, w, h, cx, cy) &&
+          !hash._hasNear(cx, cy, fillMinSq) &&
+          !hash.collides(cx, cy, r)) {
+        const st = { x: cx, y: cy, r, layer };
+        hash.insert(st);
+        out.push(st);
+        placed = true;
+      }
+      if (!placed) step = pitch * 0.25; // search forward in small steps when rejected
+      along += step;
+    }
+    along -= segLen; // carry remainder into next segment
+  }
+}
+
+/** Drop isolated stones with no neighbor within ~1.3 pitches. Tightened
+ *  from 1.55 so sharp-corner edge stones (only one neighbor) aren't killed. */
+function removeOrphans(stones, hash, pitch) {
+  const maxN = pitch * 1.3;
+  const kept = [];
+  for (const s of stones) {
+    if (hash.hasNeighborWithin(s, maxN)) kept.push(s);
+    else hash.remove(s);
+  }
+  return kept;
+}
+
+function fillLayer(assignment, width, height, layer, params, hash) {
+  const { diameterPx: d, gapPx: g } = params;
+  const pitch = d + g;
+  const r = d / 2;
+  if (pitch <= 0 || r <= 0) return [];
+
+  const n = width * height;
+  const mask = new Uint8Array(n);
+  for (let i = 0; i < n; i++) mask[i] = assignment[i] === layer ? 1 : 0;
+
+  const stones = [];
+
+  // Phase 1: interior hex fill FIRST — guarantees solid zones have no gaps
+  fillInterior(mask, width, height, params, hash, layer, stones);
+
+  // Phase 2: contour walk — only ADD stones where there's a real notch
+  const loops = extractContours(mask, width, height);
+  if (loops) {
+    for (const loop of loops) placeEdgeStones(loop, mask, width, height, params, hash, layer, stones);
+  }
+
+  // Phase 3: true-orphan removal
+  return removeOrphans(stones, hash, pitch);
+}
+
+// Recommended gap (mm) per stone SS size — smaller stones need smaller gaps
+// to look dense; larger stones can tolerate wider gaps for coverage savings.
+const RECOMMENDED_GAP = {
+  ss6:  0.20,
+  ss8:  0.25,
+  ss10: 0.30,
+  ss12: 0.35,
+  ss16: 0.45,
+  ss20: 0.55,
+  ss30: 0.80,
+};
+const RECOMMENDED_GAP_PILLS = {
+  ss6:  [0.10, 0.20, 0.35, 0.6],
+  ss8:  [0.15, 0.25, 0.40, 0.7],
+  ss10: [0.20, 0.30, 0.50, 0.8],
+  ss12: [0.25, 0.35, 0.60, 1.0],
+  ss16: [0.30, 0.45, 0.80, 1.2],
+  ss20: [0.40, 0.55, 0.90, 1.4],
+  ss30: [0.60, 0.80, 1.20, 1.8],
+};
+function recommendedGapMm(sizeId) { return RECOMMENDED_GAP[sizeId] ?? 0.35; }
+
+/* ============================================================================
+ * pricing.ts — indicative quote (placeholder multipliers — real prices TBD)
+ * ==========================================================================*/
+// Per-stone material cost by SS size (USD, for glass base) — PLACEHOLDER
+const MATERIAL_COST = { ss6: 0.011, ss8: 0.013, ss10: 0.016, ss12: 0.02, ss16: 0.026, ss20: 0.038, ss30: 0.07 };
+// Type multiplier relative to glass (PLACEHOLDER — replace with real pricing)
+const TYPE_MULTIPLIER = {
+  austrian:  4.5,   // Austrian quality (highest)
+  czech:     2.8,   // Czech quality
+  leadfree:  2.0,   // Lead-free crystal
+  glass:     1.0,   // Glass (base)
+  resin:     0.6,   // Resin
+};
+const AB_MULTIPLIER = 1.2; // AB finish adds 20%
+const SETUP_FEE_USD = 8;
+const TYPE_LABEL = { austrian:"Austrian", czech:"Czech", leadfree:"Lead-free", glass:"Glass", resin:"Resin" };
+
+function estimatePrice(counts, typeId, abFinish, qtys = [1, 6, 24]) {
+  if (counts.length === 0) return null;
+  const typeMul = TYPE_MULTIPLIER[typeId] ?? 1;
+  const abMul = abFinish ? AB_MULTIPLIER : 1;
+  let stoneCost = 0, stones = 0;
+  for (const { sizeId, count } of counts) {
+    const base = MATERIAL_COST[sizeId] ?? 0.02;
+    stoneCost += base * typeMul * abMul * count;
+    stones += count;
+  }
+  const perPiece = qtys.map((qty) => ({ qty, cost: stoneCost + SETUP_FEE_USD / qty }));
+  return { stones, stoneCost, setupFee: SETUP_FEE_USD, perPiece, suggestedRetail: Math.max(12, (stoneCost + SETUP_FEE_USD) * 2.6), typeId, abFinish };
+}
+
+/* ============================================================================
+ * svg.ts — production + mockup SVG builders (ported verbatim)
+ * ==========================================================================*/
+function sanitizeName(name) {
+  return (name || "untitled").replace(/[^a-zA-Z0-9 ._-]/g, "").slice(0, 60);
+}
+
+function buildProductionSvg(p) {
+  const pxPerMm = p.imageWidth / p.designWidthMm;
+  const wMm = p.designWidthMm;
+  const hMm = p.designHeightMm ?? p.imageHeight / pxPerMm;
+  const byLayer = new Map();
+  for (const s of p.stones) {
+    if (!byLayer.has(s.layer)) byLayer.set(s.layer, []);
+    byLayer.get(s.layer).push(s);
+  }
+
+  const countLines = [], body = [];
+  for (const [layerId, list] of byLayer) {
+    const meta = p.layers[layerId];
+    if (!meta) continue;
+    const size = getSize(meta.sizeId), color = getColor(meta.colorId);
+    const rMm = size.diameterMm / 2;
+    body.push(`<g id="${size.label}-${color.id.toUpperCase()}" fill="${color.hex}" data-count="${list.length}">`);
+    for (const s of list) {
+      body.push(`<circle cx="${(s.x / pxPerMm).toFixed(2)}" cy="${(s.y / pxPerMm).toFixed(2)}" r="${rMm.toFixed(2)}"/>`);
+    }
+    body.push(`</g>`);
+    countLines.push(`  ${size.diameterMm.toFixed(1)}mm/${size.label} ${color.name}: ${list.length} pcs`);
+  }
+
+  const header = [
+    "ChinaRhinestone.com production template",
+    `Design: ${sanitizeName(p.designName)}`,
+    `Total stones: ${p.stones.length}`,
+    ...countLines,
+    "Units: millimeters. Each circle marks a stone center; r = stone radius.",
+    "*** IMPORTANT: DO NOT RESIZE this file after importing into your cutting ***",
+    "*** software. Hole sizes are precision-matched to the stone sizes above. ***",
+    "Add stencil cut tolerance (e.g. +0.15mm) when cutting template holes.",
+    `Generated: ${new Date().toISOString()}`,
+  ].join("\n");
+
+  return [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${wMm.toFixed(2)}mm" height="${hMm.toFixed(2)}mm" viewBox="0 0 ${wMm.toFixed(2)} ${hMm.toFixed(2)}">`,
+    `<!--\n${header}\n-->`,
+    ...body,
+    `</svg>`,
+  ].join("\n");
+}
+
+function buildMockupSvg(p) {
+  const pxPerMm = p.imageWidth / p.designWidthMm;
+  const wMm = p.designWidthMm;
+  const hMm = p.designHeightMm ?? p.imageHeight / pxPerMm;
+  const byLayer = new Map();
+  for (const s of p.stones) {
+    if (!byLayer.has(s.layer)) byLayer.set(s.layer, []);
+    byLayer.get(s.layer).push(s);
+  }
+
+  const defs = [], body = [];
+  for (const [layerId, list] of byLayer) {
+    const meta = p.layers[layerId];
+    if (!meta) continue;
+    const size = getSize(meta.sizeId), color = getColor(meta.colorId);
+    const rMm = size.diameterMm / 2;
+    defs.push(
+      `<radialGradient id="g${layerId}" cx="35%" cy="32%" r="75%">` +
+      `<stop offset="0%" stop-color="${shade(color.hex, 0.6)}"/>` +
+      `<stop offset="45%" stop-color="${color.hex}"/>` +
+      `<stop offset="100%" stop-color="${shade(color.hex, -0.45)}"/>` +
+      `</radialGradient>`
+    );
+    body.push(`<g>`);
+    for (const s of list) {
+      body.push(`<circle cx="${(s.x / pxPerMm).toFixed(2)}" cy="${(s.y / pxPerMm).toFixed(2)}" r="${rMm.toFixed(2)}" fill="url(#g${layerId})"/>`);
+    }
+    body.push(`</g>`);
+  }
+
+  return [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${wMm.toFixed(2)}mm" height="${hMm.toFixed(2)}mm" viewBox="0 0 ${wMm.toFixed(2)} ${hMm.toFixed(2)}">`,
+    `<!--\nChinaRhinestone.com customer mockup (preview only — NOT a cutting file)\nDesign: ${sanitizeName(p.designName)}\nGenerated: ${new Date().toISOString()}\n-->`,
+    `<defs>${defs.join("")}</defs>`,
+    `<rect width="100%" height="100%" fill="#101014"/>`,
+    body.join("\n"),
+    `</svg>`,
+  ].join("\n");
+}
+
+/* ============================================================================
+ * Demo app — state + pipeline + UI (vanilla JS port of Designer.tsx)
+ * ==========================================================================*/
+const GRADIENT_SCATTER_THRESHOLD = 2600;
+const EDGE_MODES = {
+  loose: 0.4, balanced: 0.55, tight: 0.75,
+};
+const STEP_LABELS = ["Upload", "Size", "Select", "Stone", "Colors"];
+
+const S = {
+  orig: null,            // { canvas, name } — original artwork (≤1024px cap)
+  srcImage: null,        // { data, width, height, name } — rasterized at design aspect
+  separation: null,      // SeparationResult
+  layerConfigs: [],      // [{ stoneColorId, sizeId, visible }]
+  stones: [],
+  k: 3,
+  sizeId: "ss10",        // global stone size applied to every layer
+  stoneTypeId: "glass",  // selected stone product type
+  abFinish: false,       // AB iridescent coating (+20%)
+  designWIn: 9,          // design width in inches (internal canonical unit)
+  designHIn: null,       // design height in inches (null until artwork is loaded)
+  unit: "in",            // display unit for the size inputs: "in" | "cm"
+  lockRatio: true,       // keep artwork aspect ratio when editing size
+  gapMm: 0,              // set in resetState() based on sizeId
+  edgeMode: "balanced",
+  showSource: false,
+  glow: true,
+};
+
+const $ = (id) => document.getElementById(id);
+const canvas = $("preview");
+const ctx2d = canvas.getContext("2d");
+
+/* ------------------------------- helpers ----------------------------------*/
+let toastTimer = null;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 4000);
+}
+
+function setBusy(on) { $("busy").classList.toggle("show", on); }
+
+function makeStoneSprite(hex, diameterPx, glow) {
+  const pad = 2;
+  const size = Math.ceil(diameterPx) + pad * 2;
+  const c = document.createElement("canvas");
+  c.width = size; c.height = size;
+  const g = c.getContext("2d");
+  const cx = size / 2, r = diameterPx / 2;
+  const grad = g.createRadialGradient(cx - r * 0.25, cx - r * 0.3, r * 0.1, cx, cx, r);
+  grad.addColorStop(0, shade(hex, 0.55));
+  grad.addColorStop(0.45, hex);
+  grad.addColorStop(1, shade(hex, -0.35));
+  g.fillStyle = grad;
+  g.beginPath(); g.arc(cx, cx, r, 0, Math.PI * 2); g.fill();
+  if (glow) {
+    g.fillStyle = "rgba(255,255,255,0.85)";
+    g.beginPath(); g.arc(cx - r * 0.3, cx - r * 0.35, Math.max(0.6, r * 0.18), 0, Math.PI * 2); g.fill();
+  }
+  return c;
+}
+
+function download(content, filename, type = "image/svg+xml") {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ------------------------------ size / units -------------------------------*/
+const IN_TO_CM = 2.54;
+const MIN_IN = 1, MAX_IN = 36; // production board max: 36 in (91.44 cm) per side
+const clampIn = (v) => Math.min(MAX_IN, Math.max(MIN_IN, v));
+// Internal state is always in inches. Display shows BOTH in and cm simultaneously.
+let _syncingSize = false; // prevent recursive input events
+
+function syncSizeInputs() {
+  _syncingSize = true;
+  $("wSizeIn").value = S.designWIn.toFixed(2);
+  $("wSizeCm").value = (S.designWIn * IN_TO_CM).toFixed(1);
+  if (S.designHIn != null) {
+    $("hSizeIn").value = S.designHIn.toFixed(2);
+    $("hSizeCm").value = (S.designHIn * IN_TO_CM).toFixed(1);
+  } else {
+    $("hSizeIn").value = "";
+    $("hSizeCm").value = "";
+  }
+  _syncingSize = false;
+}
+
+function onSizeInput(dim, unit) {
+  if (_syncingSize) return;
+  // dim: "w" | "h"; unit: "in" | "cm"
+  const el = $(dim === "w" ? (unit === "in" ? "wSizeIn" : "wSizeCm") : (unit === "in" ? "hSizeIn" : "hSizeCm"));
+  const v = parseFloat(el.value);
+  if (!isFinite(v) || v <= 0) return;
+  // convert to inches (internal unit)
+  const valIn = clampIn(unit === "in" ? v : v / IN_TO_CM);
+
+  if (dim === "w") {
+    S.designWIn = valIn;
+    if (S.lockRatio && S.orig) {
+      const aspect = S.orig.canvas.width / S.orig.canvas.height;
+      S.designHIn = clampIn(valIn / aspect);
+    }
+  } else {
+    S.designHIn = valIn;
+    if (S.lockRatio && S.orig) {
+      const aspect = S.orig.canvas.width / S.orig.canvas.height;
+      S.designWIn = clampIn(valIn * aspect);
+    }
+  }
+  syncSizeInputs();
+  if (S.orig) rasterize();
+}
+$("wSizeIn").addEventListener("input", () => onSizeInput("w", "in"));
+$("wSizeCm").addEventListener("input", () => onSizeInput("w", "cm"));
+$("hSizeIn").addEventListener("input", () => onSizeInput("h", "in"));
+$("hSizeCm").addEventListener("input", () => onSizeInput("h", "cm"));
+
+/** Nearest-neighbor resample of the per-pixel layer assignment. */
+function resampleAssignment(a, ow, oh, nw, nh) {
+  const out = new Uint8Array(nw * nh).fill(255);
+  for (let y = 0; y < nh; y++) {
+    const oy = Math.min(oh - 1, Math.floor((y / nh) * oh));
+    for (let x = 0; x < nw; x++) {
+      const ox = Math.min(ow - 1, Math.floor((x / nw) * ow));
+      out[y * nw + x] = a[oy * ow + ox];
+    }
+  }
+  return out;
+}
+
+/* Raster resolution is derived from the OUTPUT side, not the input image:
+ * given the customer's physical design size and the selected stone, the
+ * stone grid (how many stones fit per row/column) is already fixed. We set
+ * the internal raster so that ONE stone pitch always occupies PX_PER_STONE
+ * pixels — big stones → coarse raster, small stones → dense raster. Color
+ * separation then happens at the true stone granularity, so what the
+ * customer sees in the preview matches what we export 1:1. */
+const PX_PER_STONE = 8;    // sample pixels per stone pitch
+const RASTER_CAP = 2400;   // upper bound to keep memory/CPU sane
+const RASTER_MIN = 512;    // lower bound for very coarse stone grids
+
+function rasterTargetDim() {
+  const size = getSize(S.sizeId);
+  const pitchMm = size.diameterMm + S.gapMm;
+  const pxPerMm = PX_PER_STONE / pitchMm;
+  let w = Math.round(S.designWIn * 25.4 * pxPerMm);
+  let h = Math.round((S.designHIn ?? S.designWIn) * 25.4 * pxPerMm);
+  const long = Math.max(w, h);
+  let scale = 1;
+  if (long > RASTER_CAP) scale = RASTER_CAP / long;
+  else if (long < RASTER_MIN) scale = RASTER_MIN / long;
+  w = Math.max(1, Math.round(w * scale));
+  h = Math.max(1, Math.round(h * scale));
+  return { w, h };
+}
+
+function rasterize(reseparate = false) {
+  if (!S.orig || S.designHIn == null) return;
+  const { w, h } = rasterTargetDim();
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const g = c.getContext("2d");
+  g.drawImage(S.orig.canvas, 0, 0, w, h);
+  const data = g.getImageData(0, 0, w, h);
+  if (S.separation && S.srcImage && !reseparate) {
+    S.separation = {
+      ...S.separation,
+      assignment: resampleAssignment(S.separation.assignment, S.srcImage.width, S.srcImage.height, w, h),
+    };
+    S.srcImage = { data, width: w, height: h, name: S.orig.name };
+    runFill();
+  } else {
+    S.srcImage = { data, width: w, height: h, name: S.orig.name };
+    runSeparation();
+  }
+}
+
+/** Adopt a freshly loaded artwork: reset pipeline, fit height to aspect. */
+function adoptArtwork(canvas, name) {
+  S.orig = { canvas, name };
+  S.separation = null; S.layerConfigs = []; S.stones = [];
+  const aspect = canvas.width / canvas.height;
+  S.designHIn = clampIn(S.designWIn / aspect);
+  syncSizeInputs();
+  rasterize();
+}
+
+/* ------------------------------ sample art --------------------------------*/
+function makeSampleArtwork() {
+  // Programmatic sample: heart (rose) + "BLING" (jet) + stars (topaz) — 3 clean clusters.
+  const c = document.createElement("canvas");
+  c.width = 520; c.height = 400;
+  const g = c.getContext("2d");
+
+  // heart
+  g.save();
+  g.translate(260, 150);
+  g.fillStyle = "#D46A8C";
+  g.beginPath();
+  g.moveTo(0, 90);
+  g.bezierCurveTo(-140, -10, -95, -125, 0, -55);
+  g.bezierCurveTo(95, -125, 140, -10, 0, 90);
+  g.fill();
+  g.restore();
+
+  // stars
+  function star(x, y, R, r, fill) {
+    g.fillStyle = fill;
+    g.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const rad = i % 2 === 0 ? R : r;
+      const a = (Math.PI / 5) * i - Math.PI / 2;
+      const px = x + rad * Math.cos(a), py = y + rad * Math.sin(a);
+      i === 0 ? g.moveTo(px, py) : g.lineTo(px, py);
+    }
+    g.closePath(); g.fill();
+  }
+  star(80, 70, 34, 14, "#D9A441");
+  star(440, 70, 34, 14, "#D9A441");
+  star(70, 300, 22, 9, "#D9A441");
+  star(450, 300, 22, 9, "#D9A441");
+
+  // text
+  g.fillStyle = "#1A1A1E";
+  g.font = "900 86px system-ui, sans-serif";
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.fillText("BLING", 260, 330);
+
+  return c;
+}
+
+/* ------------------------------ pipeline ----------------------------------*/
+function loadFromBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = () => {
+    const cap = 4096; // defensive only — rasterize() resamples straight from the
+                      // original at stone-grid density, so no quality cap needed
+    const scale = Math.min(1, cap / Math.max(img.width, img.height));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(img.width * scale));
+    c.height = Math.max(1, Math.round(img.height * scale));
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    adoptArtwork(c, name);
+  };
+  img.src = url;
+}
+
+function runSeparation() {
+  if (!S.srcImage) { S.separation = null; S.layerConfigs = []; renderAll(); return; }
+  setBusy(true);
+  setTimeout(() => {
+    const result = separateColors(S.srcImage.data, S.k);
+    S.separation = result;
+    S.layerConfigs = result.centers.map((c) => ({
+      stoneColorId: nearestStoneColor(c.r, c.g, c.b).id,
+      sizeId: S.sizeId,
+      visible: true,
+    }));
+    setBusy(false);
+    runFill();
+  }, 30);
+}
+
+function runFill() {
+  if (!S.srcImage || !S.separation || S.layerConfigs.length === 0) { S.stones = []; renderAll(); return; }
+  setBusy(true);
+  setTimeout(() => {
+    const pxPerMm = S.srcImage.width / (S.designWIn * 25.4);
+    const gapPx = S.gapMm * pxPerMm;
+    const coverage = EDGE_MODES[S.edgeMode] ?? 0.55;
+
+    // Place bigger layers first so small layers' stones yield around them;
+    // every stone goes into one shared spatial hash → no overlaps, ever.
+    const order = S.separation.centers
+      .map((_, i) => i)
+      .filter((i) => S.layerConfigs[i] && S.layerConfigs[i].visible)
+      .sort((a, b) => S.separation.centers[b].count - S.separation.centers[a].count);
+
+    let maxD = 0;
+    for (const i of order) {
+      const dPx = getSize(S.layerConfigs[i].sizeId).diameterMm * pxPerMm;
+      if (dPx > maxD) maxD = dPx;
+    }
+    const hash = makeSpatialHash(maxD);
+
+    const all = [];
+    for (const i of order) {
+      const dPx = getSize(S.layerConfigs[i].sizeId).diameterMm * pxPerMm;
+      if (dPx < 1.5) continue;
+      const layerStones = fillLayer(S.separation.assignment, S.srcImage.width, S.srcImage.height, i, {
+        diameterPx: dPx, gapPx, coverage,
+      }, hash);
+      for (const st of layerStones) all.push(st);
+    }
+    S.stones = all;
+    setBusy(false);
+    renderAll();
+  }, 60);
+}
+
+/* ------------------------------ rendering ---------------------------------*/
+function renderCanvas() {
+  $("canvasWrap").classList.toggle("has-art", !!S.srcImage);
+  if (!S.srcImage) {
+    canvas.style.display = "none";
+    $("hint").style.display = "block";
+    return;
+  }
+  canvas.style.display = "block";
+  $("hint").style.display = "none";
+  canvas.width = S.srcImage.width;
+  canvas.height = S.srcImage.height;
+  ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+  if (S.showSource) {
+    ctx2d.putImageData(S.srcImage.data, 0, 0);
+    return;
+  }
+  const pxPerMm = S.srcImage.width / (S.designWIn * 25.4);
+    const sprites = new Map();
+  S.layerConfigs.forEach((cfg, i) => {
+    if (!cfg || !cfg.visible) return;
+    const d = getSize(cfg.sizeId).diameterMm * pxPerMm;
+    if (d < 1.5) return;
+    sprites.set(i, makeStoneSprite(getColor(cfg.stoneColorId).hex, d, S.glow));
+  });
+  for (const s of S.stones) {
+    const sp = sprites.get(s.layer);
+    if (!sp) continue;
+    ctx2d.drawImage(sp, s.x - sp.width / 2, s.y - sp.height / 2);
+  }
+}
+
+function renderSteps() {
+  const step = !S.srcImage ? 1 : !S.separation ? 2 : S.stones.length === 0 ? 3 : 5;
+  $("steps").innerHTML = STEP_LABELS.map((label, i) => {
+    const n = i + 1;
+    const cls = n < step ? "done" : n === step ? "active" : "";
+    return `<div class="step ${cls}"><span class="n">${n}</span>${label}</div>`;
+  }).join("");
+}
+
+/** Inline SVG of a faceted rhinestone (top view), scaled to `px`. */
+function stoneIcon(px) {
+  const cx = 50, cy = 50, R = 46, r = 21;
+  const pt = (rad, deg) => {
+    const a = (deg * Math.PI) / 180;
+    return `${(cx + rad * Math.cos(a)).toFixed(1)},${(cy + rad * Math.sin(a)).toFixed(1)}`;
+  };
+  let facets = "";
+  for (let i = 0; i < 8; i++) {
+    const a0 = i * 45 - 90, a1 = a0 + 45;
+    const pts = [pt(R, a0), pt(R, a1), pt(r, a1), pt(r, a0)].join(" ");
+    facets += `<polygon points="${pts}" fill="${i % 2 === 0 ? "#eceef4" : "#b4b7c8"}"/>`;
+  }
+  const table = Array.from({ length: 8 }, (_, i) => pt(r, i * 45 - 90)).join(" ");
+  return (
+    `<svg class="rstone" viewBox="0 0 100 100" width="${px}" height="${px}" aria-hidden="true">` +
+    `<circle cx="50" cy="50" r="48" fill="#8f92a2"/>` +
+    facets +
+    `<polygon points="${table}" fill="#dcdee9"/>` +
+    `<path d="M69 24 L72 31 L79 34 L72 37 L69 44 L66 37 L59 34 L66 31 Z" fill="#fff" opacity=".92"/>` +
+    `<circle cx="50" cy="50" r="48" fill="none" stroke="#5b5e6f" stroke-width="2.5"/>` +
+    `</svg>`
+  );
+}
+
+function renderSizeGrid() {
+  const el = $("sizeGrid");
+  if (!el) return;
+  el.innerHTML = "";
+  for (const s of STONE_SIZES) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "sizebtn" + (s.id === S.sizeId ? " sel" : "");
+    const px = Math.max(6, Math.round(s.diameterMm * 2.6)); // proportional preview (compact)
+    btn.title = `${s.diameterMm.toFixed(1)}mm diameter (${s.label})`;
+    btn.innerHTML =
+      stoneIcon(px) +
+      `<span class="mm">${s.diameterMm.toFixed(1)}mm</span>` +
+      `<span class="ss">${s.label}</span>`;
+    btn.addEventListener("click", () => {
+      if (S.sizeId === s.id) return;
+      S.sizeId = s.id;
+      S.gapMm = recommendedGapMm(s.id); // auto-snap to recommended gap for this size
+      S.layerConfigs.forEach((cfg) => { if (cfg) cfg.sizeId = s.id; });
+      renderSizeGrid();
+      renderGapRow();
+      // Stone granularity changed → re-rasterize at the new stone-grid density
+      // and re-run color separation so the preview matches the export 1:1.
+      if (S.orig) rasterize(true); else renderAll();
+    });
+    el.appendChild(btn);
+  }
+  // 8th grid cell: hint text fills the empty slot of the 2nd row
+  const hintCell = document.createElement("div");
+  hintCell.className = "sizehint";
+  hintCell.textContent = "Bigger stones — bolder look, lower count";
+  el.appendChild(hintCell);
+}
+
+function renderGapRow() {
+  const el = $("gapRow");
+  if (!el) return;
+  el.innerHTML = "";
+  const pills = RECOMMENDED_GAP_PILLS[S.sizeId] ?? RECOMMENDED_GAP_PILLS.ss10;
+  for (const v of pills) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pillbtn" + (Math.abs(v - S.gapMm) < 0.001 ? " sel" : "");
+    b.dataset.gap = v;
+    b.textContent = v.toFixed(v < 0.2 ? 2 : (v < 1 ? 1 : 1));
+    el.appendChild(b);
+  }
+}
+
+function renderKRow() {
+  const el = $("kRow");
+  if (!el) return;
+  el.innerHTML = "";
+  for (let n = 1; n <= 8; n++) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pillbtn" + (n === S.k ? " sel" : "");
+    b.dataset.k = n;
+    b.title = `${n} stone color${n > 1 ? "s" : ""}`;
+    b.textContent = n;
+    el.appendChild(b);
+  }
+}
+
+function renderFineTune() {
+  const gapRow = $("gapRow");
+  if (gapRow) gapRow.querySelectorAll("[data-gap]").forEach((b) => {
+    b.classList.toggle("sel", Math.abs(+b.dataset.gap - S.gapMm) < 0.001);
+  });
+  const edgeRow = $("edgeRow");
+  if (edgeRow) edgeRow.querySelectorAll("[data-edge]").forEach((b) => {
+    b.classList.toggle("sel", b.dataset.edge === S.edgeMode);
+  });
+}
+
+function renderLayers() {
+  const el = $("layers");
+  if (!S.separation || S.separation.centers.length === 0) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:11px;padding:4px 0">Upload artwork to configure stone layers.</div>`;
+    return;
+  }
+  const counts = new Map();
+  for (const s of S.stones) counts.set(s.layer, (counts.get(s.layer) ?? 0) + 1);
+
+  el.innerHTML = "";
+  S.separation.centers.forEach((c, i) => {
+    const cfg = S.layerConfigs[i];
+    if (!cfg) return;
+    const color = getColor(cfg.stoneColorId);
+    const size = getSize(cfg.sizeId);
+    const n = counts.get(i) ?? 0;
+    const pct = ((c.count / (S.srcImage.width * S.srcImage.height)) * 100).toFixed(0);
+    const div = document.createElement("div");
+    div.className = "layer" + (cfg.visible ? "" : " off");
+    div.innerHTML = `
+      <div class="swatch" style="background:${color.hex}" title="${color.name}"></div>
+      <select data-layer="${i}" data-kind="color" title="Stone color">${STONE_COLORS.map(
+        (cc) => `<option value="${cc.id}" ${cc.id === cfg.stoneColorId ? "selected" : ""}>${cc.name}</option>`
+      ).join("")}</select>
+      <input type="checkbox" data-layer="${i}" data-kind="visible" ${cfg.visible ? "checked" : ""} title="Toggle layer" />
+      <div class="cnt">${n.toLocaleString()} stones · ${size.diameterMm.toFixed(1)}mm/${size.label} · ${pct}%</div>
+    `;
+    el.appendChild(div);
+  });
+
+  el.querySelectorAll("select,input").forEach((input) => {
+    input.addEventListener("change", () => {
+      const i = +input.dataset.layer;
+      const kind = input.dataset.kind;
+      if (kind === "color") S.layerConfigs[i].stoneColorId = input.value;
+      else if (kind === "visible") S.layerConfigs[i].visible = input.checked;
+      runFill();
+    });
+  });
+}
+
+function renderStats() {
+  const counts = new Map();
+  for (const s of S.stones) counts.set(s.layer, (counts.get(s.layer) ?? 0) + 1);
+
+  const sizeCounts = [];
+  S.layerConfigs.forEach((cfg, i) => {
+    const n = counts.get(i) ?? 0;
+    if (cfg && n > 0) sizeCounts.push({ sizeId: cfg.sizeId, count: n });
+  });
+  const stones = sizeCounts.reduce((a, b) => a + b.count, 0);
+  const colors = sizeCounts.length;
+  const has = !!S.srcImage;
+
+  $("chipStones").style.display = has ? "" : "none";
+  $("chipColors").style.display = has ? "" : "none";
+  if (has) {
+    $("chipStones").querySelector("b").textContent = stones.toLocaleString();
+    $("chipColors").querySelector("b").textContent = String(colors);
+  }
+
+  $("lbStats").innerHTML = has
+    ? `<b>${stones.toLocaleString()}</b> stones · <b>${colors}</b> colors · ` +
+      `${S.designWIn.toFixed(1)} × ${(S.designHIn ?? 0).toFixed(1)} in · ` +
+      `${(S.designWIn * IN_TO_CM).toFixed(1)} × ${((S.designHIn ?? 0) * IN_TO_CM).toFixed(1)} cm`
+    : "";
+  // keep the "do not resize" note in sync with the actual stone sizes in use (deduped)
+  if (has && sizeCounts.length) {
+    const labels = [...new Set(sizeCounts.map(c => getSize(c.sizeId)?.label ?? c.sizeId))];
+    $("dlSizeLabel").textContent = labels.join(" / ");
+  }
+
+  // indicative quote — shown in the enlarged view only (main page stays clean)
+  const pricing = stones > 0 ? estimatePrice(sizeCounts, S.stoneTypeId, S.abFinish) : null;
+  if (pricing) {
+    const tier = (t) =>
+      `<span class="lb-tier">${t.qty} pc${t.qty > 1 ? "s" : ""} · <b>$${t.cost.toFixed(2)}</b>/pc</span>`;
+    const typeLabel = TYPE_LABEL[S.stoneTypeId] || "Glass";
+    $("lbPricing").innerHTML =
+      `<div class="lb-price-row">` +
+      `<span class="lb-price-main">$${pricing.perPiece[0].cost.toFixed(2)}</span>` +
+      `<span class="lb-price-sub">est. per piece · ${typeLabel}${S.abFinish ? " AB" : ""} · qty 1</span>` +
+      `<span class="lb-tiers">${pricing.perPiece.slice(1).map(tier).join("")}</span>` +
+      `</div>` +
+      `<div class="lb-note">Indicative estimate · ${pricing.stones.toLocaleString()} stones, $${pricing.setupFee.toFixed(2)} setup included — final quote confirmed after artwork review.</div>`;
+  } else {
+    $("lbPricing").innerHTML =
+      `<span class="lb-empty">Pricing appears here once stones are placed on the artwork.</span>`;
+  }
+
+  const canExport = S.stones.length > 0 && has;
+  $("btnProd").disabled = !canExport;
+  $("btnMock").disabled = !canExport;
+}
+
+function renderMisc() {
+  // gradient warning
+  $("gradientWarn").style.display =
+    S.separation && S.separation.scatter > GRADIENT_SCATTER_THRESHOLD ? "block" : "none";
+
+  // dims info
+  if (S.srcImage) {
+    const w = S.designWIn, h = S.designHIn ?? 0;
+    $("dimInfo").textContent =
+      `${S.srcImage.width}×${S.srcImage.height} px · ${w.toFixed(1)} × ${h.toFixed(1)} in · ${(w * IN_TO_CM).toFixed(1)} × ${(h * IN_TO_CM).toFixed(1)} cm`;
+  } else {
+    $("dimInfo").textContent = "";
+  }
+
+  $("btnSource").classList.toggle("on", S.showSource);
+  $("btnSource").textContent = S.showSource ? "Show stones" : "Show source";
+  $("btnGlow").classList.toggle("on", S.glow);
+}
+
+function renderAll() {
+  // Ensure gap is initialized on first render (before any size selection)
+  if (!S.gapMm) S.gapMm = recommendedGapMm(S.sizeId);
+  renderSteps();
+  renderSizeGrid();
+  renderGapRow();
+  renderKRow();
+  renderFineTune();
+  renderCanvas();
+  renderLayers();
+  renderStats();
+  renderMisc();
+  syncSizeInputs();
+}
+
+/* ------------------------------ exports -----------------------------------*/
+function svgParams() {
+  if (!S.srcImage || S.stones.length === 0) return null;
+  const counts = new Map();
+  for (const s of S.stones) counts.set(s.layer, (counts.get(s.layer) ?? 0) + 1);
+  const layers = {};
+  S.layerConfigs.forEach((cfg, i) => {
+    if (cfg.visible && (counts.get(i) ?? 0) > 0) layers[i] = { sizeId: cfg.sizeId, colorId: cfg.stoneColorId };
+  });
+  return {
+    stones: S.stones,
+    layers,
+    designWidthMm: S.designWIn * 25.4,
+    designHeightMm: (S.designHIn ?? 0) * 25.4,
+    imageWidth: S.srcImage.width,
+    imageHeight: S.srcImage.height,
+    designName: S.srcImage.name,
+  };
+}
+
+/* ------------------------------ wire up UI --------------------------------*/
+const dz = $("dropzone");
+dz.addEventListener("click", () => $("file").click());
+$("file").addEventListener("change", (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (f) loadFromBlob(f, f.name);
+  e.target.value = "";
+});
+["dragenter", "dragover"].forEach((ev) =>
+  dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add("drag"); })
+);
+["dragleave", "drop"].forEach((ev) =>
+  dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove("drag"); })
+);
+dz.addEventListener("drop", (e) => {
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) loadFromBlob(f, f.name);
+});
+
+$("btnSample").addEventListener("click", () => {
+  adoptArtwork(makeSampleArtwork(), "sample-artwork");
+});
+
+$("btnReset").addEventListener("click", () => {
+  S.orig = null; S.srcImage = null; S.separation = null; S.layerConfigs = []; S.stones = [];
+  S.designWIn = 9; S.designHIn = null; S.lockRatio = true; S.sizeId = "ss10";
+  S.gapMm = recommendedGapMm(S.sizeId);
+  S.k = 3; S.edgeMode = "balanced";
+  S.stoneTypeId = "glass"; S.abFinish = false;
+  $("lockRatio").checked = true;
+  $("stoneType").value = S.stoneTypeId;
+  $("abFinish").checked = false;
+  syncSizeInputs();
+  renderAll();
+});
+
+// ---- stone selection (card 3): type dropdown + AB finish checkbox -------------
+// Stone COLOR is not chosen by the customer — after color separation each layer
+// is auto-matched to the nearest stone color from our 32-color universal library.
+$("stoneType").addEventListener("change", (e) => {
+  S.stoneTypeId = e.target.value;
+  renderStats();
+});
+
+$("abFinish").addEventListener("change", (e) => {
+  S.abFinish = e.target.checked;
+  renderStats();
+});
+
+// color-count pills (1-8) — event delegation on the row
+$("kRow").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-k]");
+  if (!btn) return;
+  const n = +btn.dataset.k;
+  if (n === S.k) return;
+  S.k = n;
+  renderKRow();
+  if (S.srcImage) runSeparation();
+});
+
+$("lockRatio").addEventListener("change", (e) => {
+  S.lockRatio = e.target.checked;
+  if (S.lockRatio && S.orig) {
+    const aspect = S.orig.canvas.width / S.orig.canvas.height;
+    S.designHIn = clampIn(S.designWIn / aspect);
+    syncSizeInputs();
+    rasterize();
+  }
+});
+
+// fine-tune pills — gap presets & edge modes
+$("gapRow").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-gap]");
+  if (!btn) return;
+  const v = +btn.dataset.gap;
+  if (Math.abs(v - S.gapMm) < 0.001) return;
+  S.gapMm = v;
+  renderFineTune();
+  // A different gap changes the stone pitch (= effective stone size), so the
+  // raster density AND the color separation must both be redone.
+  if (S.orig) rasterize(true); else renderAll();
+});
+
+$("edgeRow").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-edge]");
+  if (!btn) return;
+  if (btn.dataset.edge === S.edgeMode) return;
+  S.edgeMode = btn.dataset.edge;
+  renderFineTune();
+  if (S.srcImage) runFill();
+});
+
+$("btnSource").addEventListener("click", () => {
+  S.showSource = !S.showSource;
+  renderCanvas();
+  renderMisc();
+});
+
+$("btnGlow").addEventListener("click", () => {
+  S.glow = !S.glow;
+  renderCanvas();
+  renderMisc();
+});
+
+$("btnProd").addEventListener("click", () => {
+  const p = svgParams();
+  if (!p) return;
+  download(buildProductionSvg(p), "chinarhinestone-template.svg");
+  toast("Production SVG downloaded — ready for the cutting table or setting machine.");
+});
+
+$("btnMock").addEventListener("click", () => {
+  const p = svgParams();
+  if (!p) return;
+  download(buildMockupSvg(p), "chinarhinestone-mockup.svg");
+  toast("Mockup SVG downloaded — send it to your customer for approval.");
+});
+
+/* --------------------- enlarged preview (lightbox) ------------------------*/
+const lb = $("lightbox");
+const lbStage = $("lbStage");
+const canvasSlot = $("canvasSlot");
+
+function openLightbox() {
+  if (!S.srcImage) { toast("Upload artwork first — then click the preview to enlarge it."); return; }
+  if (lb.classList.contains("open")) return;
+  lbStage.appendChild(canvas);
+  lb.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeLightbox() {
+  if (!lb.classList.contains("open")) return;
+  lb.classList.remove("open");
+  canvasSlot.appendChild(canvas);
+  document.body.style.overflow = "";
+}
+canvas.addEventListener("click", () => { if (!lb.classList.contains("open")) openLightbox(); });
+$("btnZoom").addEventListener("click", openLightbox);
+$("btnZoom2").addEventListener("click", openLightbox);
+
+$("lbClose").addEventListener("click", closeLightbox);
+lb.addEventListener("click", (e) => { if (e.target === lb || e.target === lbStage) closeLightbox(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeLightbox(); });
+
+renderAll();
+</script>
+</body>
+</html>

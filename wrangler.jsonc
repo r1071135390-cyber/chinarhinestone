@@ -1,0 +1,14 @@
+// Cloudflare Workers configuration for ChinaRhinestone.com (deployed via OpenNext).
+// Deploy flow: push to GitHub -> CI runs `npm run deploy`, or deploy locally
+// with `npx wrangler deploy` after `opennextjs-cloudflare build`.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "chinarhinestone",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
+  }
+}

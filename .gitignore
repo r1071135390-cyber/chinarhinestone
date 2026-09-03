@@ -1,0 +1,29 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# opennext / cloudflare
+/.open-next/
+/.wrangler/
+
+# misc
+*.tsbuildinfo
+next-env.d.ts
+
+# local portable node & npm cache
+/.tools/
+/.npm-cache/
+
+# env files
+.env*
+
+# os
+.DS_Store
+
+# legacy / local-only artifacts
+/coze-export/
+npm-install.log
+check.txt

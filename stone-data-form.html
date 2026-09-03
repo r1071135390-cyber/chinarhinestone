@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ChinaRhinestone.com · 钻石数据采集表</title>
+<style>
+  :root {
+    --bg: #0e0e12; --panel: #16161c; --panel2: #1d1d25; --line: #2a2a34;
+    --text: #ececf1; --muted: #9a9ab0; --accent: #d9a441; --accent2: #f0c069;
+    --danger: #e05656; --ok: #4cc38a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-size: 14px; line-height: 1.5; padding-bottom: 90px;
+  }
+  header { max-width: 1000px; margin: 0 auto; padding: 28px 20px 6px; }
+  header h1 { font-size: 22px; letter-spacing: .5px; }
+  header h1 b { color: var(--accent); }
+  header .sub { color: var(--muted); font-size: 13px; margin-top: 6px; max-width: 760px; }
+  .notebox {
+    background: rgba(217,164,65,.08); border: 1px solid rgba(217,164,65,.35);
+    border-radius: 10px; padding: 10px 14px; margin-top: 12px; font-size: 12.5px; color: #d8cba8;
+  }
+  main { max-width: 1000px; margin: 0 auto; padding: 14px 20px; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px; margin-top: 16px;
+  }
+  .card > .cardhead { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .cardhead .idx {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #141414;
+    font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex: none;
+  }
+  .cardhead h2 { font-size: 16px; flex: 1; min-width: 0; }
+  .cardhead h2 input { font-size: 16px; font-weight: 700; }
+  .delbtn {
+    background: transparent; border: 1px solid var(--line); color: var(--muted);
+    border-radius: 8px; padding: 4px 10px; cursor: pointer; font-size: 12px; flex: none;
+  }
+  .delbtn:hover { border-color: var(--danger); color: var(--danger); }
+
+  input, select {
+    background: var(--panel2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 8px; padding: 6px 9px; font-size: 13px; width: 100%;
+    font-family: inherit;
+  }
+  input:focus { outline: none; border-color: var(--accent); }
+  input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+  input[type=color] {
+    padding: 2px; height: 30px; cursor: pointer; background: var(--panel2);
+  }
+  input[type=number] { text-align: right; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin: 12px 0; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px 14px; margin: 12px 0; }
+  .f label { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
+
+  h3.sec { font-size: 13px; color: var(--muted); font-weight: 700; margin: 16px 0 8px; letter-spacing: .3px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th {
+    text-align: left; color: var(--muted); font-weight: 600; font-size: 11px;
+    padding: 4px 6px; border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  td { padding: 4px 6px; border-bottom: 1px solid rgba(42,42,52,.55); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  td .cell { display: flex; align-items: center; gap: 6px; }
+  .fixed { color: var(--text); }
+  .swatch {
+    width: 22px; height: 22px; border-radius: 50%; flex: none;
+    border: 1px solid rgba(255,255,255,.25);
+    box-shadow: inset -2px -2px 4px rgba(0,0,0,.4), inset 2px 2px 4px rgba(255,255,255,.35);
+  }
+  .rowdel {
+    background: transparent; border: none; color: var(--muted); cursor: pointer;
+    font-size: 14px; padding: 2px 6px; border-radius: 6px;
+  }
+  .rowdel:hover { color: var(--danger); background: rgba(224,86,86,.1); }
+
+  .addrow {
+    margin-top: 8px; background: transparent; border: 1px dashed var(--line); color: var(--muted);
+    border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 12.5px;
+  }
+  .addrow:hover { border-color: var(--accent); color: var(--accent); }
+
+  .addtype {
+    margin-top: 16px; width: 100%; background: transparent; border: 1px dashed var(--line);
+    color: var(--muted); border-radius: 14px; padding: 14px; cursor: pointer; font-size: 14px;
+  }
+  .addtype:hover { border-color: var(--accent); color: var(--accent); }
+
+  footer.bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    background: rgba(14,14,18,.92); backdrop-filter: blur(8px);
+    border-top: 1px solid var(--line);
+    display: flex; align-items: center; gap: 12px; padding: 12px 20px;
+  }
+  footer .inner { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; gap: 12px; width: 100%; }
+  .primary {
+    background: linear-gradient(135deg, var(--accent), #b8882e); color: #141414; font-weight: 700;
+    border: none; border-radius: 10px; padding: 10px 22px; cursor: pointer; font-size: 14px;
+  }
+  .primary:hover { filter: brightness(1.08); }
+  .ghost {
+    background: transparent; border: 1px solid var(--line); color: var(--text);
+    border-radius: 10px; padding: 10px 16px; cursor: pointer; font-size: 13px;
+  }
+  .ghost:hover { border-color: var(--accent); color: var(--accent); }
+  #saveTip { margin-left: auto; font-size: 12px; color: var(--ok); opacity: 0; transition: opacity .3s; }
+  #saveTip.show { opacity: 1; }
+  .toast {
+    position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+    background: var(--panel2); border: 1px solid var(--accent); color: var(--text);
+    border-radius: 10px; padding: 10px 18px; font-size: 13px; z-index: 99;
+    opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><b>ChinaRhinestone.com</b> 钻石数据采集表</h1>
+  <p class="sub">
+    填写你们真实的<b>钻种、尺寸价格、颜色库</b>。数据会自动保存在本浏览器（关页面不丢失），
+    填完点底部「导出 JSON」，把下载的文件发给我即可建库。
+  </p>
+  <div class="notebox">
+    <b>颜色怎么填：</b>有厂家官方色值就直接用取色器选定接近色并在备注里注明「有官方值」；
+    没有官方值就先选个接近色占位，同时拍一张实物照发我（白纸垫底 + 旁边放一张 A4 白纸做参照 +
+    阴天窗边散射光 + 俯拍），我校准后修正。颜色名称请照钻包装/色卡上的原文名填写。
+  </div>
+</header>
+
+<main id="app"></main>
+<button class="addtype" data-act="addType">＋ 添加钻种</button>
+
+<footer class="bar">
+  <div class="inner">
+    <button class="primary" data-act="export">导出 JSON</button>
+    <button class="ghost" data-act="import">导入 JSON（继续编辑）</button>
+    <button class="ghost" data-act="reset" style="color:var(--danger)">清空重来</button>
+    <span id="saveTip">已自动保存</span>
+    <input type="file" id="fileIn" accept=".json" style="display:none" />
+  </div>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+
+/* ------------------------------ 基础数据 ------------------------------ */
+// SS 尺寸体系（行业通用，直径预填，无需改动）
+const SIZES = [
+  { id: "ss6",  label: "SS6",  mm: 2.0 },
+  { id: "ss8",  label: "SS8",  mm: 2.4 },
+  { id: "ss10", label: "SS10", mm: 2.9 },
+  { id: "ss12", label: "SS12", mm: 3.3 },
+  { id: "ss16", label: "SS16", mm: 3.9 },
+  { id: "ss20", label: "SS20", mm: 4.7 },
+  { id: "ss30", label: "SS30", mm: 6.4 },
+];
+
+// 预填的常用色号（名称按行业惯例，颜色为占位值，请逐个核对/修改）
+const BASE_COLORS = [
+  { nameEn: "Crystal",         nameZh: "透明",     hex: "#F2F4F8" },
+  { nameEn: "Jet",             nameZh: "黑",       hex: "#1C1C24" },
+  { nameEn: "Black Diamond",   nameZh: "黑钻",     hex: "#4A4A55" },
+  { nameEn: "Light Rose",      nameZh: "浅粉",     hex: "#E8A0B4" },
+  { nameEn: "Rose",            nameZh: "玫红",     hex: "#E4657F" },
+  { nameEn: "Fuchsia",         nameZh: "桃红",     hex: "#C93A8C" },
+  { nameEn: "Light Peach",     nameZh: "浅桃",     hex: "#F2B49B" },
+  { nameEn: "Ruby",            nameZh: "宝石红",   hex: "#A3172C" },
+  { nameEn: "Siam",            nameZh: "深红",     hex: "#8B0F1F" },
+  { nameEn: "Copper",          nameZh: "古铜",     hex: "#9C5A2D" },
+  { nameEn: "Topaz",           nameZh: "托帕黄",   hex: "#C9871E" },
+  { nameEn: "Light Topaz",     nameZh: "浅托帕",   hex: "#E4C588" },
+  { nameEn: "Citrine",         nameZh: "柠檬黄",   hex: "#D7B31E" },
+  { nameEn: "Jonquil",         nameZh: "金黄",     hex: "#EFE23C" },
+  { nameEn: "Peridot",         nameZh: "橄榄绿",   hex: "#96C13D" },
+  { nameEn: "Emerald",         nameZh: "祖母绿",   hex: "#10795B" },
+  { nameEn: "Aquamarine",      nameZh: "浅蓝绿",   hex: "#9CDCE4" },
+  { nameEn: "Capri Blue",      nameZh: "卡布里蓝", hex: "#1E9BC9" },
+  { nameEn: "Light Sapphire",  nameZh: "浅蓝",     hex: "#6C9DE8" },
+  { nameEn: "Sapphire",        nameZh: "宝蓝",     hex: "#1B4BB5" },
+  { nameEn: "Light Amethyst",  nameZh: "浅紫",     hex: "#B49BD8" },
+  { nameEn: "Amethyst",        nameZh: "紫",       hex: "#8B57C9" },
+];
+
+const LS_KEY = "blingforge-stone-data-v1";
+
+function newType(nameEn, nameZh, note) {
+  return {
+    nameEn, nameZh, note,
+    setupFeeUsd: "",   // 制版费 USD
+    minQty: "",        // 最小起订量
+    // available: 该钻种是否提供此尺寸；priceUsd: 单颗单价（USD）
+    sizes: SIZES.map((s) => ({ id: s.id, available: true, priceUsd: "" })),
+    colors: BASE_COLORS.map((c) => ({ ...c, featured: false })),
+  };
+}
+
+function defaultState() {
+  return {
+    types: [
+      newType("Korean Glass Rhinestone", "韩国玻璃钻", "网站默认主力钻种，性价比高"),
+      newType("Resin Rhinestone", "树脂钻", "轻量、适合童装与大图案"),
+      newType("Crystal Rhinestone", "水晶钻", "高端线，亮度最好"),
+    ],
+  };
+}
+
+let state = load();
+function load() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d && Array.isArray(d.types) && d.types.length) return d;
+    }
+  } catch (e) { /* 忽略损坏数据 */ }
+  return defaultState();
+}
+function save() {
+  localStorage.setItem(LS_KEY, JSON.stringify(state));
+  const tip = $("saveTip");
+  tip.classList.add("show");
+  clearTimeout(save._t);
+  save._t = setTimeout(() => tip.classList.remove("show"), 1200);
+}
+
+/* ------------------------------ 渲染 ------------------------------ */
+function sizeRow(s, si, t, ti) {
+  const meta = SIZES[si];
+  return `
+    <tr>
+      <td><input type="checkbox" data-t="${ti}" data-size="${si}" data-field="available" ${s.available ? "checked" : ""} /></td>
+      <td class="fixed">${meta.label}</td>
+      <td class="fixed" style="color:var(--muted)">${meta.mm.toFixed(1)} mm</td>
+      <td><input type="number" step="0.001" min="0" placeholder="0.000" data-t="${ti}" data-size="${si}" data-field="priceUsd" value="${s.priceUsd}" ${s.available ? "" : "disabled"} /></td>
+      <td><input type="text" placeholder="选填" data-t="${ti}" data-size="${si}" data-field="sizeNote" value="${esc(s.sizeNote ?? "")}" /></td>
+    </tr>`;
+}
+
+function colorRow(c, ci, ti) {
+  return `
+    <tr>
+      <td><span class="swatch" style="background:${c.hex}" data-preview="${ti}-${ci}"></span></td>
+      <td><input type="text" placeholder="Crystal" data-t="${ti}" data-color="${ci}" data-field="nameEn" value="${esc(c.nameEn)}" /></td>
+      <td><input type="text" placeholder="透明" data-t="${ti}" data-color="${ci}" data-field="nameZh" value="${esc(c.nameZh)}" /></td>
+      <td><input type="color" data-t="${ti}" data-color="${ci}" data-field="hex" value="${c.hex}" /></td>
+      <td><input type="checkbox" title="主打色（网站默认显示在前）" data-t="${ti}" data-color="${ci}" data-field="featured" ${c.featured ? "checked" : ""} /></td>
+      <td><button class="rowdel" data-act="delColor" data-t="${ti}" data-color="${ci}" title="删除此颜色">×</button></td>
+    </tr>`;
+}
+
+function typeCard(t, ti) {
+  return `
+  <section class="card" data-card="${ti}">
+    <div class="cardhead">
+      <span class="idx">${ti + 1}</span>
+      <h2><input type="text" data-t="${ti}" data-field="nameZh" value="${esc(t.nameZh)}" placeholder="钻种中文名" /></h2>
+      <button class="delbtn" data-act="delType" data-t="${ti}">删除此钻种</button>
+    </div>
+    <div class="grid3">
+      <div class="f"><label>英文名（网站显示）</label><input type="text" data-t="${ti}" data-field="nameEn" value="${esc(t.nameEn)}" /></div>
+      <div class="f"><label>制版费 / 起步费（USD / 单）</label><input type="number" step="0.5" min="0" placeholder="如 8" data-t="${ti}" data-field="setupFeeUsd" value="${t.setupFeeUsd}" /></div>
+      <div class="f"><label>最小起订量（件）</label><input type="number" step="1" min="1" placeholder="如 6" data-t="${ti}" data-field="minQty" value="${t.minQty}" /></div>
+    </div>
+    <div class="f" style="margin-bottom:4px"><label>材质说明（一句话，网站展示用）</label><input type="text" data-t="${ti}" data-field="note" value="${esc(t.note)}" /></div>
+
+    <h3 class="sec">尺寸与单价（USD / 颗）——不提供的尺寸请取消勾选</h3>
+    <table>
+      <thead><tr><th>提供</th><th>规格</th><th>直径</th><th style="width:120px">单价 USD</th><th>备注</th></tr></thead>
+      <tbody>${t.sizes.map((s, si) => sizeRow(s, si, t, ti)).join("")}</tbody>
+    </table>
+
+    <h3 class="sec">颜色库（名称照色卡原名填；用取色器选接近色；主打色打勾）</h3>
+    <table>
+      <thead><tr><th></th><th>色号英文名</th><th>中文名</th><th style="width:70px">颜色</th><th>主打</th><th></th></tr></thead>
+      <tbody>${t.colors.map((c, ci) => colorRow(c, ci, ti)).join("")}</tbody>
+    </table>
+    <button class="addrow" data-act="addColor" data-t="${ti}">＋ 添加颜色</button>
+  </section>`;
+}
+
+function esc(v) { return String(v ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+
+function render() { $("app").innerHTML = state.types.map((t, ti) => typeCard(t, ti)).join(""); }
+render();
+
+/* ------------------------------ 事件（委托） ------------------------------ */
+function toast(msg) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove("show"), 2600);
+}
+
+document.addEventListener("input", (e) => {
+  const el = e.target;
+  const ti = el.dataset.t;
+  if (ti === undefined) return;
+  const t = state.types[+ti];
+  if (!t) return;
+
+  if (el.dataset.size !== undefined) {
+    const f = el.dataset.field;
+    t.sizes[+el.dataset.size][f] = f === "priceUsd" || f === "sizeNote" ? el.value : el.value;
+  } else if (el.dataset.color !== undefined) {
+    const f = el.dataset.field;
+    t.colors[+el.dataset.color][f] = el.value;
+    if (f === "hex") {
+      const sw = document.querySelector(`[data-preview="${ti}-${el.dataset.color}"]`);
+      if (sw) sw.style.background = el.value;
+    }
+  } else if (el.dataset.field) {
+    t[el.dataset.field] = el.value;
+  }
+  save();
+});
+
+document.addEventListener("change", (e) => {
+  const el = e.target;
+  const ti = el.dataset.t;
+  if (ti === undefined) return;
+  const t = state.types[+ti];
+  if (!t) return;
+
+  if (el.type === "checkbox" && el.dataset.size !== undefined) {
+    t.sizes[+el.dataset.size].available = el.checked;
+    // 同步单价输入框的可用状态
+    const price = document.querySelector(`input[data-t="${ti}"][data-size="${el.dataset.size}"][data-field="priceUsd"]`);
+    if (price) price.disabled = !el.checked;
+    save();
+  } else if (el.type === "checkbox" && el.dataset.color !== undefined) {
+    t.colors[+el.dataset.color].featured = el.checked;
+    save();
+  } else if (el.type === "color") {
+    // input 事件已处理，此处兜底
+    save();
+  }
+});
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-act]");
+  if (!btn) return;
+  const act = btn.dataset.act;
+  const ti = btn.dataset.t !== undefined ? +btn.dataset.t : undefined;
+
+  if (act === "addType") {
+    state.types.push(newType("", "", ""));
+    render(); save();
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  } else if (act === "delType") {
+    if (state.types.length <= 1) { toast("至少保留一个钻种"); return; }
+    if (!confirm(`确定删除「${state.types[ti].nameZh || state.types[ti].nameEn || "未命名"}」？`)) return;
+    state.types.splice(ti, 1);
+    render(); save();
+  } else if (act === "addColor") {
+    state.types[ti].colors.push({ nameEn: "", nameZh: "", hex: "#CCCCCC", featured: false });
+    render(); save();
+    // 聚焦到新行的名称输入
+    const rows = document.querySelectorAll(`input[data-t="${ti}"][data-field="nameEn"]`);
+    const last = rows[rows.length - 1];
+    if (last) { last.focus(); last.scrollIntoView({ block: "nearest" }); }
+  } else if (act === "delColor") {
+    state.types[ti].colors.splice(+btn.dataset.color, 1);
+    render(); save();
+  } else if (act === "export") {
+    exportJson();
+  } else if (act === "import") {
+    $("fileIn").click();
+  } else if (act === "reset") {
+    if (!confirm("确定清空所有已填数据、恢复初始模板？")) return;
+    state = defaultState();
+    render(); save();
+    toast("已重置为初始模板");
+  }
+});
+
+$("fileIn").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const d = JSON.parse(reader.result);
+      if (!d || !Array.isArray(d.types)) throw new Error("bad");
+      state = d;
+      render(); save();
+      toast("导入成功，继续填写吧");
+    } catch (err) {
+      toast("导入失败：文件不是本表导出的 JSON");
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+
+/* ------------------------------ 导出 ------------------------------ */
+function exportJson() {
+  // 简单完整性检查
+  const problems = [];
+  state.types.forEach((t, i) => {
+    const name = t.nameZh || t.nameEn;
+    if (!name) problems.push(`钻种 ${i + 1} 没有名称`);
+    const avail = t.sizes.filter((s) => s.available);
+    if (avail.length === 0) problems.push(`「${name}」没有勾选任何尺寸`);
+    const noPrice = avail.filter((s) => s.priceUsd === "" || isNaN(+s.priceUsd));
+    if (noPrice.length) problems.push(`「${name}」有 ${noPrice.length} 个已勾选尺寸未填单价`);
+    if (!t.colors.length) problems.push(`「${name}」没有颜色`);
+    if (t.setupFeeUsd === "" || isNaN(+t.setupFeeUsd)) problems.push(`「${name}」未填制版费`);
+  });
+  if (problems.length) {
+    if (!confirm(`还有 ${problems.length} 项未填完整：\n· ${problems.slice(0, 6).join("\n· ")}\n\n仍要导出吗？（可以先导出发我看）`)) return;
+  }
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    currency: "USD",
+    types: state.types,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "chinarhinestone-stone-data.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast("已导出 chinarhinestone-stone-data.json — 发给我即可建库");
+}
+</script>
+</body>
+</html>

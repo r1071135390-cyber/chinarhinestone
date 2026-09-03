@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChinaRhinestone.com — 网站框架图 Site Structure</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, "Microsoft YaHei", sans-serif;
+    background: #f1f5f9; color: #0f172a; padding: 24px;
+  }
+  .canvas { min-width: 1480px; max-width: 1720px; margin: 0 auto; }
+
+  /* ── Top band ── */
+  .masthead {
+    background: #0f172a; color: #fff; border-radius: 12px; padding: 28px 32px;
+    display: flex; justify-content: space-between; align-items: center; gap: 24px;
+  }
+  .masthead h1 { font-size: 22px; font-weight: 900; letter-spacing: .5px; }
+  .masthead .sub { color: #94a3b8; font-size: 13px; margin-top: 6px; }
+  .stats { display: flex; gap: 12px; }
+  .stat {
+    background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+    padding: 10px 18px; text-align: center; min-width: 96px;
+  }
+  .stat b { display: block; font-size: 22px; font-weight: 900; color: #60a5fa; }
+  .stat span { font-size: 11px; color: #94a3b8; }
+
+  /* ── Section titles ── */
+  .sec-title {
+    display: flex; align-items: center; gap: 10px; margin: 26px 0 12px;
+  }
+  .sec-title .tag {
+    background: #0f172a; color: #fff; font-size: 11px; font-weight: 800;
+    letter-spacing: .12em; padding: 4px 10px; border-radius: 4px; text-transform: uppercase;
+  }
+  .sec-title h2 { font-size: 15px; font-weight: 800; color: #334155; }
+  .sec-title .line { flex: 1; height: 1px; background: #cbd5e1; }
+
+  /* ── Level 0: home + redirects ── */
+  .l0 { display: grid; grid-template-columns: 1fr 340px; gap: 16px; }
+  .home-card {
+    background: #fff; border: 2px solid #1d4ed8; border-radius: 12px; padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    box-shadow: 0 4px 14px rgba(29,78,216,.10);
+  }
+  .home-card .name { font-size: 17px; font-weight: 900; }
+  .home-card .url { font-family: Consolas, monospace; font-size: 12px; color: #1d4ed8; margin-top: 3px; }
+  .home-card .desc { font-size: 12px; color: #64748b; margin-top: 6px; line-height: 1.5; }
+  .pill {
+    font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 99px; white-space: nowrap;
+  }
+  .pill.prio { background: #dbeafe; color: #1d4ed8; }
+  .pill.faq { background: #dcfce7; color: #15803d; }
+  .redirect-card {
+    background: #fff; border: 1px dashed #94a3b8; border-radius: 12px; padding: 14px 18px;
+  }
+  .redirect-card h3 { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: #64748b; text-transform: uppercase; margin-bottom: 10px; }
+  .rd-item { display: flex; align-items: center; gap: 8px; font-family: Consolas, monospace; font-size: 12px; padding: 5px 0; }
+  .rd-item .from { color: #94a3b8; text-decoration: line-through; }
+  .rd-item .arrow { color: #f59e0b; font-weight: 900; }
+  .rd-item .to { color: #0f172a; font-weight: 700; }
+  .rd-item .code { font-size: 10px; background: #f1f5f9; border-radius: 4px; padding: 1px 6px; color: #64748b; }
+
+  /* ── Connector lines from home to hubs ── */
+  .trunk { display: flex; justify-content: center; }
+  .trunk-line { width: 2px; height: 22px; background: #1d4ed8; }
+
+  /* ── Hub columns ── */
+  .hubs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .hub { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+  .hub-head { padding: 12px 14px; color: #fff; }
+  .hub-head .en { font-size: 14px; font-weight: 900; }
+  .hub-head .meta { font-family: Consolas, monospace; font-size: 11px; opacity: .85; margin-top: 2px; display: flex; justify-content: space-between; }
+  .hub-body { padding: 10px 12px 12px; flex: 1; }
+  .group-label {
+    font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+    color: #94a3b8; margin: 8px 0 6px;
+  }
+  .group-label:first-child { margin-top: 0; }
+  .node {
+    border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 7px;
+    padding: 6px 9px; margin-bottom: 5px; position: relative;
+  }
+  .node .n { font-size: 12px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px; }
+  .node .s { font-family: Consolas, monospace; font-size: 10px; color: #64748b; margin-top: 1px; }
+  .node.hl { border-color: #1d4ed8; background: #eff6ff; }
+  .node.hl .n { color: #1d4ed8; }
+  .badge-tool {
+    font-size: 9px; font-weight: 800; background: #fef3c7; color: #b45309;
+    padding: 1px 6px; border-radius: 4px; white-space: nowrap;
+  }
+  .badge-primary {
+    font-size: 9px; font-weight: 800; background: #dbeafe; color: #1d4ed8;
+    padding: 1px 6px; border-radius: 4px; white-space: nowrap;
+  }
+  .hub-c1 { background: #1d4ed8; }
+  .hub-c2 { background: #0e7490; }
+  .hub-c3 { background: #7c3aed; }
+  .hub-c4 { background: #15803d; }
+  .hub-c5 { background: #b45309; }
+
+  /* ── Company + tool row ── */
+  .bottom-row { display: grid; grid-template-columns: 1fr 420px; gap: 16px; }
+  .company { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; }
+  .company h3, .tool-card h3, .infra h3 {
+    font-size: 11px; font-weight: 800; letter-spacing: .1em; color: #64748b; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .co-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .co-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #f8fafc; }
+  .co-card .n { font-size: 13px; font-weight: 800; }
+  .co-card .s { font-family: Consolas, monospace; font-size: 10px; color: #64748b; margin-top: 2px; }
+  .co-card.conv { background: #1d4ed8; border-color: #1d4ed8; }
+  .co-card.conv .n, .co-card.conv .s { color: #fff; }
+
+  .tool-card {
+    background: #0f172a; border-radius: 12px; padding: 16px 18px; color: #fff;
+    border: 1px solid #d9a441;
+  }
+  .tool-card .t-name { font-size: 15px; font-weight: 900; color: #e8c77a; display: flex; align-items: center; gap: 8px; }
+  .tool-card .t-url { font-family: Consolas, monospace; font-size: 12px; color: #94a3b8; margin-top: 3px; }
+  .tool-card .t-desc { font-size: 12px; color: #cbd5e1; margin-top: 8px; line-height: 1.6; }
+  .tool-entry { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .tool-entry span {
+    font-size: 10px; background: #1e293b; border: 1px solid #334155; color: #e2e8f0;
+    padding: 3px 8px; border-radius: 4px;
+  }
+
+  /* ── SEO infra ── */
+  .infra { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; }
+  .infra-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .infra-item { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #f8fafc; }
+  .infra-item .k { font-size: 12px; font-weight: 800; color: #0f172a; }
+  .infra-item .v { font-size: 11px; color: #64748b; margin-top: 3px; line-height: 1.5; }
+
+  /* ── Linking model ── */
+  .link-model { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; }
+  .flow { display: flex; align-items: stretch; gap: 0; flex-wrap: nowrap; }
+  .flow-box {
+    flex: 1; border-radius: 8px; padding: 10px 12px; text-align: center;
+    display: flex; flex-direction: column; justify-content: center; gap: 2px;
+  }
+  .flow-box .f { font-size: 12px; font-weight: 800; }
+  .flow-box .d { font-size: 10px; color: #64748b; line-height: 1.4; }
+  .fb-nav { background: #f1f5f9; border: 1px solid #cbd5e1; }
+  .fb-hub { background: #dbeafe; border: 1px solid #93c5fd; }
+  .fb-detail { background: #ede9fe; border: 1px solid #c4b5fd; }
+  .fb-conv { background: #1d4ed8; border: 1px solid #1d4ed8; }
+  .fb-conv .f { color: #fff; } .fb-conv .d { color: #bfdbfe; }
+  .flow-arrow { display: flex; align-items: center; padding: 0 6px; color: #94a3b8; font-size: 18px; font-weight: 900; }
+  .cross { margin-top: 12px; border-top: 1px dashed #e2e8f0; padding-top: 10px; font-size: 11px; color: #64748b; line-height: 1.8; }
+  .cross b { color: #0f172a; }
+  .chip { display: inline-block; font-size: 10px; font-weight: 700; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 1px 7px; margin: 0 2px; color: #475569; }
+
+  .foot-note { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 22px; }
+
+  @media print {
+    body { padding: 0; background: #fff; }
+    .canvas { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="canvas">
+
+  <!-- ═══ MASTHEAD ═══ -->
+  <div class="masthead">
+    <div>
+      <h1>ChinaRhinestone.com — 网站框架图</h1>
+      <div class="sub">Custom Heat Transfer Manufacturer · Next.js · 数据驱动（lib/v2.ts 中央数据模型）</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>46</b><span>总页面</span></div>
+      <div class="stat"><b>5</b><span>Hub 枢纽页</span></div>
+      <div class="stat"><b>32</b><span>动态详情页</span></div>
+      <div class="stat"><b>6</b><span>公司静态页</span></div>
+      <div class="stat"><b>1</b><span>引流工具</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ LEVEL 0 ═══ -->
+  <div class="sec-title"><span class="tag">Level 0</span><h2>首页 Home</h2><div class="line"></div></div>
+  <div class="l0">
+    <div class="home-card">
+      <div>
+        <div class="name">Homepage — 首页</div>
+        <div class="url">/</div>
+        <div class="desc">核心引流页：Hero + 核心工艺卡片（6）+ 行业 + 应用 + 面料 + 案例精选 + FAQ + CTA</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <span class="pill prio">Sitemap P1.0</span>
+        <span class="pill faq">FAQPage Schema</span>
+      </div>
+    </div>
+    <div class="redirect-card">
+      <h3>旧 URL 重定向 Redirects</h3>
+      <div class="rd-item"><span class="from">/products</span><span class="arrow">→</span><span class="to">/heat-transfers</span><span class="code">308</span></div>
+      <div class="rd-item"><span class="from">/design</span><span class="arrow">→</span><span class="to">/designer.html</span><span class="code">307</span></div>
+    </div>
+  </div>
+
+  <div class="trunk"><div class="trunk-line"></div></div>
+
+  <!-- ═══ LEVEL 1+2: HUBS ═══ -->
+  <div class="sec-title"><span class="tag">Level 1-2</span><h2>五大 Hub 枢纽 + 32 个动态详情页（generateStaticParams 预渲染）</h2><div class="line"></div></div>
+  <div class="hubs">
+
+    <!-- Heat Transfers -->
+    <div class="hub">
+      <div class="hub-head hub-c1">
+        <div class="en">Heat Transfers 工艺</div>
+        <div class="meta"><span>/heat-transfers</span><span>P0.9</span></div>
+      </div>
+      <div class="hub-body">
+        <div class="group-label">Core 核心工艺 × 6</div>
+        <div class="node hl"><div class="n">Rhinestone <span class="badge-tool">★ Design Tool</span></div><div class="s">rhinestone-heat-transfers</div></div>
+        <div class="node"><div class="n">Silicone</div><div class="s">silicone-heat-transfers</div></div>
+        <div class="node"><div class="n">Reflective</div><div class="s">reflective-heat-transfers</div></div>
+        <div class="node"><div class="n">DTF</div><div class="s">dtf-heat-transfers</div></div>
+        <div class="node"><div class="n">3D &amp; Raised</div><div class="s">3d-raised-heat-transfers</div></div>
+        <div class="node"><div class="n">PU</div><div class="s">pu-heat-transfers</div></div>
+        <div class="group-label">Specialty 特种工艺 × 3</div>
+        <div class="node"><div class="n">Glitter</div><div class="s">glitter-heat-transfers</div></div>
+        <div class="node"><div class="n">Flock</div><div class="s">flock-heat-transfers</div></div>
+        <div class="node"><div class="n">Specialty</div><div class="s">specialty-heat-transfers</div></div>
+      </div>
+    </div>
+
+    <!-- Industries -->
+    <div class="hub">
+      <div class="hub-head hub-c2">
+        <div class="en">Industries 行业</div>
+        <div class="meta"><span>/industries</span><span>P0.8</span></div>
+      </div>
+      <div class="hub-body">
+        <div class="group-label">目标客户行业 × 6</div>
+        <div class="node hl"><div class="n">Garment Manufacturers <span class="badge-primary">Primary</span></div><div class="s">garment-manufacturers</div></div>
+        <div class="node"><div class="n">Sportswear</div><div class="s">sportswear-manufacturers</div></div>
+        <div class="node"><div class="n">Workwear</div><div class="s">workwear-manufacturers</div></div>
+        <div class="node"><div class="n">Fashion Apparel</div><div class="s">fashion-apparel-manufacturers</div></div>
+        <div class="node"><div class="n">Activewear</div><div class="s">activewear-manufacturers</div></div>
+        <div class="node"><div class="n">Teamwear</div><div class="s">teamwear-manufacturers</div></div>
+      </div>
+    </div>
+
+    <!-- Applications -->
+    <div class="hub">
+      <div class="hub-head hub-c3">
+        <div class="en">Applications 应用</div>
+        <div class="meta"><span>/applications</span><span>P0.8</span></div>
+      </div>
+      <div class="hub-body">
+        <div class="group-label">Branding 品牌标识 × 2</div>
+        <div class="node"><div class="n">Logo Transfers</div><div class="s">logo-heat-transfers</div></div>
+        <div class="node"><div class="n">Garment Branding</div><div class="s">garment-branding-transfers</div></div>
+        <div class="group-label">Identification 标识 × 2</div>
+        <div class="node"><div class="n">Heat Transfer Labels</div><div class="s">heat-transfer-labels</div></div>
+        <div class="node"><div class="n">Names &amp; Numbers</div><div class="s">name-number-transfers</div></div>
+        <div class="group-label">Special Effects 特效 × 2</div>
+        <div class="node"><div class="n">Reflective Markings</div><div class="s">reflective-marking-transfers</div></div>
+        <div class="node"><div class="n">Decorative</div><div class="s">decorative-heat-transfers</div></div>
+      </div>
+    </div>
+
+    <!-- Fabrics -->
+    <div class="hub">
+      <div class="hub-head hub-c4">
+        <div class="en">Fabrics 面料</div>
+        <div class="meta"><span>/fabrics</span><span>P0.7</span></div>
+      </div>
+      <div class="hub-body">
+        <div class="group-label">面料兼容性 × 5</div>
+        <div class="node"><div class="n">Cotton 棉</div><div class="s">cotton</div></div>
+        <div class="node"><div class="n">Polyester 涤纶</div><div class="s">polyester</div></div>
+        <div class="node"><div class="n">Nylon 尼龙</div><div class="s">nylon</div></div>
+        <div class="node"><div class="n">Stretch 弹力面料</div><div class="s">stretch-fabrics</div></div>
+        <div class="node"><div class="n">Performance 功能面料</div><div class="s">performance-fabrics</div></div>
+        <div class="group-label" style="margin-top:10px">每个面料页含</div>
+        <div style="font-size:11px;color:#64748b;line-height:1.7">✓ 面料 × 9工艺兼容矩阵<br>✓ 推荐工艺卡片<br>✓ 生产注意事项</div>
+      </div>
+    </div>
+
+    <!-- Resources -->
+    <div class="hub">
+      <div class="hub-head hub-c5">
+        <div class="en">Resources 资源</div>
+        <div class="meta"><span>/resources</span><span>P0.7</span></div>
+      </div>
+      <div class="hub-body">
+        <div class="group-label">Guides 指南 × 4</div>
+        <div class="node"><div class="n">Heat Transfer Guide</div><div class="s">heat-transfer-guide</div></div>
+        <div class="node"><div class="n">Fabric Compatibility</div><div class="s">fabric-compatibility</div></div>
+        <div class="node"><div class="n">Artwork Guidelines</div><div class="s">artwork-guidelines</div></div>
+        <div class="node"><div class="n">Application Guide</div><div class="s">heat-transfer-application-guide</div></div>
+        <div class="group-label">Comparisons 对比洞察 × 3</div>
+        <div class="node"><div class="n">Silicone vs PU</div><div class="s">silicone-vs-pu</div></div>
+        <div class="node"><div class="n">Best for Sportswear</div><div class="s">best-heat-transfers-for-sportswear</div></div>
+        <div class="node"><div class="n">Transfer Durability</div><div class="s">heat-transfer-durability</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ COMPANY + TOOL ═══ -->
+  <div class="sec-title"><span class="tag">Level 1</span><h2>公司页面 × 6 + 引流工具</h2><div class="line"></div></div>
+  <div class="bottom-row">
+    <div class="company">
+      <h3>Company 公司页面（信任建设 + 转化）</h3>
+      <div class="co-grid">
+        <div class="co-card conv"><div class="n">Get a Quote ★</div><div class="s">/get-a-quote · P0.9 · 全站CTA终点</div></div>
+        <div class="co-card"><div class="n">Contact</div><div class="s">/contact · P0.7</div></div>
+        <div class="co-card"><div class="n">About</div><div class="s">/about · 含工厂相册</div></div>
+        <div class="co-card"><div class="n">Manufacturing</div><div class="s">/manufacturing · 生产能力</div></div>
+        <div class="co-card"><div class="n">Quality Control</div><div class="s">/quality-control · QC体系</div></div>
+        <div class="co-card"><div class="n">Case Studies</div><div class="s">/case-studies · 客户案例</div></div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <h3 style="color:#94a3b8">★ 核心引流资产</h3>
+      <div class="t-name">✦ Rhinestone Design Studio</div>
+      <div class="t-url">/designer.html · P0.8 · 独立静态工具页</div>
+      <div class="t-desc">免费在线排钻设计器：上传图稿 → 分色 → 排钻 → 导出生产级SVG模板。竞品无此能力。</div>
+      <div class="tool-entry">
+        <span>Header 桌面CTA</span><span>Header 移动CTA</span><span>Heat Transfers菜单</span><span>Footer CTA</span><span>烫钻详情页入口</span><span>/design 重定向</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SEO INFRA ═══ -->
+  <div class="sec-title"><span class="tag">Infra</span><h2>SEO 基础设施</h2><div class="line"></div></div>
+  <div class="infra">
+    <div class="infra-grid">
+      <div class="infra-item"><div class="k">sitemap.xml</div><div class="v">46 个 URL 全覆盖，含 priority / changeFrequency / lastModified</div></div>
+      <div class="infra-item"><div class="k">robots.txt</div><div class="v">Allow 全站 + sitemap 指引</div></div>
+      <div class="infra-item"><div class="k">Canonical</div><div class="v">17 个路由全部独立设置，无根布局泄漏</div></div>
+      <div class="infra-item"><div class="k">Structured Data</div><div class="v">Organization（全站）· FAQPage（首页）· BreadcrumbList（全部 Hub/详情页）</div></div>
+      <div class="infra-item"><div class="k">Open Graph / Twitter</div><div class="v">根布局统一配置，OG 图待逐页定制</div></div>
+      <div class="infra-item"><div class="k">404 页面</div><div class="v">热门页面导航 + Browse / Quote 双CTA</div></div>
+      <div class="infra-item"><div class="k">Redirects</div><div class="v">/products 308 · /design 307，承接旧版外链权重</div></div>
+      <div class="infra-item"><div class="k">关键词体系</div><div class="v">核心词 + 9 工艺词 + 6 客户词三层，覆盖 46 页 title/description</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ LINKING MODEL ═══ -->
+  <div class="sec-title"><span class="tag">Links</span><h2>内链模型 Internal Linking</h2><div class="line"></div></div>
+  <div class="link-model">
+    <div class="flow">
+      <div class="flow-box fb-nav"><div class="f">Header / Footer</div><div class="d">全站每页携带<br>双导航系统</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box fb-hub"><div class="f">5 大 Hub</div><div class="d">Mega Menu 分组入口<br>Footer 6列全覆盖</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box fb-detail"><div class="f">32 详情页</div><div class="d">面包屑回链 Hub<br>底部交叉推荐</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box fb-conv"><div class="f">Get a Quote</div><div class="d">所有详情页 CtaBand<br>统一转化终点</div></div>
+    </div>
+    <div class="cross">
+      <b>实体交叉链接：</b>
+      工艺页 → 相关工艺 + 适用行业 · 行业页 → 推荐工艺 + 其他行业 · 应用页 → 工艺 + 行业 · 面料页 → 兼容矩阵 + 推荐工艺 + 其他面料 · 资源页 → 相关资源<br>
+      <b>关键词锚点分布：</b>
+      <span class="chip">heat transfer manufacturer</span><span class="chip">custom heat transfers</span><span class="chip">rhinestone transfers</span><span class="chip">garment manufacturers</span><span class="chip">bulk production</span>自然分布于正文与锚文本
+    </div>
+  </div>
+
+  <div class="foot-note">ChinaRhinestone.com 网站框架图 · V2.0 · 共 46 页 · 生成于 2026-08-29</div>
+</div>
+</body>
+</html>
