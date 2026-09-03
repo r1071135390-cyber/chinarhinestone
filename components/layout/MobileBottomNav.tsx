@@ -5,7 +5,6 @@ import {
   Flame,
   Factory,
   Layers,
-  Shirt,
   BookOpen,
   Info,
 } from "lucide-react";
@@ -17,14 +16,13 @@ type Item = {
   icon: React.ComponentType<{ className?: string }>;
 };
 
-// Mirrors the six top-level entries of the desktop main menu in
-// components/layout/Header.tsx, so the mobile bar is a true 1:1 shortcut
-// to the same destinations — labels and hrefs identical.
+// Five top-level shortcuts for mobile. Fabrics is intentionally omitted
+// to keep the bar to 5 tabs and match the desktop main menu's most
+// frequently used entries.
 const ITEMS: Item[] = [
   { href: "/heat-transfers", label: "Heat Transfers", icon: Flame },
   { href: "/industries", label: "Industries", icon: Factory },
   { href: "/applications", label: "Applications", icon: Layers },
-  { href: "/fabrics", label: "Fabrics", icon: Shirt },
   { href: "/resources", label: "Resources", icon: BookOpen },
   { href: "/about", label: "About", icon: Info },
 ];
@@ -66,7 +64,9 @@ export function MobileBottomNav() {
                       active ? "text-blue-700" : "text-slate-400"
                     }`}
                   />
-                  <span className="leading-none">{label}</span>
+                  <span className="whitespace-nowrap text-center leading-none">
+                    {label}
+                  </span>
                 </Link>
               </li>
             );
