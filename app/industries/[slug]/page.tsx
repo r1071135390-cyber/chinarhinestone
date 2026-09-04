@@ -75,6 +75,9 @@ export default async function IndustryPage({
               <img
                 src={industry.image}
                 alt={industry.name}
+                width={1200}
+                height={900}
+                fetchPriority="high"
                 className="aspect-[4/3] w-full object-cover"
               />
             </div>
@@ -186,6 +189,10 @@ export default async function IndustryPage({
                   <img
                     src={t.image}
                     alt={t.name}
+                    loading="lazy"
+                    decoding="async"
+                    width={800}
+                    height={600}
                     className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                   />
                 </div>

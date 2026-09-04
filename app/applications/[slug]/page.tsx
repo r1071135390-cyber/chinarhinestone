@@ -91,6 +91,10 @@ export default async function ApplicationPage({
                   <img
                     src={t.image}
                     alt={t.name}
+                    loading="lazy"
+                    decoding="async"
+                    width={800}
+                    height={600}
                     className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                   />
                 </div>

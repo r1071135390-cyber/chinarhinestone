@@ -11,18 +11,33 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: "ChinaRhinestone — Custom Heat Transfer Manufacturer for Garment Manufacturers",
-    template: "%s",
+    template: "%s | ChinaRhinestone",
   },
   description:
     "Custom heat transfer manufacturer in Yiwu, China. Rhinestone, silicone, reflective, DTF, 3D, PU and specialty heat transfers for garment manufacturers worldwide. Custom development, bulk production, repeat orders.",
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-    ],
-    apple: [
-      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-  },
+  keywords: [
+    "custom heat transfer manufacturer",
+    "rhinestone heat transfers China",
+    "silicone heat transfers wholesale",
+    "reflective heat transfers supplier",
+    "DTF heat transfer film",
+    "3D raised heat transfers",
+    "PU heat transfers",
+    "glitter heat transfer sheets",
+    "heat transfer for sportswear",
+    "heat transfer for workwear",
+    "heat transfer for fashion apparel",
+    "garment heat transfer labels",
+    "Pakistan garment heat transfers",
+    "Bangladesh knitwear heat transfers",
+    "custom transfers bulk order",
+    "China rhinestone transfers",
+    "rhinestone design studio",
+    "free heat transfer design tool",
+  ],
+  authors: [{ name: "ChinaRhinestone", url: SITE_URL }],
+  creator: "ChinaRhinestone",
+  publisher: "ChinaRhinestone",
   openGraph: {
     type: "website",
     siteName: "ChinaRhinestone",
@@ -41,10 +56,26 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: "@ChinaRhinestone",
+    creator: "@ChinaRhinestone",
     title: "ChinaRhinestone — Custom Heat Transfer Manufacturer",
     description:
       "Custom rhinestone, silicone, reflective, DTF, 3D, PU and specialty heat transfers for garment manufacturers. Bulk production, repeat orders.",
     images: ["/images/hero-showcase.webp"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: "YOUR_GOOGLE_VERIFICATION_CODE",
   },
 };
 
