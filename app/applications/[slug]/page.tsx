@@ -24,6 +24,13 @@ export async function generateMetadata({
     alternates: {
       canonical: `/applications/${app.slug}`,
     },
+    keywords: [
+      `custom ${app.name.toLowerCase()}`,
+      `${app.name.toLowerCase()} heat transfer`,
+      `${app.tagline}`,
+      "custom heat transfer China manufacturer",
+      "apparel heat press transfers",
+    ],
   };
 }
 
@@ -38,8 +45,23 @@ export default async function ApplicationPage({
 
   const others = APPLICATIONS.filter((a) => a.slug !== app.slug);
 
+  const SITE_URL = "https://chinarhinestone.com";
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Applications", item: `${SITE_URL}/applications` },
+      { "@type": "ListItem", position: 3, name: app.name, item: `${SITE_URL}/applications/${app.slug}` },
+    ],
+  };
+
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       {/* Hero */}
       <section className="bg-slate-900 text-white">
         <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8 lg:py-16">

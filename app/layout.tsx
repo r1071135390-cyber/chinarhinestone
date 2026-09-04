@@ -120,8 +120,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* DNS prefetch — establish TCP/TLS early for external services */}
+        <link rel="dns-prefetch" href="//www.google.com" />
+        <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="//www.google-analytics.com" />
+        {/* Preconnect — open connection before DNS resolution completes */}
+        <link rel="preconnect" href="https://www.google.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
         {/* Preload the brand logo — it appears in the header on every page. */}
-        <link rel="preload" href="/logo.png" as="image" type="image/png" />
+        <link rel="preload" href="/logo.png" as="image" type="image/png" fetchPriority="high" />
         {/* Preload the hero image for the homepage so it lands in cache early. */}
         <link
           rel="preload"

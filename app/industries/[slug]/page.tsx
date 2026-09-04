@@ -25,6 +25,13 @@ export async function generateMetadata({
     alternates: {
       canonical: `/industries/${industry.slug}`,
     },
+    keywords: [
+      `heat transfers for ${industry.name.toLowerCase()}`,
+      `${industry.name.toLowerCase()} heat transfer supplier`,
+      "custom heat transfer China manufacturer",
+      "garment heat transfer bulk order",
+      "apparel heat press transfers",
+    ],
   };
 }
 export default async function IndustryPage({
@@ -39,8 +46,23 @@ export default async function IndustryPage({
   const others = INDUSTRIES.filter((i) => i.slug !== industry.slug);
   const extras = getIndustryExtras(industry.slug);
 
+  const SITE_URL = "https://chinarhinestone.com";
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Industries", item: `${SITE_URL}/industries` },
+      { "@type": "ListItem", position: 3, name: industry.name, item: `${SITE_URL}/industries/${industry.slug}` },
+    ],
+  };
+
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       {/* Hero */}
       <section className="bg-slate-900 text-white">
         <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8 lg:py-16">

@@ -30,6 +30,14 @@ export async function generateMetadata({
     alternates: {
       canonical: `/heat-transfers/${tech.slug}`,
     },
+    keywords: [
+      `${tech.name.toLowerCase()}`,
+      `custom ${tech.shortName.toLowerCase()} heat transfers`,
+      `${tech.shortName} heat press transfers wholesale`,
+      "custom heat transfer China manufacturer",
+      "garment heat transfer bulk order",
+      "apparel heat press transfers",
+    ],
   };
 }
 
@@ -44,8 +52,23 @@ export default async function TechnologyPage({
 
   const others = TECHNOLOGIES.filter((t) => t.slug !== tech.slug).slice(0, 4);
 
+  const SITE_URL = "https://chinarhinestone.com";
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Heat Transfers", item: `${SITE_URL}/heat-transfers` },
+      { "@type": "ListItem", position: 3, name: tech.name, item: `${SITE_URL}/heat-transfers/${tech.slug}` },
+    ],
+  };
+
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       {/* Hero */}
       <section className="bg-slate-900 text-white">
         <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8 lg:py-16">
