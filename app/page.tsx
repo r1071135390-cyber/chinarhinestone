@@ -50,7 +50,7 @@ export const metadata: Metadata = {
 /* ── Section helpers ── */
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-700">{children}</p>
+    <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-400">{children}</p>
   );
 }
 
@@ -179,6 +179,7 @@ export default function HomePage() {
 
       {/* ── SECTION 02 — TRUST BAR ── */}
       <section className="border-b border-slate-200 bg-slate-50">
+        <h2 className="sr-only">Why Choose ChinaRhinestone</h2>
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
           {TRUST_POINTS.map((t) => (
             <div key={t.title} className="flex gap-3">

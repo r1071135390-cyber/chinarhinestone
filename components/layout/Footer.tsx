@@ -148,7 +148,7 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-10 border-t border-slate-800 pt-6 text-xs text-slate-500">
+        <div className="mt-10 border-t border-slate-800 pt-6 text-xs text-slate-400">
           <p>© {new Date().getFullYear()} Yiwu HomeDorm Commodity Manufacturing Co., Ltd. All rights reserved.</p>
           <p className="mt-3 text-slate-600">
             ChinaRhinestone.com is a website of Yiwu HomeDorm Commodity Manufacturing Co., Ltd. —
