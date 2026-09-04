@@ -102,6 +102,10 @@ export default function IndustriesPage() {
                   <img
                     src={i.image}
                     alt={i.name}
+                    loading="lazy"
+                    decoding="async"
+                    width={800}
+                    height={600}
                     className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                   />
                 </div>

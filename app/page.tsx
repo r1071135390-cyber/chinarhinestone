@@ -160,6 +160,9 @@ export default function HomePage() {
               <img
                 src="/images/hero-showcase.webp"
                 alt="Custom heat transfers on performance sportswear — silicone, reflective and rhinestone effects"
+                width={1200}
+                height={900}
+                fetchPriority="high"
                 className="aspect-[4/3] w-full object-cover"
               />
             </div>
@@ -521,6 +524,10 @@ export default function HomePage() {
                   <img
                     src={c.image}
                     alt={c.title}
+                    loading="lazy"
+                    decoding="async"
+                    width={800}
+                    height={600}
                     className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                   />
                 </div>

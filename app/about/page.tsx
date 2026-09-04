@@ -189,7 +189,7 @@ export default function AboutPage() {
                       </div>
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.src} alt={item.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                      <img src={item.src} alt={item.title} loading="lazy" decoding="async" width={800} height={600} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
                     )}
                     <span className="absolute left-3 top-3 rounded bg-slate-900/80 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-white">
                       {item.category}

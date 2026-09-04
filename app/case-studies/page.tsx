@@ -69,6 +69,10 @@ export default function CaseStudiesPage() {
                     <img
                       src={c.image}
                       alt={c.title}
+                      loading="lazy"
+                      decoding="async"
+                      width={1200}
+                      height={900}
                       className="aspect-[4/3] w-full object-cover"
                     />
                   </div>

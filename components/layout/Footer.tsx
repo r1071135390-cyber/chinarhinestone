@@ -85,6 +85,10 @@ export function Footer() {
               <img
                 src="/logo.png"
                 alt="ChinaRhinestone — Custom Heat Transfer Manufacturer"
+                width={140}
+                height={36}
+                loading="lazy"
+                decoding="async"
                 className="h-9 w-auto rounded"
               />
             </Link>

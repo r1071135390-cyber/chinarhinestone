@@ -88,13 +88,25 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Preload the brand logo — it appears in the header on every page. */}
+        <link rel="preload" href="/logo.png" as="image" type="image/png" />
+        {/* Preload the hero image for the homepage so it lands in cache early. */}
+        <link
+          rel="preload"
+          href="/images/hero-showcase.webp"
+          as="image"
+          type="image/webp"
+          fetchPriority="high"
+        />
+      </head>
       <body className="min-h-screen bg-white antialiased pb-16 md:pb-0">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
         <Header />
-        <main>{children}</main>
+        <main id="main-content">{children}</main>
         <Footer />
         <WhatsAppFab />
         <MobileBottomNav />
