@@ -27,7 +27,11 @@ jobs:
       # site is fully static content — no SSR / cookies / headers needed —
       # so serving plain HTML from the edge cache is the right fit.
       - name: Build with Next.js static export
-        run: npx next build
+        # Use `npm run build` (not `npx next build`) so the `postbuild`
+        # hook runs. The postbuild regenerates sitemap.xml from the
+        # rendered HTML in out/ — Next.js's default sitemap is built at
+        # prerender time and would otherwise ship stale lastmod values.
+        run: npm run build
 
       # Check the build size before uploading. Cloudflare Pages free plan
       # caps a single deployment at 25 MiB (any single file). If the build
