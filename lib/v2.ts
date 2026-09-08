@@ -163,6 +163,505 @@ export const TECHNOLOGIES: Technology[] = [
     image: "/images/tech-specialty.jpg",
     tier: "specialty",
   },
+
+  /* ── Rhinestone product line (8 SKUs) ─────────────────── */
+  {
+    slug: "rhinestone-austrian-grade",
+    name: "Austrian-Grade Rhinestone Transfers",
+    shortName: "Austrian Rhinestone",
+    tagline: "Premium Austrian-cut crystal rhinestone transfers for luxury apparel, dancewear and high-end fashion.",
+    description:
+      "Top-tier Austrian-cut crystal rhinestone transfers, manufactured for luxury apparel, dancewear and high-end fashion. Precision stone placement with maximum brilliance and clarity.",
+    features: [
+      "Austrian-cut crystal stones",
+      "Maximum brilliance and clarity",
+      "12-facet precision cut",
+      "Ideal for luxury and dancewear",
+    ],
+    image: "/images/products/rhinestone-austrian-grade.webp",
+    tier: "core",
+    hasDesignerTool: true,
+  },
+  {
+    slug: "rhinestone-korean-grade",
+    name: "Korean-Grade Rhinestone Transfers",
+    shortName: "Korean Rhinestone",
+    tagline: "High-quality Korean rhinestone transfers — the sweet spot for fashion apparel and premium teamwear.",
+    description:
+      "Korean-grade rhinestone transfers for fashion apparel and premium teamwear. Excellent clarity and cut at a more accessible price point than Austrian stones.",
+    features: [
+      "Korean-cut crystal stones",
+      "High brilliance and clarity",
+      "Reliable for fashion programs",
+      "Strong price-quality balance",
+    ],
+    image: "/images/products/rhinestone-korean-grade.webp",
+    tier: "core",
+    hasDesignerTool: true,
+  },
+  {
+    slug: "rhinestone-china-grade-a",
+    name: "China A-Grade Rhinestone Transfers",
+    shortName: "A-Grade Rhinestone",
+    tagline: "China A-grade rhinestone transfers for sportswear, teamwear and mid-tier fashion programs.",
+    description:
+      "China A-grade rhinestone transfers for sportswear, teamwear and mid-tier fashion programs. Good clarity and consistent quality at volume-production pricing.",
+    features: [
+      "China A-grade stones",
+      "Consistent cut and clarity",
+      "Volume-production pricing",
+      "Sportswear and teamwear ready",
+    ],
+    image: "/images/products/rhinestone-china-grade-a.webp",
+    tier: "core",
+    hasDesignerTool: true,
+  },
+  {
+    slug: "rhinestone-china-grade-b",
+    name: "China B-Grade Rhinestone Transfers",
+    shortName: "B-Grade Rhinestone",
+    tagline: "Budget-friendly B-grade rhinestone transfers for kids wear, promos and high-volume orders.",
+    description:
+      "Budget-friendly B-grade rhinestone transfers for kids wear, promotional apparel and high-volume orders. Reliable sparkle at the lowest cost per square inch.",
+    features: [
+      "Budget-friendly B-grade stones",
+      "Bright sparkle and color",
+      "High-volume ready",
+      "Kids wear and promos",
+    ],
+    image: "/images/products/rhinestone-china-grade-b.webp",
+    tier: "core",
+    hasDesignerTool: true,
+  },
+  {
+    slug: "rhinestone-custom-designs",
+    name: "Custom-Design Rhinestone Transfers",
+    shortName: "Custom Rhinestone",
+    tagline: "Custom shapes, letters, numbers and motifs — hearts, stars, animals, logos, anything you can imagine.",
+    description:
+      "Custom-design rhinestone transfers: hearts, stars, animals, letters, numbers, logos and bespoke motifs. Free design tool with 32-color stone library.",
+    features: [
+      "Custom shapes and motifs",
+      "Letters and numbers",
+      "32-color stone library",
+      "Free online design tool",
+    ],
+    image: "/images/products/rhinestone-custom-designs.webp",
+    tier: "core",
+    hasDesignerTool: true,
+  },
+  {
+    slug: "rhinestone-multi-color",
+    name: "Multi-Color Rhinestone Layouts",
+    shortName: "Multi-Color Rhinestone",
+    tagline: "Multi-color stone layouts for vibrant designs, mascots, character art and decorative apparel.",
+    description:
+      "Multi-color rhinestone layout transfers for vibrant designs, mascots, character art and decorative apparel. Up to 32 colors per design from our universal stone library.",
+    features: [
+      "Up to 32 colors per design",
+      "Character and mascot art",
+      "Vibrant color matching",
+      "Decorative apparel ready",
+    ],
+    image: "/images/products/rhinestone-multi-color.webp",
+    tier: "core",
+    hasDesignerTool: true,
+  },
+  {
+    slug: "rhinestone-iron-on",
+    name: "Iron-On Rhinestone Transfers",
+    shortName: "Iron-On Rhinestone",
+    tagline: "Consumer-friendly iron-on rhinestone transfers — apply at home with a household iron.",
+    description:
+      "Consumer-friendly iron-on rhinestone transfers. Apply with a household iron or heat press — pre-cut motifs, letters and designs ready to apply.",
+    features: [
+      "Household iron compatible",
+      "Pre-cut designs and motifs",
+      "Letters and small graphics",
+      "Easy home application",
+    ],
+    image: "/images/products/rhinestone-iron-on.webp",
+    tier: "specialty",
+    hasDesignerTool: true,
+  },
+  {
+    slug: "rhinestone-hot-fix",
+    name: "Hot-Fix Rhinestone Rolls",
+    shortName: "Hot-Fix Rhinestone",
+    tagline: "Industrial hot-fix rhinestone rolls for automated rhinestone setting machines and high-volume production.",
+    description:
+      "Industrial hot-fix rhinestone transfer rolls for automated setting machines and high-volume production. Pre-spaced stones on carrier film, ready for machine application.",
+    features: [
+      "Pre-spaced on carrier film",
+      "Compatible with setting machines",
+      "High-volume production",
+      "Consistent stone spacing",
+    ],
+    image: "/images/products/rhinestone-hot-fix.webp",
+    tier: "specialty",
+  },
+
+  /* ── Silicone product line (6 SKUs) ─────────────────── */
+  {
+    slug: "silicone-3d-thick",
+    name: "3D Thick Silicone Transfers",
+    shortName: "3D Thick Silicone",
+    tagline: "Thick 3D silicone transfers for bold, raised branding and high-impact garment decoration.",
+    description:
+      "Thick 3D silicone transfers for bold, raised branding and high-impact garment decoration. Pronounced dimensional effect with crisp edge definition.",
+    features: [
+      "Pronounced 3D raised effect",
+      "Crisp edge definition",
+      "Soft-touch hand feel",
+      "High-impact branding",
+    ],
+    image: "/images/products/silicone-3d-thick.webp",
+    tier: "core",
+  },
+  {
+    slug: "silicone-3d-density",
+    name: "High-Density 3D Silicone",
+    shortName: "HD 3D Silicone",
+    tagline: "High-density 3D silicone transfers — premium look with maximum dimensional impact.",
+    description:
+      "High-density 3D silicone transfers with maximum dimensional impact. Premium hand feel and long-lasting raised effect for high-end apparel programs.",
+    features: [
+      "Maximum dimensional impact",
+      "High-density material",
+      "Premium hand feel",
+      "Long-lasting raised effect",
+    ],
+    image: "/images/products/silicone-3d-density.webp",
+    tier: "core",
+  },
+  {
+    slug: "silicone-thin-flat",
+    name: "Thin Flat Silicone Transfers",
+    shortName: "Thin Silicone",
+    tagline: "Thin flat silicone transfers — smooth silicone surface without raised effect, for subtle branding.",
+    description:
+      "Thin flat silicone transfers with smooth surface and subtle dimensional effect. Ideal for logos and graphics where a soft silicone hand feel is wanted without a thick 3D profile.",
+    features: [
+      "Smooth silicone surface",
+      "Subtle dimension",
+      "Soft hand feel",
+      "Clean logo application",
+    ],
+    image: "/images/products/silicone-thin-flat.webp",
+    tier: "core",
+  },
+  {
+    slug: "silicone-multi-color",
+    name: "Multi-Color Silicone Transfers",
+    shortName: "Multi-Color Silicone",
+    tagline: "Multi-color silicone transfers — vibrant color combinations for logos, characters and graphics.",
+    description:
+      "Multi-color silicone transfers for vibrant color combinations. Perfect for logos, character art, mascot graphics and any design requiring multiple silicone colors in a single transfer.",
+    features: [
+      "Multiple colors per design",
+      "Character and mascot art",
+      "Vibrant color matching",
+      "Single transfer application",
+    ],
+    image: "/images/products/silicone-multi-color.webp",
+    tier: "core",
+  },
+  {
+    slug: "silicone-gradient",
+    name: "Gradient Silicone Transfers",
+    shortName: "Gradient Silicone",
+    tagline: "Gradient (ombre) silicone transfers — smooth color transitions for premium fashion branding.",
+    description:
+      "Gradient (ombre) silicone transfers with smooth color transitions. Premium fashion branding effect for limited-edition drops, sportswear collections and high-end apparel programs.",
+    features: [
+      "Smooth color transitions",
+      "Ombre gradient effect",
+      "Premium fashion ready",
+      "Limited-edition appeal",
+    ],
+    image: "/images/products/silicone-gradient.webp",
+    tier: "core",
+  },
+  {
+    slug: "silicone-metallic-look",
+    name: "Metallic-Look Silicone Transfers",
+    shortName: "Metallic Silicone",
+    tagline: "Metallic-look silicone transfers — the soft hand of silicone with the visual punch of metal.",
+    description:
+      "Metallic-look silicone transfers combining the soft hand feel of silicone with the visual punch of metallic finishes. Gold, silver, copper and custom metallic colors available.",
+    features: [
+      "Metallic visual effect",
+      "Soft silicone hand feel",
+      "Gold, silver, copper tones",
+      "Custom metallic colors",
+    ],
+    image: "/images/products/silicone-metallic-look.webp",
+    tier: "core",
+  },
+
+  /* ── Reflective product line (4 SKUs) ────────────────── */
+  {
+    slug: "reflective-silver-grey",
+    name: "Silver-Grey Reflective Transfers",
+    shortName: "Silver Reflective",
+    tagline: "Silver-grey reflective transfers for workwear, safety apparel and high-visibility garments.",
+    description:
+      "Silver-grey reflective transfers for workwear, safety apparel and high-visibility garments. Meets common reflective standards for industrial and outdoor use.",
+    features: [
+      "Silver-grey base color",
+      "High-visibility effect",
+      "Industrial laundering durable",
+      "Safety apparel compliant",
+    ],
+    image: "/images/products/reflective-silver-grey.webp",
+    tier: "core",
+  },
+  {
+    slug: "reflective-rainbow",
+    name: "Rainbow Reflective Transfers",
+    shortName: "Rainbow Reflective",
+    tagline: "Rainbow reflective transfers for fashion apparel, streetwear and statement pieces.",
+    description:
+      "Rainbow reflective transfers for fashion apparel, streetwear and statement pieces. Multi-color shift under light — striking visual effect for limited collections.",
+    features: [
+      "Multi-color light shift",
+      "Fashion-forward effect",
+      "Streetwear and statement pieces",
+      "Limited collection ready",
+    ],
+    image: "/images/products/reflective-rainbow.webp",
+    tier: "core",
+  },
+  {
+    slug: "reflective-multi-color",
+    name: "Multi-Color Reflective Transfers",
+    shortName: "Multi-Color Reflective",
+    tagline: "Multi-color reflective transfers — colored reflective logos and graphics for sportswear and workwear.",
+    description:
+      "Multi-color reflective transfers with colored reflective effect. Logos and graphics retain their daytime color while gaining nighttime visibility — ideal for sportswear, workwear and teamwear.",
+    features: [
+      "Colored reflective effect",
+      "Daytime color preserved",
+      "Nighttime visibility",
+      "Sportswear and workwear",
+    ],
+    image: "/images/products/reflective-multi-color.webp",
+    tier: "core",
+  },
+  {
+    slug: "reflective-high-gloss",
+    name: "High-Gloss Reflective Transfers",
+    shortName: "High-Gloss Reflective",
+    tagline: "High-gloss silver reflective transfers — premium reflective effect for performance sportswear.",
+    description:
+      "High-gloss silver reflective transfers with premium reflective effect. Maximum brightness and visibility for performance sportswear, running apparel and outdoor gear.",
+    features: [
+      "Maximum brightness",
+      "Premium reflective effect",
+      "Running and outdoor apparel",
+      "Performance sportswear",
+    ],
+    image: "/images/products/reflective-high-gloss.webp",
+    tier: "core",
+  },
+
+  /* ── DTF product line (4 SKUs) ──────────────────────── */
+  {
+    slug: "dtf-universal",
+    name: "Universal DTF Transfers",
+    shortName: "Universal DTF",
+    tagline: "Universal DTF transfers — full-color, photo-quality prints that work on most fabric types.",
+    description:
+      "Universal DTF (Direct-to-Film) transfers with full-color, photo-quality detail. Works on cotton, polyester, blends and most common garment fabrics without color separation.",
+    features: [
+      "Full-color photo-quality",
+      "Unlimited colors",
+      "Most fabric types",
+      "No color separation",
+    ],
+    image: "/images/products/dtf-universal.webp",
+    tier: "core",
+  },
+  {
+    slug: "dtf-pet-polyester",
+    name: "Polyester DTF Transfers",
+    shortName: "Polyester DTF",
+    tagline: "Polyester-specific DTF transfers — engineered to handle dye migration on PET and performance fabrics.",
+    description:
+      "Polyester-specific DTF transfers engineered to prevent dye migration on PET, polyester and performance fabrics. Anti-sublimation formula keeps colors sharp on dyed polyester.",
+    features: [
+      "Anti-sublimation formula",
+      "Prevents dye migration",
+      "Polyester and PET optimized",
+      "Sharp colors on dyed fabrics",
+    ],
+    image: "/images/products/dtf-pet-polyester.webp",
+    tier: "core",
+  },
+  {
+    slug: "dtf-cotton",
+    name: "Cotton DTF Transfers",
+    shortName: "Cotton DTF",
+    tagline: "Cotton-specific DTF transfers — optimized adhesion and softness on natural-fiber garments.",
+    description:
+      "Cotton-specific DTF transfers optimized for natural-fiber garments. Excellent adhesion and soft hand feel on cotton, cotton-blends and other natural fibers.",
+    features: [
+      "Cotton and natural fibers",
+      "Optimized adhesion",
+      "Soft hand feel",
+      "Cotton-blend compatible",
+    ],
+    image: "/images/products/dtf-cotton.webp",
+    tier: "core",
+  },
+  {
+    slug: "dtf-gold-silver",
+    name: "Metallic DTF Transfers (Gold / Silver)",
+    shortName: "Metallic DTF",
+    tagline: "Metallic DTF transfers — gold and silver foil effects via digital print, no separate foil process.",
+    description:
+      "Metallic DTF transfers with gold and silver foil effects. Digital print process delivers metallic shine without a separate foil-application step — faster and more cost-effective.",
+    features: [
+      "Gold and silver metallic",
+      "Digital print process",
+      "No separate foil step",
+      "Faster and more affordable",
+    ],
+    image: "/images/products/dtf-gold-silver.webp",
+    tier: "core",
+  },
+
+  /* ── Specialty product line (5 SKUs) ────────────────── */
+  {
+    slug: "specialty-hot-stamping-gold",
+    name: "Gold Hot-Stamping Transfers",
+    shortName: "Gold Foil",
+    tagline: "Gold hot-stamping foil transfers — bright, mirror-like gold finish for premium branding.",
+    description:
+      "Gold hot-stamping foil transfers with bright, mirror-like gold finish. Premium branding effect for luxury apparel, fashion collections and limited-edition programs.",
+    features: [
+      "Mirror-like gold finish",
+      "Premium branding effect",
+      "Luxury apparel ready",
+      "Limited-edition appeal",
+    ],
+    image: "/images/products/specialty-hot-stamping-gold.webp",
+    tier: "specialty",
+  },
+  {
+    slug: "specialty-hot-stamping-silver",
+    name: "Silver Hot-Stamping Transfers",
+    shortName: "Silver Foil",
+    tagline: "Silver hot-stamping foil transfers — bright, mirror-like silver finish for sporty and modern branding.",
+    description:
+      "Silver hot-stamping foil transfers with bright, mirror-like silver finish. Sporty and modern branding for streetwear, sportswear and techwear collections.",
+    features: [
+      "Mirror-like silver finish",
+      "Sporty modern branding",
+      "Streetwear and techwear",
+      "High-impact visual",
+    ],
+    image: "/images/products/specialty-hot-stamping-silver.webp",
+    tier: "specialty",
+  },
+  {
+    slug: "specialty-laser-hologram",
+    name: "Laser Hologram Transfers",
+    shortName: "Hologram",
+    tagline: "Laser hologram transfers — rainbow diffraction effect for futuristic, tech-inspired branding.",
+    description:
+      "Laser hologram transfers with rainbow diffraction effect. Futuristic, tech-inspired branding for streetwear, gaming apparel and limited-edition drops.",
+    features: [
+      "Rainbow diffraction effect",
+      "Holographic finish",
+      "Futuristic branding",
+      "Gaming and streetwear",
+    ],
+    image: "/images/products/specialty-laser-hologram.webp",
+    tier: "specialty",
+  },
+  {
+    slug: "specialty-glow-dark",
+    name: "Glow-in-the-Dark Transfers",
+    shortName: "Glow-in-Dark",
+    tagline: "Glow-in-the-dark transfers — photoluminescent effect for safety, novelty and kids apparel.",
+    description:
+      "Glow-in-the-dark heat transfers with photoluminescent effect. Charges under light, glows in darkness. Perfect for safety markings, novelty apparel and kids wear.",
+    features: [
+      "Photoluminescent glow",
+      "Charges under light",
+      "Safety and novelty use",
+      "Kids apparel ready",
+    ],
+    image: "/images/products/specialty-glow-dark.webp",
+    tier: "specialty",
+  },
+  {
+    slug: "specialty-thermochromic",
+    name: "Thermochromic (Heat-Color Change) Transfers",
+    shortName: "Thermochromic",
+    tagline: "Thermochromic transfers — color changes with temperature for interactive, novelty apparel.",
+    description:
+      "Thermochromic heat transfers that change color with temperature. Interactive effect for novelty apparel, kids wear, sportswear (showing body heat) and promotional products.",
+    features: [
+      "Color changes with heat",
+      "Interactive effect",
+      "Novelty and kids wear",
+      "Sportswear heat mapping",
+    ],
+    image: "/images/products/specialty-thermochromic.webp",
+    tier: "specialty",
+  },
+
+  /* ── PU / Glitter / Flock (3 SKUs) ──────────────────── */
+  {
+    slug: "pu-matte-glossy",
+    name: "PU Matte & Glossy Transfers",
+    shortName: "PU Matte/Glossy",
+    tagline: "PU transfers in matte or glossy finish — clean, versatile branding for any garment program.",
+    description:
+      "PU heat transfers available in matte or glossy finish. Clean, versatile branding solution for logos, names, numbers and graphics on any garment program.",
+    features: [
+      "Matte or glossy finish",
+      "Thin and clean edges",
+      "Excellent stretchability",
+      "Cost-effective for volume",
+    ],
+    image: "/images/products/pu-matte-glossy.webp",
+    tier: "core",
+  },
+  {
+    slug: "glitter-holographic",
+    name: "Holographic Glitter Transfers",
+    shortName: "Holographic Glitter",
+    tagline: "Holographic glitter transfers — color-shifting sparkle for fashion and statement apparel.",
+    description:
+      "Holographic glitter heat transfers with color-shifting sparkle effect. Statement-making decoration for fashion apparel, dancewear and limited-edition collections.",
+    features: [
+      "Color-shifting sparkle",
+      "Holographic finish",
+      "Statement decoration",
+      "Dancewear and fashion",
+    ],
+    image: "/images/products/glitter-holographic.webp",
+    tier: "specialty",
+  },
+  {
+    slug: "flock-multi-color",
+    name: "Multi-Color Flock Transfers",
+    shortName: "Multi-Color Flock",
+    tagline: "Multi-color flock transfers — soft, velvety surface with multiple colors in a single design.",
+    description:
+      "Multi-color flock heat transfers with soft, velvety surface texture. Combine multiple flock colors in a single design for premium matte effect on fashion apparel.",
+    features: [
+      "Soft velvety surface",
+      "Multiple colors per design",
+      "Premium matte look",
+      "Fashion apparel ready",
+    ],
+    image: "/images/products/flock-multi-color.webp",
+    tier: "specialty",
+  },
 ];
 
 export const CORE_TECHNOLOGIES = TECHNOLOGIES.filter((t) => t.tier === "core");
