@@ -28,6 +28,8 @@ export type Technology = {
   image: string;
   tier: "core" | "specialty";
   hasDesignerTool?: boolean;
+  /** Optional gallery images shown in hero carousel + lightbox gallery */
+  gallery?: string[];
 };
 
 export const TECHNOLOGIES: Technology[] = [
@@ -1051,3 +1053,22 @@ export const getIndustry = (slug: string) => INDUSTRIES.find((i) => i.slug === s
 export const getApplication = (slug: string) => APPLICATIONS.find((a) => a.slug === slug);
 export const getFabric = (slug: string) => FABRICS.find((f) => f.slug === slug);
 export const getResource = (slug: string) => RESOURCES.find((r) => r.slug === slug);
+
+/**
+ * Resolve a list of image URLs for the product gallery.
+ *
+ * - If `tech.gallery` is defined, those URLs are returned as-is.
+ * - Otherwise, the convention `/images/products/gallery/{slug}/{slug}-NN.webp`
+ *   is used, and the main `tech.image` is added as the first slide.
+ *
+ * The returned list always contains the main image so the hero carousel
+ * works on day one. Real gallery images are added when the customer
+ * uploads them; the placeholder URLs (e.g. SLH-01.webp) get dropped by
+ * the build/runtime if the file is not present.
+ */
+export const getGalleryImages = (tech: Technology): string[] => {
+  if (tech.gallery && tech.gallery.length > 0) {
+    return tech.gallery;
+  }
+  return [tech.image];
+};
