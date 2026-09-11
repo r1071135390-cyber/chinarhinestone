@@ -238,9 +238,18 @@
 
   footer { text-align: center; color: var(--muted); font-size: 11px; padding: 18px; }
   footer b { color: var(--accent); }
+  /* Visually hidden — kept in DOM for SEO + a11y, not visible to users. */
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
 </style>
 </head>
 <body>
+
+<!-- SEO H1: visually hidden so it doesn't break the compact design tool UI.
+     Search engines and screen readers see it; users don't. -->
+<h1 class="sr-only">Rhinestone Heat Transfer Designer — Free Online Tool by ChinaRhinestone</h1>
 
 <header>
   <a class="logo-chip" href="/" title="Back to ChinaRhinestone.com">

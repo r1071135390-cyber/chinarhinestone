@@ -10,8 +10,10 @@ const SITE_URL = "https://chinarhinestone.com";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
+    // Use a no-op template so each page owns its full title (most pages
+    // already end with the brand; adding it here would duplicate it).
     default: "ChinaRhinestone — Custom Heat Transfer Manufacturer for Garment Manufacturers",
-    template: "%s | ChinaRhinestone",
+    template: "%s",
   },
   description:
     "Custom heat transfer manufacturer in Yiwu, China. Rhinestone, silicone, reflective, DTF, 3D, PU and specialty heat transfers for garment manufacturers worldwide. Custom development, bulk production, repeat orders.",

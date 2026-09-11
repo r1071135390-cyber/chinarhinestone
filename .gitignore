@@ -27,3 +27,6 @@ next-env.d.ts
 /coze-export/
 npm-install.log
 check.txt
+
+# pre-deploy backups (kept locally, never committed)
+/.backups/
