@@ -1,5 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowRight, Search } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Page Not Found | ChinaRhinestone",
+  description: "The page you're looking for doesn't exist. Browse our heat transfer technologies or get a quote for your project.",
+  robots: { index: false, follow: true },
+  alternates: { canonical: "/404" },
+};
 
 export default function NotFound() {
   return (

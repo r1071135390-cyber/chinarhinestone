@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -6,6 +6,13 @@ import { WhatsAppFab } from "@/components/layout/WhatsAppFab";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 
 const SITE_URL = "https://chinarhinestone.com";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#1e3a8a",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -43,6 +50,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "ChinaRhinestone",
+    locale: "en_US",
     url: SITE_URL,
     title: "Custom Heat Transfer Manufacturer | ChinaRhinestone",
     description:
@@ -55,6 +63,15 @@ export const metadata: Metadata = {
         alt: "Custom heat transfers on performance sportswear — silicone, reflective and rhinestone effects",
       },
     ],
+  },
+  icons: {
+    icon: [{ url: "/favicon.ico", sizes: "any" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  formatDetection: {
+    telephone: false,
+    address: false,
+    email: false,
   },
   twitter: {
     card: "summary_large_image",
@@ -116,6 +133,17 @@ const organizationSchema = {
   },
 };
 
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "ChinaRhinestone",
+  url: SITE_URL,
+  inLanguage: "en",
+  description:
+    "Custom heat transfer manufacturer producing rhinestone, silicone, reflective, DTF, 3D, PU and specialty heat transfers for garment manufacturers worldwide.",
+  publisher: { "@type": "Organization", name: "ChinaRhinestone", url: SITE_URL },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -142,9 +170,19 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-white antialiased pb-16 md:pb-0">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-blue-700 focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
         <Header />
         <main id="main-content">{children}</main>

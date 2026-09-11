@@ -166,8 +166,23 @@ export default async function FabricPage({
     .filter((t) => t !== undefined);
   const others = FABRICS.filter((f) => f.slug !== fabric.slug);
 
+  const SITE_URL = "https://chinarhinestone.com";
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Fabrics", item: `${SITE_URL}/fabrics` },
+      { "@type": "ListItem", position: 3, name: fabric.name, item: `${SITE_URL}/fabrics/${fabric.slug}` },
+    ],
+  };
+
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <PageHero
         eyebrow="Fabric Compatibility"
         title={`Heat Transfers for ${fabric.name}`}
