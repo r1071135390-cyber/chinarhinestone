@@ -1,6 +1,11 @@
 name: Deploy to Cloudflare Pages
 
 on:
+  # Auto-deploy on every push to main
+  push:
+    branches:
+      - main
+  # Manual trigger from the Actions tab (still works)
   workflow_dispatch:
 
 jobs:
