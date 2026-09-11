@@ -13,8 +13,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 import {
-  CORE_TECHNOLOGIES,
-  SPECIALTY_TECHNOLOGIES,
   INDUSTRIES,
   APPLICATIONS,
   FABRICS,
@@ -147,64 +145,19 @@ export function Header() {
           />
         </Link>
 
-        {/* Desktop nav with mega menus */}
+        {/* Desktop nav */}
         <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Main navigation">
-          {/* Heat Transfers mega menu */}
-          <div className="group relative">
-            <button
-              className={`flex items-center gap-1 rounded px-3 py-2 text-sm font-semibold transition ${
-                isActive("/heat-transfers")
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-              }`}
-            >
-              Heat Transfers
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-            </button>
-            <div className="invisible absolute left-0 top-full z-50 w-[500px] pt-2 opacity-0 transition group-hover:visible group-hover:opacity-100">
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xl">
-                <div className="grid grid-cols-2 gap-x-4">
-                  <div>
-                    <ColumnHeader>Core Technologies</ColumnHeader>
-                    <ul>
-                      {CORE_TECHNOLOGIES.map((t) => (
-                        <li key={t.slug}>
-                          <MenuLink
-                            href={`/heat-transfers/${t.slug}`}
-                            label={t.name}
-                            badge={t.hasDesignerTool ? "Design Tool" : undefined}
-                          />
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <ColumnHeader>Specialty</ColumnHeader>
-                    <ul>
-                      {SPECIALTY_TECHNOLOGIES.map((t) => (
-                        <li key={t.slug}>
-                          <MenuLink href={`/heat-transfers/${t.slug}`} label={t.name} />
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="mt-3 rounded-lg bg-slate-50 p-3">
-                      <p className="text-xs font-medium text-slate-500">
-                        Need sparkling transfers?
-                      </p>
-                      <a
-                        href="/designer.html"
-                        className="mt-1 inline-flex items-center gap-1 text-sm font-bold text-blue-700 hover:text-blue-800"
-                      >
-                        <Sparkles className="h-3.5 w-3.5" />
-                        Try our free Design Studio
-                      </a>
-                    </div>
-                  </div>
-                </div>
-                <PanelFooter href="/heat-transfers" label="Explore All Heat Transfers" />
-              </div>
-            </div>
-          </div>
+          {/* Heat Transfers — direct link to the listing page, no mega menu */}
+          <Link
+            href="/heat-transfers"
+            className={`flex items-center gap-1 rounded px-3 py-2 text-sm font-semibold transition ${
+              isActive("/heat-transfers")
+                ? "bg-blue-50 text-blue-700"
+                : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+            }`}
+          >
+            Heat Transfers
+          </Link>
 
           {/* Industries mega menu */}
           <div className="group relative">
@@ -412,49 +365,14 @@ export function Header() {
       {mobileMenuOpen && (
         <div className="max-h-[calc(100vh-64px)] overflow-y-auto border-t border-slate-200 bg-white lg:hidden">
           <div className="px-4 py-3">
-            {/* Heat Transfers */}
-            <button
-              onClick={() => toggleSection("tech")}
-              className="flex w-full items-center justify-between rounded px-3 py-2.5 text-sm font-bold text-slate-800"
+            {/* Heat Transfers — direct link to the listing page, no submenu */}
+            <Link
+              href="/heat-transfers"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex w-full items-center justify-between rounded px-3 py-2.5 text-sm font-bold text-slate-800 hover:bg-slate-50"
             >
               Heat Transfers
-              <ChevronDown
-                className={`h-4 w-4 text-slate-400 transition ${openSection === "tech" ? "rotate-180" : ""}`}
-              />
-            </button>
-            {openSection === "tech" && (
-              <div className="ml-3 border-l-2 border-slate-100 pl-3">
-                <p className="mt-2 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">Core Technologies</p>
-                {CORE_TECHNOLOGIES.map((t) => (
-                  <Link
-                    key={t.slug}
-                    href={`/heat-transfers/${t.slug}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block rounded px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                  >
-                    {t.name}
-                  </Link>
-                ))}
-                <p className="mt-2 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">Specialty</p>
-                {SPECIALTY_TECHNOLOGIES.map((t) => (
-                  <Link
-                    key={t.slug}
-                    href={`/heat-transfers/${t.slug}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block rounded px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                  >
-                    {t.name}
-                  </Link>
-                ))}
-                <Link
-                  href="/heat-transfers"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block rounded px-3 py-2 text-sm font-bold text-blue-700"
-                >
-                  All Heat Transfers →
-                </Link>
-              </div>
-            )}
+            </Link>
 
             {/* Industries */}
             <button

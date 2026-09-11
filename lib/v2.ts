@@ -18,6 +18,26 @@ export const SITE = {
 };
 
 /* ── Technologies (8) ────────────────────────────────────── */
+
+/**
+ * A single media item in a technology's gallery. Supports both still
+ * images and short video clips (e.g. product demo reels).
+ *
+ * - For `image`: `src` is the image URL. `poster` is unused.
+ * - For `video`: `src` is the video file URL (mp4 / webm). `poster` is
+ *   strongly recommended — it is shown while the video is loading and
+ *   on touch devices where autoplay is blocked. Without a poster, the
+ *   user sees a black frame.
+ */
+export type GalleryMedia = {
+  type: "image" | "video";
+  src: string;
+  /** Optional cover image. For video, used as `poster`. */
+  poster?: string;
+  /** Optional override for the alt text on this slide. */
+  alt?: string;
+};
+
 export type Technology = {
   slug: string;
   name: string;
@@ -28,8 +48,12 @@ export type Technology = {
   image: string;
   tier: "core" | "specialty";
   hasDesignerTool?: boolean;
-  /** Optional gallery images shown in hero carousel + lightbox gallery */
-  gallery?: string[];
+  /**
+   * Optional gallery shown in the hero carousel and the lightbox gallery
+   * below the page. Mixed media is supported — entries can be either
+   * images or short video clips. If omitted, only `image` is used.
+   */
+  gallery?: GalleryMedia[];
 };
 
 export const TECHNOLOGIES: Technology[] = [
@@ -54,14 +78,15 @@ export const TECHNOLOGIES: Technology[] = [
     slug: "silicone-heat-transfers",
     name: "Silicone Heat Transfers",
     shortName: "Silicone",
-    tagline: "Soft-touch, dimensional and raised silicone transfers for apparel branding and garment decoration.",
+    tagline:
+      "Standard-thickness silicone — the everyday choice for soft, raised branding.",
     description:
-      "Soft-touch, dimensional and raised silicone transfers for apparel branding and garment decoration.",
+      "Standard Silicone is the entry point of our silicone line (typical thickness 0.3 – 0.5mm). It delivers a soft, slightly raised surface with the best stretch recovery of any silicone we make. Choose this when you want a clean raised logo with a soft hand feel and you do not need the bolder 3D look of 3D Thick or High-Density Silicone.",
     features: [
-      "Soft, flexible hand feel",
-      "Raised, dimensional finish",
-      "Strong stretch recovery",
-      "Multiple color options",
+      "Thickness: 0.3 – 0.5mm (our thinnest silicone)",
+      "Softest hand feel in the silicone family",
+      "Best stretch recovery of any silicone type",
+      "Subtle raise — most economical option",
     ],
     image: "/images/tech-silicone.jpg",
     tier: "core",
@@ -95,24 +120,38 @@ export const TECHNOLOGIES: Technology[] = [
       "Soft, stretchable finish",
       "Works on cotton, polyester and blends",
     ],
-    image: "/images/tech-dtf.jpg",
+    image: "/images/products/gallery/dtf-heat-transfers/DTF-01.webp",
+    gallery: [
+      { type: "image", src: "/images/products/gallery/dtf-heat-transfers/DTF-01.webp", alt: "DTF heat transfer — image 1" },
+      { type: "image", src: "/images/products/gallery/dtf-heat-transfers/DTF-02.webp", alt: "DTF heat transfer — image 2" },
+      { type: "image", src: "/images/products/gallery/dtf-heat-transfers/DTF-03.webp", alt: "DTF heat transfer — image 3" },
+      { type: "image", src: "/images/products/gallery/dtf-heat-transfers/DTF-04.webp", alt: "DTF heat transfer — image 4" },
+      { type: "image", src: "/images/products/gallery/dtf-heat-transfers/DTF-05.webp", alt: "DTF heat transfer — image 5" },
+      { type: "image", src: "/images/products/gallery/dtf-heat-transfers/DTF-06.webp", alt: "DTF heat transfer — image 6" },
+      { type: "image", src: "/images/products/gallery/dtf-heat-transfers/DTF-07.webp", alt: "DTF heat transfer — image 7" },
+      { type: "image", src: "/images/products/gallery/dtf-heat-transfers/DTF-08.webp", alt: "DTF heat transfer — image 8" },
+      { type: "image", src: "/images/products/gallery/dtf-heat-transfers/DTF-09.webp", alt: "DTF heat transfer — image 9" },
+      { type: "image", src: "/images/products/gallery/dtf-heat-transfers/DTF-10.webp", alt: "DTF heat transfer — image 10" },
+      { type: "image", src: "/images/products/gallery/dtf-heat-transfers/DTF-11.webp", alt: "DTF heat transfer — image 11" },
+    ],
     tier: "core",
   },
   {
     slug: "3d-raised-heat-transfers",
     name: "3D & Raised Heat Transfers",
     shortName: "3D / Raised",
-    tagline: "Dimensional transfer effects that add depth, texture and visual impact to garment designs.",
+    tagline:
+      "An overview of every dimensional transfer technique — choose your material, thickness and visual impact.",
     description:
-      "Dimensional transfer effects that add depth, texture and visual impact to garment designs.",
+      "3D & Raised is not a single process. It is the family of transfer techniques that add visible depth, raised edges or textured surfaces to a garment — covering silicone (standard, thick and high-density), gradient silicone, PU foam and other raised effects. Use this page to compare the options, then move to a specific technology for sampling and production.",
     features: [
-      "High-density raised finish",
-      "Sharp edge definition",
-      "Textured visual impact",
-      "Premium brand look",
+      "Covers all dimensional transfer techniques",
+      "Material options: silicone, PU foam, high-density compounds",
+      "Typical thickness range: 0.3 – 2.5mm",
+      "Choose by visual impact, hand feel and budget",
     ],
     image: "/images/tech-3d.jpg",
-    tier: "core",
+    tier: "specialty",
   },
   {
     slug: "pu-heat-transfers",
@@ -308,14 +347,15 @@ export const TECHNOLOGIES: Technology[] = [
     slug: "silicone-3d-thick",
     name: "3D Thick Silicone Transfers",
     shortName: "3D Thick Silicone",
-    tagline: "Thick 3D silicone transfers for bold, raised branding and high-impact garment decoration.",
+    tagline:
+      "Thick silicone with a pronounced raised effect — visible 3D, still soft to the touch.",
     description:
-      "Thick 3D silicone transfers for bold, raised branding and high-impact garment decoration. Pronounced dimensional effect with crisp edge definition.",
+      "3D Thick Silicone is roughly twice as thick as standard silicone (typical 0.8 – 1.2mm). It gives a clearly visible raised effect with crisp edges while keeping the same soft-touch feel. Choose this when standard silicone is too flat for your design but you do not need the maximum thickness of HD 3D Silicone — a strong fit for streetwear, team logos, caps and chest badges.",
     features: [
-      "Pronounced 3D raised effect",
-      "Crisp edge definition",
-      "Soft-touch hand feel",
-      "High-impact branding",
+      "Thickness: 0.8 – 1.2mm (about 2× standard silicone)",
+      "Pronounced 3D raise with crisp edges",
+      "Still soft to the touch — no hard plastic feel",
+      "Best for streetwear, team logos, caps and chest badges",
     ],
     image: "/images/products/silicone-3d-thick.webp",
     tier: "core",
@@ -324,14 +364,15 @@ export const TECHNOLOGIES: Technology[] = [
     slug: "silicone-3d-density",
     name: "High-Density 3D Silicone",
     shortName: "HD 3D Silicone",
-    tagline: "High-density 3D silicone transfers — premium look with maximum dimensional impact.",
+    tagline:
+      "Our thickest, densest silicone — maximum 3D impact for premium and athletic brands.",
     description:
-      "High-density 3D silicone transfers with maximum dimensional impact. Premium hand feel and long-lasting raised effect for high-end apparel programs.",
+      "HD 3D Silicone is our flagship thickness (typical 1.5 – 2.5mm). It produces the most dramatic raised effect and the heaviest hand feel — the substantial look you see on premium athletic wear and luxury streetwear labels. Choose this when dimensional impact and a solid feel under the fingers matter more than cost. Pricier than 3D Thick due to higher material use.",
     features: [
-      "Maximum dimensional impact",
-      "High-density material",
-      "Premium hand feel",
-      "Long-lasting raised effect",
+      "Thickness: 1.5 – 2.5mm (our thickest silicone)",
+      "Heaviest, most substantial hand feel",
+      "Maximum 3D visual impact",
+      "Best for premium athletic, luxury streetwear and high-end labels",
     ],
     image: "/images/products/silicone-3d-density.webp",
     tier: "core",
@@ -372,14 +413,15 @@ export const TECHNOLOGIES: Technology[] = [
     slug: "silicone-gradient",
     name: "Gradient Silicone Transfers",
     shortName: "Gradient Silicone",
-    tagline: "Gradient (ombre) silicone transfers — smooth color transitions for premium fashion branding.",
+    tagline:
+      "Silicone with smooth color transitions — combine any thickness with ombre color.",
     description:
-      "Gradient (ombre) silicone transfers with smooth color transitions. Premium fashion branding effect for limited-edition drops, sportswear collections and high-end apparel programs.",
+      "Gradient Silicone is a color variant, not a thickness variant — it can be produced at standard, thick or HD silicone thickness. The value is the smooth color transition from one shade to another within a single logo, creating an ombre effect flat-color silicone cannot achieve. Choose this for limited drops, collaborations and any brand where color depth matters as much as physical depth.",
     features: [
-      "Smooth color transitions",
-      "Ombre gradient effect",
-      "Premium fashion ready",
-      "Limited-edition appeal",
+      "Available on any silicone thickness (standard, thick or HD)",
+      "Smooth ombre color transitions within a single logo",
+      "Combine with 3D raise for maximum visual impact",
+      "Best for limited drops, collaborations, fashion-forward lines",
     ],
     image: "/images/products/silicone-gradient.webp",
     tier: "core",
@@ -579,7 +621,54 @@ export const TECHNOLOGIES: Technology[] = [
       "Futuristic branding",
       "Gaming and streetwear",
     ],
-    image: "/images/products/specialty-laser-hologram.webp",
+    image: "/images/products/gallery/specialty-laser-hologram/SLH-02.webp",
+    gallery: [
+      {
+        type: "image",
+        src: "/images/products/gallery/specialty-laser-hologram/SLH-02.webp",
+      },
+      {
+        type: "video",
+        src: "/videos/specialty-laser-hologram/SLH-demo.mp4",
+        poster: "/images/products/gallery/specialty-laser-hologram/SLH-02.webp",
+      },
+      {
+        type: "image",
+        src: "/images/products/gallery/specialty-laser-hologram/SLH-03.webp",
+      },
+      {
+        type: "image",
+        src: "/images/products/gallery/specialty-laser-hologram/SLH-04.webp",
+      },
+      {
+        type: "image",
+        src: "/images/products/gallery/specialty-laser-hologram/SLH-05.webp",
+      },
+      {
+        type: "image",
+        src: "/images/products/gallery/specialty-laser-hologram/SLH-06.webp",
+      },
+      {
+        type: "image",
+        src: "/images/products/gallery/specialty-laser-hologram/SLH-07.webp",
+      },
+      {
+        type: "image",
+        src: "/images/products/gallery/specialty-laser-hologram/SLH-08.webp",
+      },
+      {
+        type: "image",
+        src: "/images/products/gallery/specialty-laser-hologram/SLH-09.webp",
+      },
+      {
+        type: "image",
+        src: "/images/products/gallery/specialty-laser-hologram/SLH-10.webp",
+      },
+      {
+        type: "image",
+        src: "/images/products/gallery/specialty-laser-hologram/SLH-11.webp",
+      },
+    ],
     tier: "specialty",
   },
   {
@@ -1055,20 +1144,20 @@ export const getFabric = (slug: string) => FABRICS.find((f) => f.slug === slug);
 export const getResource = (slug: string) => RESOURCES.find((r) => r.slug === slug);
 
 /**
- * Resolve a list of image URLs for the product gallery.
+ * Resolve the gallery media list for a technology.
  *
- * - If `tech.gallery` is defined, those URLs are returned as-is.
- * - Otherwise, the convention `/images/products/gallery/{slug}/{slug}-NN.webp`
- *   is used, and the main `tech.image` is added as the first slide.
+ * - If `tech.gallery` is defined, those entries are returned as-is.
+ *   Each entry can be an image OR a video (see `GalleryMedia`).
+ * - Otherwise, falls back to a single-image gallery built from
+ *   `tech.image`.
  *
- * The returned list always contains the main image so the hero carousel
- * works on day one. Real gallery images are added when the customer
- * uploads them; the placeholder URLs (e.g. SLH-01.webp) get dropped by
- * the build/runtime if the file is not present.
+ * Components consuming this list are responsible for rendering video
+ * slides with a poster, autoplay/pause on slide change, and a play
+ * overlay in the gallery grid.
  */
-export const getGalleryImages = (tech: Technology): string[] => {
+export const getGalleryImages = (tech: Technology): GalleryMedia[] => {
   if (tech.gallery && tech.gallery.length > 0) {
     return tech.gallery;
   }
-  return [tech.image];
+  return [{ type: "image", src: tech.image }];
 };

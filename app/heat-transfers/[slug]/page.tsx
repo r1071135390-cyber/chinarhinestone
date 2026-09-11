@@ -53,7 +53,7 @@ export default async function TechnologyPage({
   const tech = getTechnology(slug);
   if (!tech) notFound();
 
-  const galleryImages = getGalleryImages(tech);
+  const galleryMedia = getGalleryImages(tech);
   const others = TECHNOLOGIES.filter((t) => t.slug !== tech.slug).slice(0, 4);
 
   const SITE_URL = "https://chinarhinestone.com";
@@ -122,11 +122,29 @@ export default async function TechnologyPage({
               </div>
             </div>
             <div>
-              <HeroCarousel images={galleryImages} alt={tech.name} priority />
+              <HeroCarousel media={galleryMedia} alt={tech.name} priority />
             </div>
           </div>
         </div>
       </section>
+
+      {/* Product gallery */}
+      {galleryMedia.length > 0 && (
+        <section className="border-t border-slate-200 bg-slate-50 py-16 lg:py-20">
+          <div className="mx-auto max-w-7xl px-4 lg:px-8">
+            <div className="mb-8 max-w-2xl">
+              <h2 className="text-2xl font-black tracking-tight text-slate-900">
+                {tech.shortName} Product Gallery
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                Production samples, application examples and detail views.
+                Click any image to open full-size.
+              </p>
+            </div>
+            <ProductGallery media={galleryMedia} alt={tech.name} />
+          </div>
+        </section>
+      )}
 
       {/* Features */}
       <section className="py-16 lg:py-20">
@@ -155,24 +173,6 @@ export default async function TechnologyPage({
           </div>
         </div>
       </section>
-
-      {/* Product gallery */}
-      {galleryImages.length > 0 && (
-        <section className="border-t border-slate-200 bg-slate-50 py-16 lg:py-20">
-          <div className="mx-auto max-w-7xl px-4 lg:px-8">
-            <div className="mb-8 max-w-2xl">
-              <h2 className="text-2xl font-black tracking-tight text-slate-900">
-                {tech.shortName} Product Gallery
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                Production samples, application examples and detail views.
-                Click any image to open full-size.
-              </p>
-            </div>
-            <ProductGallery images={galleryImages} alt={tech.name} />
-          </div>
-        </section>
-      )}
 
       {/* How to order */}
       <section className="border-y border-slate-200 bg-slate-50 py-16 lg:py-20">
