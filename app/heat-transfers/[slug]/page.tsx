@@ -13,6 +13,9 @@ import {
   FABRICS,
   getTechnology,
   getGalleryImages,
+  getRelatedProducts,
+  getRelatedResources,
+  getResource,
 } from "@/lib/v2";
 import {
   buildProductSchema,
@@ -78,7 +81,16 @@ export default async function TechnologyPage({
   if (!tech) notFound();
 
   const galleryMedia = getGalleryImages(tech);
-  const others = TECHNOLOGIES.filter((t) => t.slug !== tech.slug).slice(0, 4);
+  /* Related-product list is now context-aware (same family / same
+   * technology) — see getRelatedProducts in lib/v2.ts. */
+  const others = getRelatedProducts(tech.slug);
+  /* Resource pages (guides & comparisons) most relevant to this
+   * product. Surfaces the editorial content in the product funnel
+   * and gives Google fresh cross-linked crawl paths between
+   * /heat-transfers/* and /resources/*. */
+  const relatedResources = getRelatedResources(tech.slug)
+    .map((s) => getResource(s))
+    .filter((r): r is NonNullable<ReturnType<typeof getResource>> => Boolean(r));
 
   /* Note: the <Breadcrumb /> component below already emits its own
    * BreadcrumbList JSON-LD via PageHero, so we don't add a second one
@@ -335,6 +347,46 @@ export default async function TechnologyPage({
           </div>
         </div>
       </section>
+
+      {/* Related guides & insights (editorial cross-link) */}
+      {relatedResources.length > 0 && (
+        <section className="py-16 lg:py-20">
+          <div className="mx-auto max-w-7xl px-4 lg:px-8">
+            <div className="mb-8 max-w-2xl">
+              <h2 className="text-2xl font-black tracking-tight text-slate-900">
+                Helpful Guides for {tech.shortName}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                Practical reading on selection, application and durability — drawn from
+                our production work with garment manufacturers.
+              </p>
+            </div>
+            <ul className="grid gap-4 sm:grid-cols-2">
+              {relatedResources.map((r) => (
+                <li key={r.slug}>
+                  <Link
+                    href={`/resources/${r.slug}`}
+                    className="group flex h-full items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 transition hover:border-blue-300 hover:shadow-sm"
+                  >
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.15em] text-blue-700">
+                        {r.category}
+                      </p>
+                      <h3 className="mt-2 text-base font-bold text-slate-900">
+                        {r.name}
+                      </h3>
+                      <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+                        {r.tagline}
+                      </p>
+                    </div>
+                    <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-blue-700 transition group-hover:translate-x-0.5" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       <CtaBand />
     </div>

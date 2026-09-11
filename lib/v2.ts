@@ -986,6 +986,27 @@ export const RESOURCES: Resource[] = [
     category: "Comparisons & Insights",
     tagline: "Wash testing and durability expectations by technology.",
   },
+  {
+    /* Long-tail: a high-intent search query garment manufacturers type
+     * when they hit a recurring color-bleed defect. This article owns
+     * the "dye migration heat transfer" SERP. */
+    slug: "dye-migration-prevention",
+    name: "Dye Migration Prevention on Polyester",
+    category: "Guides",
+    tagline:
+      "Why dyed polyester ruins transfers — and how dye-blocking systems, curing profiles and substrate choice stop it.",
+  },
+  {
+    /* Long-tail: the dominant B2B search phrasing for our category.
+     * Captures the "custom heat transfer supplier China" SERP and
+     * explicitly addresses the risks (MOQ, lead time, QC) buyers
+     * worry about. */
+    slug: "sourcing-custom-heat-transfers-from-china",
+    name: "Sourcing Custom Heat Transfers from China",
+    category: "Comparisons & Insights",
+    tagline:
+      "What garment manufacturers should evaluate when sourcing custom heat transfers from a Chinese manufacturer — MOQ, lead time, sampling, QC and shipping.",
+  },
 ];
 
 /* ── Transfer Selector mapping (Homepage Section 04) ─────── */
@@ -1135,6 +1156,104 @@ export const TRUST_POINTS = [
     text: "Inspection from development through final production.",
   },
 ];
+
+/* ── Related-product helper (D-3 internal-link deepening) ───
+ *
+ * Returns up to `limit` Technology objects that are most contextually
+ * related to the given product. The matching is slug-prefix based so
+ * it survives data changes without manual curation:
+ *
+ *   1. Same product family (e.g. "rhinestone-*" → other "rhinestone-*")
+ *   2. Same base technology (e.g. "silicone-3d-thick" → other "silicone-*"
+ *      and the "3d-raised-heat-transfers" overview page)
+ *   3. If still short, fall back to the other TECHNOLOGIES so the page
+ *      always has something to show in the related-products slot.
+ *
+ * The returned list is stable in order (deterministic) and never
+ * includes the input product.
+ * ───────────────────────────────────────────────────────────── */
+export const getRelatedProducts = (slug: string, limit = 4): Technology[] => {
+  const tech = getTechnology(slug);
+  if (!tech) return [];
+  const others = TECHNOLOGIES.filter((t) => t.slug !== slug);
+
+  // Group 1: exact same family prefix (e.g. "rhinestone-" vs "rhinestone-austrian-grade")
+  const familyKey = tech.slug.split("-")[0]; // "rhinestone", "silicone", ...
+  const sameFamily = others.filter((t) => t.slug.startsWith(`${familyKey}-`));
+
+  // Group 2: siblings that share the same core technology — e.g. any
+  // 3D silicone SKU should surface the 3D-raised overview page.
+  const sameCore = others.filter(
+    (t) =>
+      !sameFamily.includes(t) &&
+      ((tech.slug.startsWith("silicone-") && t.slug === "3d-raised-heat-transfers") ||
+        (tech.slug === "3d-raised-heat-transfers" && t.slug.startsWith("silicone-")))
+  );
+
+  const ordered = [...sameFamily, ...sameCore, ...others];
+  // De-dup while preserving order.
+  const seen = new Set<string>();
+  const unique = ordered.filter((t) => {
+    if (seen.has(t.slug)) return false;
+    seen.add(t.slug);
+    return true;
+  });
+  return unique.slice(0, limit);
+};
+
+/* ── Related-resources helper (links product pages to guides) ──
+ *
+ * Maps a technology slug to the resource(s) most likely to help a
+ * garment manufacturer evaluating that technology. Falls back to the
+ * general "heat-transfer-guide" when nothing specific applies.
+ * ───────────────────────────────────────────────────────────── */
+export const getRelatedResources = (slug: string): string[] => {
+  const map: Record<string, string[]> = {
+    "rhinestone-heat-transfers": ["heat-transfer-guide", "artwork-guidelines"],
+    "rhinestone-austrian-grade": ["heat-transfer-guide", "heat-transfer-durability"],
+    "rhinestone-korean-grade": ["heat-transfer-guide", "silicone-vs-pu"],
+    "rhinestone-china-grade-a": ["heat-transfer-guide", "heat-transfer-durability"],
+    "rhinestone-china-grade-b": ["heat-transfer-guide", "heat-transfer-durability"],
+    "rhinestone-custom-designs": ["artwork-guidelines", "heat-transfer-guide"],
+    "rhinestone-multi-color": ["artwork-guidelines", "heat-transfer-guide"],
+    "rhinestone-iron-on": ["heat-transfer-application-guide", "heat-transfer-guide"],
+    "rhinestone-hot-fix": ["heat-transfer-application-guide", "heat-transfer-guide"],
+    "silicone-heat-transfers": ["silicone-vs-pu", "best-heat-transfers-for-sportswear"],
+    "silicone-3d-thick": ["silicone-vs-pu", "best-heat-transfers-for-sportswear"],
+    "silicone-3d-density": ["silicone-vs-pu", "best-heat-transfers-for-sportswear"],
+    "silicone-thin-flat": ["silicone-vs-pu", "heat-transfer-guide"],
+    "silicone-multi-color": ["artwork-guidelines", "silicone-vs-pu"],
+    "silicone-gradient": ["artwork-guidelines", "silicone-vs-pu"],
+    "silicone-metallic-look": ["silicone-vs-pu", "heat-transfer-guide"],
+    "reflective-heat-transfers": ["best-heat-transfers-for-sportswear", "heat-transfer-durability"],
+    "reflective-silver-grey": ["fabric-compatibility", "heat-transfer-durability"],
+    "reflective-rainbow": ["fabric-compatibility", "heat-transfer-guide"],
+    "reflective-multi-color": ["artwork-guidelines", "best-heat-transfers-for-sportswear"],
+    "reflective-high-gloss": ["best-heat-transfers-for-sportswear", "fabric-compatibility"],
+    "dtf-heat-transfers": ["artwork-guidelines", "fabric-compatibility"],
+    "dtf-universal": ["fabric-compatibility", "dye-migration-prevention"],
+    "dtf-pet-polyester": ["fabric-compatibility", "dye-migration-prevention"],
+    "dtf-cotton": ["fabric-compatibility", "heat-transfer-guide"],
+    "dtf-gold-silver": ["artwork-guidelines", "heat-transfer-guide"],
+    "3d-raised-heat-transfers": ["silicone-vs-pu", "best-heat-transfers-for-sportswear"],
+    "pu-heat-transfers": ["silicone-vs-pu", "best-heat-transfers-for-sportswear"],
+    "pu-matte-glossy": ["silicone-vs-pu", "best-heat-transfers-for-sportswear"],
+    "glitter-heat-transfers": ["heat-transfer-guide", "artwork-guidelines"],
+    "glitter-holographic": ["artwork-guidelines", "heat-transfer-guide"],
+    "flock-heat-transfers": ["heat-transfer-guide", "fabric-compatibility"],
+    "flock-multi-color": ["artwork-guidelines", "heat-transfer-guide"],
+    "specialty-heat-transfers": ["artwork-guidelines", "sourcing-custom-heat-transfers-from-china"],
+    "specialty-hot-stamping-gold": ["artwork-guidelines", "heat-transfer-durability"],
+    "specialty-hot-stamping-silver": ["artwork-guidelines", "heat-transfer-durability"],
+    "specialty-laser-hologram": ["artwork-guidelines", "heat-transfer-guide"],
+    "specialty-glow-dark": ["fabric-compatibility", "heat-transfer-guide"],
+    "specialty-thermochromic": ["fabric-compatibility", "heat-transfer-guide"],
+  };
+  return map[slug] ?? [
+    "sourcing-custom-heat-transfers-from-china",
+    "heat-transfer-guide",
+  ];
+};
 
 /* ── Helpers ─────────────────────────────────────────────── */
 export const getTechnology = (slug: string) => TECHNOLOGIES.find((t) => t.slug === slug);

@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { CtaBand } from "@/components/layout/CtaBand";
-import { RESOURCES, getResource } from "@/lib/v2";
+import { RESOURCES, getResource, getRelatedProducts } from "@/lib/v2";
+import { buildArticleSchema } from "@/lib/seo";
 
 const SITE_URL = "https://chinarhinestone.com";
 
@@ -302,6 +303,106 @@ const ARTICLES: Record<string, Article> = {
       },
     ],
   },
+
+  /* ── Long-tail: Dye migration on polyester ─────────────── */
+  "dye-migration-prevention": {
+    intro:
+      "Dye migration is the single most common color-bleed defect we see on polyester garments. The white logo on a red sublimated jersey slowly turns pink in the press or in storage, and nobody catches it until the customer does. This guide explains what dye migration is, why polyester is uniquely vulnerable, and what we do — in coating, adhesive and process — to stop it.",
+    sections: [
+      {
+        heading: "What Dye Migration Actually Is",
+        paragraphs: [
+          "Polyester is dyed with disperse dyes that sit inside the fiber rather than locking onto its surface. Under heat, those dye molecules become mobile again and travel into any material pressed against the fabric — including the adhesive, ink or coating of a heat transfer. The result is a transfer that gradually picks up the garment's color: white graphics turn pink on red jerseys, blue graphics go muddy on royal polyesters, and pastel prints shift toward the fabric's undertone.",
+        ],
+      },
+      {
+        heading: "Why Polyester Is Uniquely Vulnerable",
+        bullets: [
+          "Sublimated jerseys — dyes deposited during sublimation are the most mobile; they migrate under very mild heat",
+          "Deep, saturated colors — the more dye packed into the fiber, the more there is to bleed",
+          "Stretch knits — heat and pressure concentrate at raised points, accelerating migration at logo edges",
+          "Storage in warm conditions — migration continues slowly in stacked cartons, sometimes appearing weeks after pressing",
+        ],
+      },
+      {
+        heading: "How We Prevent It",
+        paragraphs: [
+          "Three layers of prevention, applied in order. None of them is optional on a sublimated or deeply dyed polyester — together they stop migration under production conditions and storage.",
+        ],
+        bullets: [
+          "Dye-blocking adhesive — a formulated polymer layer between fabric and graphic that physically traps migrating dye molecules; standard on every polyester DTF and most silicone recipes we ship",
+          "Adjusted curing profile — lower press temperature, longer dwell time and a controlled cool-down reduce the heat energy available to mobilize dye",
+          "Substrate choice — for very high-risk fabrics we move to DTF or migration-rated silicone rather than conventional PU systems that don't carry a barrier layer",
+        ],
+      },
+      {
+        heading: "What Garment Manufacturers Can Do",
+        bullets: [
+          "Tell us the dye method up front — sublimated, piece-dyed, garment-dyed and yarn-dyed fabrics all behave differently",
+          "Send the actual garment or a dyed swatch with your artwork — lab samples are not enough to predict migration",
+          "Avoid stacking hot transfers — let garments cool before folding or packing",
+          "Store transfers in a cool, dry place — heat accelerates migration even when no transfer is happening",
+        ],
+      },
+      {
+        heading: "When Dye Migration Cannot Be Fully Stopped",
+        paragraphs: [
+          "There are fabric / dye combinations where even the best barrier cannot fully prevent bleed — typically very high-saturation sublimation prints in reds, royal blues and deep purples. In those cases we recommend running a test pressing on the exact garment, evaluating after 24 hours of room-temperature storage, and shifting the technology if the test shows unacceptable color shift. This is the honest answer: dye migration is a fabric problem, not a transfer problem, and the only permanent fix is the fabric.",
+        ],
+      },
+    ],
+  },
+
+  /* ── Long-tail: Sourcing from China (high B2B intent) ──── */
+  "sourcing-custom-heat-transfers-from-china": {
+    intro:
+      "Sourcing custom heat transfers from a Chinese manufacturer is a real B2B workflow — not a 'send artwork, get product' transaction. This article walks through the questions garment manufacturers should ask before committing: MOQ, lead time, sampling discipline, QC, communication, shipping and what the realistic first-order experience looks like.",
+    sections: [
+      {
+        heading: "Why China for Custom Heat Transfers",
+        paragraphs: [
+          "China remains the center of garment decoration manufacturing for a reason: concentrated supply chains, multiple competing technologies under one roof, mature sampling and production capacity, and pricing that allows Western and regional manufacturers to compete on finished garment cost. The trade-off — distance, language, time zone and quality variability across factories — is real but manageable when you know what to evaluate.",
+        ],
+      },
+      {
+        heading: "What to Evaluate Before You Commit",
+        bullets: [
+          "Technology range — a supplier who can run silicone, reflective, DTF and specialty transfers keeps your program flexible; a single-technology factory forces you to split orders",
+          "In-house sampling — sampling done on the production line, not a separate studio, gives samples that match bulk output",
+          "MOQ by technology — rhinestone, silicone and reflective typically start at 100–500 pieces; DTF can run lower, hot-fix rolls are the most flexible",
+          "Lead time — sample 5–10 days, bulk 10–25 days depending on technology and quantity; faster is possible at a price",
+          "Communication — one named account contact, English fluency, and a documented review process for artwork and specs",
+        ],
+      },
+      {
+        heading: "The Sampling Process in Practice",
+        paragraphs: [
+          "The fastest way to evaluate a Chinese transfer supplier is to run a real sample program: send production artwork, request a sample on the actual garment or fabric, and judge on (a) color and dimensional accuracy, (b) application parameters, (c) wash performance after 5–10 cycles, and (d) whether the sample was actually produced on the line that will run the bulk order. A factory that refuses to sample on your fabric — or that insists on a generic test swatch — is a red flag for the bulk order that follows.",
+        ],
+      },
+      {
+        heading: "QC and Repeat Orders",
+        bullets: [
+          "Request a documented QC process — in-process inspection, AQL sampling, pre-shipment check",
+          "Lock approved specifications in writing: Pantone references, dimensions, adhesive type, application parameters, packaging",
+          "Plan repeat orders around the same specification — locked specs mean re-orders run without re-sampling",
+          "Agree on defect handling before bulk — credit, replacement or rework, with thresholds documented",
+        ],
+      },
+      {
+        heading: "Shipping, Lead Time and Total Cost",
+        paragraphs: [
+          "Sea freight is the standard for full-bulk orders (20–35 days transit from Yiwu / Ningbo / Shanghai to most ports); air freight is reserved for samples and rush replenishments. Total landed cost should be modeled with the supplier's quote: per-piece price, sampling cost (often credited against the first bulk order), tooling or setup fees, freight, duty and any warehousing at the destination. A quote that looks cheaper on a per-piece basis is often more expensive once these adders are included.",
+        ],
+      },
+      {
+        heading: "What Working With Us Looks Like",
+        paragraphs: [
+          "We are a custom heat transfer manufacturer based in Yiwu, China, with production across silicone, reflective, rhinestone, DTF, 3D, PU and specialty technologies under one roof. Garment manufacturers send us artwork and project specs; we review files, recommend a technology, sample on the actual fabric when required, and manufacture the approved transfer to a locked specification that supports repeat orders. Quote requests are answered within 24 hours, and we work with programs from a few hundred pieces upward.",
+        ],
+      },
+    ],
+  },
 };
 
 export function generateStaticParams() {
@@ -338,19 +439,20 @@ export default async function ResourcePage({
   const related = RESOURCES.filter(
     (r) => r.category === resource.category && r.slug !== resource.slug
   );
+  /* CTA-friendly product links: surface the most-used heat-transfer
+   * technologies so the article drives traffic into the product funnel. */
+  const relatedProducts = getRelatedProducts("rhinestone-heat-transfers", 4);
 
-  const articleSchema = {
-    "@context": "https://schema.org",
-    "@type": "Article",
+  /* Use the shared article schema builder (defined in lib/seo.ts) so
+   * every page that emits an article follows the same shape and
+   * Google only has to learn one format. */
+  const articleSchema = buildArticleSchema({
+    slug: resource.slug,
     headline: resource.name,
     description: resource.tagline,
     datePublished: "2026-08-29",
     dateModified: "2026-08-29",
-    author: { "@type": "Organization", name: "ChinaRhinestone", url: SITE_URL },
-    publisher: { "@type": "Organization", name: "ChinaRhinestone", url: SITE_URL },
-    mainEntityOfPage: `${SITE_URL}/resources/${resource.slug}`,
-    image: `${SITE_URL}/logo.png`,
-  };
+  });
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -465,6 +567,32 @@ export default async function ResourcePage({
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
+
+              {/* Cross-link to products — surfaces the editorial
+               * content inside the product funnel and gives Google
+               * reciprocal crawl paths between /resources/* and
+               * /heat-transfers/*. */}
+              <h2 className="mt-8 text-sm font-bold uppercase tracking-[0.15em] text-slate-500">
+                Popular Technologies
+              </h2>
+              <ul className="mt-4 divide-y divide-slate-200 rounded-xl border border-slate-200">
+                {relatedProducts.map((t) => (
+                  <li key={t.slug}>
+                    <Link
+                      href={`/heat-transfers/${t.slug}`}
+                      className="flex items-start justify-between gap-3 px-5 py-4 transition hover:bg-slate-50"
+                    >
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">{t.name}</p>
+                        <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
+                          {t.shortName}
+                        </p>
+                      </div>
+                      <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-blue-700" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           </aside>
         </div>
