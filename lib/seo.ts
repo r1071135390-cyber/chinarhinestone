@@ -192,3 +192,153 @@ export function buildLocalBusinessSchema() {
     ],
   };
 }
+
+/* ── Product schema builder (for product detail pages) ────────────────
+ *
+ * Inputs (all optional except name/description/image):
+ *   - slug:         URL slug — used to build the @id and the SKU.
+ *   - name:         Human-readable product name.
+ *   - shortName:    Short variant for the alternateName field.
+ *   - description:  Product description, 1-3 sentences.
+ *   - image:        Primary hero image URL (relative or absolute).
+ *   - gallery:      Optional additional image URLs — added to `image` array.
+ *   - category:     Google product category string (defaults to "Heat Transfer Labels").
+ *   - material:     Optional material string (e.g. "Austrian crystal").
+ *   - brand:        Optional brand override (defaults to "ChinaRhinestone").
+ *   - isB2B:        When true (default), emits a quote-based Offer with no
+ *                   numeric price. Set to false to include an AggregateOffer
+ *                   with lowPrice/highPrice (used by retailers with a public
+ *                   price list).
+ *
+ * Why a quote-based Offer: chinarhinestone.com prices every order by specs,
+ * so publishing a single numeric price would be misleading. Google accepts
+ * an Offer that only declares availability + priceCurrency + a free-text
+ * priceSpecification.description, and still surfaces the Product graph.
+ * ───────────────────────────────────────────────────────────────────── */
+export function buildProductSchema(input: {
+  slug: string;
+  name: string;
+  shortName?: string;
+  description: string;
+  image: string;
+  gallery?: { type: "image" | "video"; src: string }[];
+  category?: string;
+  material?: string;
+  brand?: string;
+  isB2B?: boolean;
+}) {
+  const {
+    slug,
+    name,
+    shortName,
+    description,
+    image,
+    gallery = [],
+    category = "Heat Transfer Labels",
+    material,
+    brand = SITE_NAME,
+    isB2B = true,
+  } = input;
+
+  /* ── Image list — primary first, then unique gallery images. ── */
+  const imageList = [absoluteUrl(image)];
+  for (const item of gallery) {
+    if (item.type === "image") {
+      const abs = absoluteUrl(item.src);
+      if (!imageList.includes(abs)) imageList.push(abs);
+    }
+  }
+
+  /* ── SKU — deterministic, derived from slug. Stable across rebuilds. ── */
+  const sku = `CR-${slug
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")}`;
+
+  const schema: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "@id": absoluteUrl(`/heat-transfers/${slug}`),
+    name,
+    alternateName: shortName,
+    description,
+    url: absoluteUrl(`/heat-transfers/${slug}`),
+    image: imageList,
+    brand: { "@type": "Brand", name: brand },
+    manufacturer: { "@id": `${SITE_URL}#organization` },
+    category,
+    sku,
+    mpn: sku,
+  };
+
+  if (material) {
+    schema.material = material;
+  }
+
+  /* ── Offer: B2B quote-based or retail AggregateOffer. ── */
+  if (isB2B) {
+    schema.offers = {
+      "@type": "Offer",
+      url: absoluteUrl("/get-a-quote"),
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      availabilityStarts: "2020-01-01",
+      priceValidUntil: "2026-12-31",
+      itemCondition: "https://schema.org/NewCondition",
+      seller: { "@id": `${SITE_URL}#organization` },
+      priceSpecification: {
+        "@type": "PriceSpecification",
+        priceCurrency: "USD",
+        description:
+          "Bulk pricing varies by quantity, design, materials and specifications. Request a custom quote.",
+      },
+    };
+  }
+
+  return schema;
+}
+
+/* ── Article builder (for blog / case-study detail pages) ───────────── */
+export function buildArticleSchema(input: {
+  slug: string;
+  headline: string;
+  description: string;
+  image?: string;
+  authorName?: string;
+  datePublished?: string;
+  dateModified?: string;
+  articleType?: "Article" | "NewsArticle" | "BlogPosting" | "TechArticle";
+}) {
+  const {
+    slug,
+    headline,
+    description,
+    image,
+    authorName = SITE_NAME,
+    datePublished,
+    dateModified,
+    articleType = "Article",
+  } = input;
+
+  const schema: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": articleType,
+    "@id": absoluteUrl(`/resources/${slug}`),
+    headline,
+    description,
+    url: absoluteUrl(`/resources/${slug}`),
+    inLanguage: SITE_LANGUAGE,
+    author: { "@type": "Organization", name: authorName, url: SITE_URL },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      logo: { "@type": "ImageObject", url: absoluteUrl("/logo.png") },
+    },
+  };
+
+  if (image) schema.image = absoluteUrl(image);
+  if (datePublished) schema.datePublished = datePublished;
+  if (dateModified) schema.dateModified = dateModified;
+
+  return schema;
+}

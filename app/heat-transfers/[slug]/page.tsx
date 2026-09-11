@@ -14,6 +14,30 @@ import {
   getTechnology,
   getGalleryImages,
 } from "@/lib/v2";
+import {
+  buildProductSchema,
+} from "@/lib/seo";
+
+/* ── Infer the canonical material string for Product.material ──
+ * Used by the Product JSON-LD. Falls back to a generic label for
+ * specialty technologies that have no fixed material.
+ * ───────────────────────────────────────────────────────────── */
+function inferMaterial(slug: string): string | undefined {
+  if (slug.startsWith("rhinestone-austrian")) return "Austrian-cut crystal";
+  if (slug.startsWith("rhinestone-korean")) return "Korean-cut crystal";
+  if (slug.startsWith("rhinestone-china-grade-a")) return "China A-grade crystal";
+  if (slug.startsWith("rhinestone-china-grade-b")) return "China B-grade crystal";
+  if (slug.startsWith("rhinestone-")) return "Crystal rhinestone";
+  if (slug.startsWith("silicone-")) return "Silicone";
+  if (slug.startsWith("reflective-")) return "Reflective film";
+  if (slug.startsWith("dtf-")) return "DTF PET film with hot-melt adhesive";
+  if (slug.startsWith("pu-")) return "Polyurethane (PU)";
+  if (slug.startsWith("flock-")) return "Nylon / viscose flock fiber";
+  if (slug.startsWith("glitter-")) return "Glitter particles with adhesive";
+  if (slug.startsWith("3d-raised")) return "Silicone or PU foam";
+  if (slug.startsWith("specialty-")) return undefined; // varies
+  return undefined;
+}
 
 export function generateStaticParams() {
   return TECHNOLOGIES.map((t) => ({ slug: t.slug }));
@@ -56,22 +80,33 @@ export default async function TechnologyPage({
   const galleryMedia = getGalleryImages(tech);
   const others = TECHNOLOGIES.filter((t) => t.slug !== tech.slug).slice(0, 4);
 
-  const SITE_URL = "https://chinarhinestone.com";
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-      { "@type": "ListItem", position: 2, name: "Heat Transfers", item: `${SITE_URL}/heat-transfers` },
-      { "@type": "ListItem", position: 3, name: tech.name, item: `${SITE_URL}/heat-transfers/${tech.slug}` },
-    ],
-  };
+  /* Note: the <Breadcrumb /> component below already emits its own
+   * BreadcrumbList JSON-LD via PageHero, so we don't add a second one
+   * here — adding a duplicate would trigger a Google structured-data
+   * "multiple breadcrumb" warning. */
+
+  /* Product schema — declared so Google indexes the page as a product
+   * (eligible for Product rich snippets and Product graph knowledge
+   * panel). */
+  const productSchema = buildProductSchema({
+    slug: tech.slug,
+    name: tech.name,
+    shortName: tech.shortName,
+    description: tech.description,
+    image: tech.image,
+    gallery: tech.gallery,
+    material: inferMaterial(tech.slug),
+    category:
+      tech.tier === "core"
+        ? "Custom Heat Transfers for Apparel"
+        : "Specialty Heat Transfers for Apparel",
+  });
 
   return (
     <div className="bg-white">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
       {/* Hero */}
       <section className="bg-slate-900 text-white">
