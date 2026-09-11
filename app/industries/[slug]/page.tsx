@@ -21,7 +21,7 @@ export async function generateMetadata({
   if (!industry) return {};
   return {
     title: `${industry.name} Heat Transfers | ChinaRhinestone`,
-    description: `${industry.tagline} Custom heat transfer manufacturing for apparel production — bulk orders, consistent quality and repeat supply from a China-based manufacturer.`,
+    description: `${industry.tagline} Bulk orders, repeat supply from a China heat transfer manufacturer.`,
     alternates: {
       canonical: `/industries/${industry.slug}`,
     },

@@ -8,7 +8,7 @@ import { INDUSTRIES } from "@/lib/v2";
 export const metadata: Metadata = {
   title: "Heat Transfers for Apparel Factories | ChinaRhinestone",
   description:
-    "Custom heat transfer solutions for garment manufacturers, sportswear factories, workwear producers, fashion apparel brands, teamwear makers, Pakistan garment exporters and Bangladesh knitwear manufacturers. Bulk production, consistent quality, repeat orders from a China manufacturer.",
+    "Custom heat transfers for garment manufacturers, sportswear, workwear, fashion apparel, teamwear, Pakistan exporters and Bangladesh knitwear. Bulk supply.",
   alternates: {
     canonical: "/industries",
   },

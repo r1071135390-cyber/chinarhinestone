@@ -20,7 +20,7 @@ export async function generateMetadata({
   if (!app) return {};
   return {
     title: `${app.name} | ChinaRhinestone`,
-    description: `${app.tagline} Custom ${app.name.toLowerCase()} manufactured in bulk for apparel factories and garment production teams. Request a quote within 24 hours.`,
+    description: `${app.tagline} Bulk production for apparel factories and garment teams. Quote within 24 hours.`,
     alternates: {
       canonical: `/applications/${app.slug}`,
     },

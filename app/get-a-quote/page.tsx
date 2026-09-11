@@ -5,7 +5,7 @@ import { QuoteForm } from "./QuoteForm";
 export const metadata: Metadata = {
   title: "Get a Quote | Custom Heat Transfers | ChinaRhinestone",
   description:
-    "Request a quote for custom heat transfers from a China manufacturer. Send your artwork and project details — we reply within 24 hours with technology recommendations, sampling plan and bulk pricing for garment manufacturers.",
+    "Request a quote for custom heat transfers from a China manufacturer. Send your artwork — we reply within 24 hours with recommendations and bulk pricing.",
   alternates: {
     canonical: "/get-a-quote",
   },

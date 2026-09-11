@@ -8,7 +8,7 @@ import { APPLICATIONS } from "@/lib/v2";
 export const metadata: Metadata = {
   title: "Transfer Applications for Garments | ChinaRhinestone",
   description:
-    "Custom heat transfer applications for garment manufacturers: logo transfers, garment branding, heat transfer labels, name & number transfers, reflective markings and decorative transfers. Bulk production for apparel factories.",
+    "Custom heat transfer applications for garment manufacturers: logos, branding, labels, name & number, reflective markings, decorative effects. Bulk supply.",
   alternates: {
     canonical: "/applications",
   },

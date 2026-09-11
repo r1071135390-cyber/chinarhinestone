@@ -8,7 +8,7 @@ import { CASE_STUDIES } from "@/lib/v2";
 export const metadata: Metadata = {
   title: "Heat Transfer Case Studies | ChinaRhinestone",
   description:
-    "Case studies of custom heat transfer programs in production for sportswear, workwear and fashion apparel manufacturers. Technology selection, bulk production and repeat supply from a China manufacturer.",
+    "Case studies of custom heat transfer programs for sportswear, workwear and fashion apparel manufacturers. Bulk production, repeat supply from China.",
   alternates: {
     canonical: "/case-studies",
   },

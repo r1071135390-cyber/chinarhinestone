@@ -8,7 +8,7 @@ import { RESOURCES, FAQS } from "@/lib/v2";
 export const metadata: Metadata = {
   title: "Heat Transfer Resources & Guides | ChinaRhinestone",
   description:
-    "Guides and resources for garment manufacturers sourcing custom heat transfers: technology selection, fabric compatibility, artwork guidelines, application settings and durability. Learn before you buy from a China manufacturer.",
+    "Guides and resources for garment manufacturers sourcing custom heat transfers: technology selection, fabric compatibility, artwork guidelines, application settings and durability.",
   alternates: {
     canonical: "/resources",
   },

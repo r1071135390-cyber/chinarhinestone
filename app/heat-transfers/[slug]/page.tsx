@@ -29,7 +29,7 @@ export async function generateMetadata({
   if (!tech) return {};
   return {
     title: `${tech.name} | ChinaRhinestone`,
-    description: `${tech.tagline} Custom development, bulk production and repeat orders for garment manufacturers worldwide. Request a quote — reply within 24 hours.`,
+    description: `${tech.tagline} Bulk production and repeat orders for garment manufacturers. Reply within 24 hours.`,
     alternates: {
       canonical: `/heat-transfers/${tech.slug}`,
     },

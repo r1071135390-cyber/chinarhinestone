@@ -318,7 +318,7 @@ export async function generateMetadata({
   if (!resource) return {};
   return {
     title: `${resource.name} | ChinaRhinestone`,
-    description: `${resource.tagline} Guidance for garment manufacturers sourcing custom heat transfers from a China manufacturer — technology selection, production and application.`,
+    description: `${resource.tagline} Guidance for garment manufacturers sourcing custom heat transfers from China.`,
     alternates: {
       canonical: `/resources/${resource.slug}`,
     },

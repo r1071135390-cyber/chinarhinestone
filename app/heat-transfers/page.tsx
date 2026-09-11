@@ -8,7 +8,7 @@ import { CORE_TECHNOLOGIES, SPECIALTY_TECHNOLOGIES } from "@/lib/v2";
 export const metadata: Metadata = {
   title: "Heat Transfer Technologies | ChinaRhinestone",
   description:
-    "Custom heat transfers for garment manufacturers: rhinestone, silicone, reflective, DTF, 3D raised, PU, glitter, flock and specialty transfers. China manufacturer, bulk production, custom development and repeat supply. Request a quote.",
+    "Custom heat transfers for garment manufacturers: rhinestone, silicone, reflective, DTF, 3D, PU, glitter, flock and specialty. China factory, bulk supply.",
   alternates: {
     canonical: "/heat-transfers",
   },

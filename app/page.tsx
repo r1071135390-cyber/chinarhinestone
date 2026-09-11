@@ -41,7 +41,7 @@ import {
 export const metadata: Metadata = {
   title: "Custom Heat Transfer Manufacturer | ChinaRhinestone",
   description:
-    "ChinaRhinestone is a custom heat transfer manufacturer in China supplying rhinestone, silicone, reflective, DTF, 3D, PU, glitter and specialty heat transfers for garment manufacturers, apparel factories, Pakistan garment exporters and Bangladesh knitwear manufacturers worldwide. Bulk production, consistent quality, repeat orders — get a quote within 24 hours.",
+    "ChinaRhinestone is a custom heat transfer manufacturer in China: rhinestone, silicone, reflective, DTF, 3D, PU and specialty transfers for garment factories.",
   alternates: {
     canonical: "/",
   },

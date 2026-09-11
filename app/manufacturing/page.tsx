@@ -8,7 +8,7 @@ import { MANUFACTURING_CAPS, TECHNOLOGIES } from "@/lib/v2";
 export const metadata: Metadata = {
   title: "Heat Transfer Manufacturing Process | ChinaRhinestone",
   description:
-    "How we manufacture custom heat transfers: artwork review, technology recommendation, sampling, testing, bulk production, QC, packing and delivery. China-based manufacturer serving garment factories worldwide.",
+    "How we manufacture custom heat transfers: artwork review, sampling, testing, bulk production, QC and delivery. China-based manufacturer for garment factories.",
   alternates: {
     canonical: "/manufacturing",
   },

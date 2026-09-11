@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s",
   },
   description:
-    "Custom heat transfer manufacturer in Yiwu, China. Rhinestone, silicone, reflective, DTF, 3D, PU and specialty heat transfers for garment manufacturers worldwide. Custom development, bulk production, repeat orders.",
+    "Custom heat transfer manufacturer in Yiwu, China: rhinestone, silicone, reflective, DTF, 3D, PU and specialty transfers for garment factories worldwide.",
   keywords: [
     "custom heat transfer manufacturer",
     "rhinestone heat transfers China",
