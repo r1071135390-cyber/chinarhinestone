@@ -4,6 +4,7 @@ import { ArrowRight, Layers, MessageCircle } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { CtaBand } from "@/components/layout/CtaBand";
 import { FABRICS } from "@/lib/v2";
+import { buildItemListSchema } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Heat Transfer Fabric Compatibility | ChinaRhinestone",
@@ -14,9 +15,23 @@ export const metadata: Metadata = {
   },
 };
 
+/* ItemList schema — explicitly enumerates every fabric-compatibility page. */
+const fabricsItemList = buildItemListSchema(
+  "ChinaRhinestone Heat Transfer Fabric Compatibility",
+  FABRICS.map((f) => ({
+    name: f.name,
+    url: `/fabrics/${f.slug}`,
+    description: f.tagline,
+  }))
+);
+
 export default function FabricsPage() {
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(fabricsItemList) }}
+      />
       <PageHero
         eyebrow="Fabric Compatibility"
         title="The Right Transfer Starts With Your Fabric"

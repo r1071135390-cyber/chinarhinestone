@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, BarChart3 } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { CtaBand } from "@/components/layout/CtaBand";
 import { RESOURCES, FAQS } from "@/lib/v2";
+import { buildFAQSchema, buildItemListSchema } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Heat Transfer Resources & Guides | ChinaRhinestone",
@@ -14,12 +15,33 @@ export const metadata: Metadata = {
   },
 };
 
+/* FAQPage + ItemList JSON-LD — both the FAQ and the guide/insight
+ * article list are now explicitly enumerated for Google rich results. */
+const resourcesItemList = buildItemListSchema(
+  "ChinaRhinestone Heat Transfer Resources",
+  RESOURCES.map((r) => ({
+    name: r.name,
+    url: `/resources/${r.slug}`,
+    description: r.tagline,
+  }))
+);
+
+const faqSchema = buildFAQSchema(FAQS);
+
 export default function ResourcesPage() {
   const guides = RESOURCES.filter((r) => r.category === "Guides");
   const insights = RESOURCES.filter((r) => r.category === "Comparisons & Insights");
 
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(resourcesItemList) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <PageHero
         eyebrow="Resources"
         title="Heat Transfer Guides & Insights"

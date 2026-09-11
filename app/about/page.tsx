@@ -1,7 +1,12 @@
 import Link from "next/link";
-import { Factory, Award, Users, Globe, ArrowRight, CheckCircle2, Play, Camera, ShieldCheck, Repeat } from "lucide-react";
+import { Factory, Award, Users, Globe, ArrowRight, CheckCircle2, Play, Camera, ShieldCheck, Repeat, ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import { WHY_US } from "@/lib/v2";
+import {
+  SITE_URL,
+  buildBreadcrumbSchema,
+  buildLocalBusinessSchema,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "About | Custom Heat Transfer Manufacturer | ChinaRhinestone",
@@ -9,6 +14,13 @@ export const metadata: Metadata = {
     "ChinaRhinestone is a Yiwu-based custom heat transfer manufacturer in China serving garment manufacturers in 30+ countries. Bulk production, repeat supply.",
   alternates: {
     canonical: "/about",
+  },
+  openGraph: {
+    title: "About ChinaRhinestone — Custom Heat Transfer Manufacturer",
+    description:
+      "Yiwu-based custom heat transfer manufacturer serving garment factories in 30+ countries. Bulk production and repeat supply.",
+    url: `${SITE_URL}/about`,
+    type: "website",
   },
 };
 
@@ -59,12 +71,57 @@ const MEDIA: MediaItem[] = [
   // },
 ];
 
+/* Breadcrumb + AboutPage + LocalBusiness JSON-LD — gives Google a clear
+ * site hierarchy and surfaces the Yiwu address in branded SERP.
+ *
+ * Note: layout.tsx already emits the Organization schema, so we don't
+ * repeat it here. The AboutPage.about field below references it by @id. */
+const breadcrumbSchema = buildBreadcrumbSchema([
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
+]);
+
+const aboutSchema = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  name: "About ChinaRhinestone",
+  url: `${SITE_URL}/about`,
+  description:
+    "Yiwu-based custom heat transfer manufacturer producing rhinestone, silicone, reflective, DTF, 3D, PU and specialty heat transfers for garment manufacturers worldwide.",
+  inLanguage: "en",
+  isPartOf: { "@type": "WebSite", name: "ChinaRhinestone", url: SITE_URL },
+  primaryImageOfPage: {
+    "@type": "ImageObject",
+    url: `${SITE_URL}/logo.png`,
+  },
+  about: { "@id": `${SITE_URL}#organization` },
+};
+
 export default function AboutPage() {
   return (
     <div className="bg-white">
+      {/* Structured data: Breadcrumb + AboutPage + LocalBusiness */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildLocalBusinessSchema()) }}
+      />
       <section className="bg-slate-900 py-16 text-white">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-400">About Us</p>
+          {/* Breadcrumb nav (visible, with screen-reader friendly links) */}
+          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm">
+            <Link href="/" className="text-slate-400 transition hover:text-white">Home</Link>
+            <ChevronRight className="h-3.5 w-3.5 text-slate-500" />
+            <span className="font-medium text-slate-200">About</span>
+          </nav>
+          <p className="mt-6 text-xs font-bold uppercase tracking-[0.2em] text-blue-400">About Us</p>
           <h1 className="mt-3 max-w-3xl text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
             Why Garment Manufacturers Rely on Us
           </h1>

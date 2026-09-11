@@ -4,8 +4,11 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppFab } from "@/components/layout/WhatsAppFab";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
-
-const SITE_URL = "https://chinarhinestone.com";
+import {
+  SITE_URL,
+  buildOrganizationSchema,
+  buildWebSiteSchema,
+} from "@/lib/seo";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -98,51 +101,13 @@ export const metadata: Metadata = {
   },
 };
 
+/* Organization + WebSite (with SearchAction) — used globally. */
 const organizationSchema = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "ChinaRhinestone",
-  legalName: "Yiwu HomeDorm Commodity Manufacturing Co., Ltd.",
-  url: SITE_URL,
-  logo: `${SITE_URL}/logo.png`,
-  description:
-    "Custom heat transfer manufacturer producing rhinestone, silicone, reflective, DTF, 3D, PU and specialty heat transfers for garment manufacturers worldwide.",
-  foundingDate: "2018",
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: "Yiwu",
-    addressRegion: "Zhejiang",
-    addressCountry: "CN",
-  },
-  contactPoint: {
-    "@type": "ContactPoint",
-    telephone: "+86-13764593988",
-    email: "info@chinarhinestone.com",
-    contactType: "sales",
-    availableLanguage: ["English", "Chinese", "Urdu", "Bengali"],
-    areaServed: [
-      { "@type": "Country", name: "United States" },
-      { "@type": "Country", name: "United Kingdom" },
-      { "@type": "Country", name: "Pakistan" },
-      { "@type": "Country", name: "Bangladesh" },
-      { "@type": "Country", name: "India" },
-      { "@type": "Country", name: "Turkey" },
-      { "@type": "Country", name: "Mexico" },
-      { "@type": "Country", name: "Brazil" },
-    ],
-  },
+  ...buildOrganizationSchema(),
+  "@id": `${SITE_URL}#organization`,
 };
 
-const websiteSchema = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "ChinaRhinestone",
-  url: SITE_URL,
-  inLanguage: "en",
-  description:
-    "Custom heat transfer manufacturer producing rhinestone, silicone, reflective, DTF, 3D, PU and specialty heat transfers for garment manufacturers worldwide.",
-  publisher: { "@type": "Organization", name: "ChinaRhinestone", url: SITE_URL },
-};
+const websiteSchema = buildWebSiteSchema();
 
 export default function RootLayout({
   children,

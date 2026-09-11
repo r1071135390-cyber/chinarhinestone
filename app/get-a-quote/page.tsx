@@ -1,6 +1,8 @@
+import Link from "next/link";
 import type { Metadata } from "next";
-import { Clock, ShieldCheck } from "lucide-react";
+import { Clock, ShieldCheck, ChevronRight } from "lucide-react";
 import { QuoteForm } from "./QuoteForm";
+import { SITE_URL, buildBreadcrumbSchema } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Get a Quote | Custom Heat Transfers | ChinaRhinestone",
@@ -9,15 +11,37 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/get-a-quote",
   },
+  openGraph: {
+    title: "Get a Quote — ChinaRhinestone",
+    description:
+      "Request a quote for custom heat transfers from a China manufacturer. Reply within 24 hours.",
+    url: `${SITE_URL}/get-a-quote`,
+    type: "website",
+  },
 };
+
+/* BreadcrumbList JSON-LD — explicitly labels the page role to Google. */
+const breadcrumbSchema = buildBreadcrumbSchema([
+  { label: "Home", href: "/" },
+  { label: "Get a Quote", href: "/get-a-quote" },
+]);
 
 export default function GetAQuotePage() {
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       {/* Hero */}
       <section className="bg-slate-900 py-12 text-white lg:py-16">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-400">Get a Quote</p>
+          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm">
+            <Link href="/" className="text-slate-400 transition hover:text-white">Home</Link>
+            <ChevronRight className="h-3.5 w-3.5 text-slate-500" />
+            <span className="font-medium text-slate-200">Get a Quote</span>
+          </nav>
+          <p className="mt-6 text-xs font-bold uppercase tracking-[0.2em] text-blue-400">Get a Quote</p>
           <h1 className="mt-3 max-w-3xl text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
             Tell Us About Your Transfer Project
           </h1>

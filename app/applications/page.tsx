@@ -4,6 +4,7 @@ import { ArrowRight, Tag, Heart, FileSearch, Hash, Eye, Gem } from "lucide-react
 import { PageHero } from "@/components/layout/PageHero";
 import { CtaBand } from "@/components/layout/CtaBand";
 import { APPLICATIONS } from "@/lib/v2";
+import { buildItemListSchema } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Transfer Applications for Garments | ChinaRhinestone",
@@ -38,9 +39,23 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "decorative-heat-transfers": Gem,
 };
 
+/* ItemList schema — explicitly enumerates every garment-application page. */
+const applicationsItemList = buildItemListSchema(
+  "ChinaRhinestone Heat Transfer Applications",
+  APPLICATIONS.map((a) => ({
+    name: a.name,
+    url: `/applications/${a.slug}`,
+    description: a.tagline,
+  }))
+);
+
 export default function ApplicationsPage() {
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(applicationsItemList) }}
+      />
       <PageHero
         eyebrow="Applications"
         title="One Transfer Partner. Multiple Apparel Applications."

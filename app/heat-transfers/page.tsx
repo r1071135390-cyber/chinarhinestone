@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { CtaBand } from "@/components/layout/CtaBand";
-import { CORE_TECHNOLOGIES, SPECIALTY_TECHNOLOGIES } from "@/lib/v2";
+import { CORE_TECHNOLOGIES, SPECIALTY_TECHNOLOGIES, TECHNOLOGIES } from "@/lib/v2";
+import { buildItemListSchema } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Heat Transfer Technologies | ChinaRhinestone",
@@ -14,9 +15,25 @@ export const metadata: Metadata = {
   },
 };
 
+/* ItemList schema — explicitly enumerates every heat transfer product page
+ * so Google can surface the full catalog in product-rich results. */
+const heatTransferItemList = buildItemListSchema(
+  "ChinaRhinestone Heat Transfer Catalog",
+  TECHNOLOGIES.map((t) => ({
+    name: t.name,
+    url: `/heat-transfers/${t.slug}`,
+    image: t.image,
+    description: t.tagline,
+  }))
+);
+
 export default function HeatTransfersPage() {
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(heatTransferItemList) }}
+      />
       <PageHero
         eyebrow="Heat Transfers"
         title="Heat Transfers Made for Garment Production"

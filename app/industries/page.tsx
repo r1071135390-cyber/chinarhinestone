@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { CtaBand } from "@/components/layout/CtaBand";
 import { INDUSTRIES } from "@/lib/v2";
+import { buildItemListSchema } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Heat Transfers for Apparel Factories | ChinaRhinestone",
@@ -14,12 +15,27 @@ export const metadata: Metadata = {
   },
 };
 
+/* ItemList schema — explicitly enumerates the apparel-industry catalog. */
+const industriesItemList = buildItemListSchema(
+  "ChinaRhinestone Heat Transfers by Garment Industry",
+  INDUSTRIES.map((i) => ({
+    name: i.name,
+    url: `/industries/${i.slug}`,
+    image: i.image,
+    description: i.tagline,
+  }))
+);
+
 export default function IndustriesPage() {
   const garment = INDUSTRIES.find((i) => i.slug === "garment-manufacturers");
   const segments = INDUSTRIES.filter((i) => i.slug !== "garment-manufacturers");
 
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(industriesItemList) }}
+      />
       <PageHero
         eyebrow="Industries"
         title="Built for Garment Manufacturers"

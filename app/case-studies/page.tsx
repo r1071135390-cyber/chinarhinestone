@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/layout/PageHero";
 import { CtaBand } from "@/components/layout/CtaBand";
 import { CASE_STUDIES } from "@/lib/v2";
+import { buildItemListSchema } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Heat Transfer Case Studies | ChinaRhinestone",
@@ -44,9 +45,24 @@ const CASE_DETAILS: Record<string, { summary: string; points: string[] }> = {
   },
 };
 
+/* ItemList schema — explicitly enumerates the case-study catalog. */
+const caseStudiesItemList = buildItemListSchema(
+  "ChinaRhinestone Heat Transfer Case Studies",
+  CASE_STUDIES.map((c) => ({
+    name: c.title,
+    url: "/case-studies",
+    image: c.image,
+    description: `${c.technology} for ${c.industry} — ${c.application}.`,
+  }))
+);
+
 export default function CaseStudiesPage() {
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(caseStudiesItemList) }}
+      />
       <PageHero
         eyebrow="Case Studies"
         title="Custom Transfer Programs in Production"
