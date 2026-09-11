@@ -3,7 +3,7 @@ import { Clock, ShieldCheck } from "lucide-react";
 import { QuoteForm } from "./QuoteForm";
 
 export const metadata: Metadata = {
-  title: "Get a Quote — Custom Heat Transfer Manufacturing | ChinaRhinestone",
+  title: "Get a Quote | Custom Heat Transfers | ChinaRhinestone",
   description:
     "Request a quote for custom heat transfers from a China manufacturer. Send your artwork and project details — we reply within 24 hours with technology recommendations, sampling plan and bulk pricing for garment manufacturers.",
   alternates: {

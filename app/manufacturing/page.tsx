@@ -6,7 +6,7 @@ import { CtaBand } from "@/components/layout/CtaBand";
 import { MANUFACTURING_CAPS, TECHNOLOGIES } from "@/lib/v2";
 
 export const metadata: Metadata = {
-  title: "Heat Transfer Manufacturing Process — Artwork to Bulk Production | ChinaRhinestone",
+  title: "Heat Transfer Manufacturing Process | ChinaRhinestone",
   description:
     "How we manufacture custom heat transfers: artwork review, technology recommendation, sampling, testing, bulk production, QC, packing and delivery. China-based manufacturer serving garment factories worldwide.",
   alternates: {

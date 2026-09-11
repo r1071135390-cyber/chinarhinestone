@@ -6,7 +6,7 @@ import { CtaBand } from "@/components/layout/CtaBand";
 import { FABRICS } from "@/lib/v2";
 
 export const metadata: Metadata = {
-  title: "Heat Transfer Fabric Compatibility — Cotton, Polyester, Nylon & More | ChinaRhinestone",
+  title: "Heat Transfer Fabric Compatibility | ChinaRhinestone",
   description:
     "Heat transfer compatibility by fabric type: cotton, polyester, nylon, stretch and performance fabrics. We recommend the right custom heat transfer technology for your garment material. China manufacturer, bulk supply.",
   alternates: {

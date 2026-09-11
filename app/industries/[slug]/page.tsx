@@ -20,7 +20,7 @@ export async function generateMetadata({
   const industry = getIndustry(slug);
   if (!industry) return {};
   return {
-    title: `Heat Transfers for ${industry.name} | ChinaRhinestone`,
+    title: `${industry.name} Heat Transfers | ChinaRhinestone`,
     description: `${industry.tagline} Custom heat transfer manufacturing for apparel production — bulk orders, consistent quality and repeat supply from a China-based manufacturer.`,
     alternates: {
       canonical: `/industries/${industry.slug}`,

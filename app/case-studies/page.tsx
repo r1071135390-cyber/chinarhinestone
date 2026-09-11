@@ -6,7 +6,7 @@ import { CtaBand } from "@/components/layout/CtaBand";
 import { CASE_STUDIES } from "@/lib/v2";
 
 export const metadata: Metadata = {
-  title: "Case Studies — Custom Heat Transfer Programs for Garment Manufacturers | ChinaRhinestone",
+  title: "Heat Transfer Case Studies | ChinaRhinestone",
   description:
     "Case studies of custom heat transfer programs in production for sportswear, workwear and fashion apparel manufacturers. Technology selection, bulk production and repeat supply from a China manufacturer.",
   alternates: {

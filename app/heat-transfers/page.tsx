@@ -6,7 +6,7 @@ import { CtaBand } from "@/components/layout/CtaBand";
 import { CORE_TECHNOLOGIES, SPECIALTY_TECHNOLOGIES } from "@/lib/v2";
 
 export const metadata: Metadata = {
-  title: "Custom Heat Transfers — Rhinestone, Silicone, Reflective, DTF, 3D, PU | ChinaRhinestone",
+  title: "Heat Transfer Technologies | ChinaRhinestone",
   description:
     "Custom heat transfers for garment manufacturers: rhinestone, silicone, reflective, DTF, 3D raised, PU, glitter, flock and specialty transfers. China manufacturer, bulk production, custom development and repeat supply. Request a quote.",
   alternates: {

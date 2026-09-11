@@ -317,7 +317,7 @@ export async function generateMetadata({
   const resource = getResource(slug);
   if (!resource) return {};
   return {
-    title: `${resource.name} | Custom Heat Transfer Guide — ChinaRhinestone`,
+    title: `${resource.name} | ChinaRhinestone`,
     description: `${resource.tagline} Guidance for garment manufacturers sourcing custom heat transfers from a China manufacturer — technology selection, production and application.`,
     alternates: {
       canonical: `/resources/${resource.slug}`,

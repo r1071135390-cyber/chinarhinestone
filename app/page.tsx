@@ -39,7 +39,7 @@ import {
 } from "@/lib/v2";
 
 export const metadata: Metadata = {
-  title: "Custom Heat Transfer Manufacturer for Garment Manufacturers | ChinaRhinestone",
+  title: "Custom Heat Transfer Manufacturer | ChinaRhinestone",
   description:
     "ChinaRhinestone is a custom heat transfer manufacturer in China supplying rhinestone, silicone, reflective, DTF, 3D, PU, glitter and specialty heat transfers for garment manufacturers, apparel factories, Pakistan garment exporters and Bangladesh knitwear manufacturers worldwide. Bulk production, consistent quality, repeat orders — get a quote within 24 hours.",
   alternates: {

@@ -6,7 +6,7 @@ import { CtaBand } from "@/components/layout/CtaBand";
 import { QC_STAGES } from "@/lib/v2";
 
 export const metadata: Metadata = {
-  title: "Quality Control for Custom Heat Transfers | ChinaRhinestone Manufacturer",
+  title: "Quality Control for Heat Transfers | ChinaRhinestone",
   description:
     "Quality control for custom heat transfers: artwork review, sample inspection, in-production monitoring and final QC before shipment — consistent quality across repeat bulk orders for garment manufacturers.",
   alternates: {

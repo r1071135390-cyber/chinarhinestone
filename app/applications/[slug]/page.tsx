@@ -19,7 +19,7 @@ export async function generateMetadata({
   const app = getApplication(slug);
   if (!app) return {};
   return {
-    title: `${app.name} for Garment Manufacturers | ChinaRhinestone`,
+    title: `${app.name} | ChinaRhinestone`,
     description: `${app.tagline} Custom ${app.name.toLowerCase()} manufactured in bulk for apparel factories and garment production teams. Request a quote within 24 hours.`,
     alternates: {
       canonical: `/applications/${app.slug}`,

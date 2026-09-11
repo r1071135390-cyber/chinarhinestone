@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { WHY_US } from "@/lib/v2";
 
 export const metadata: Metadata = {
-  title: "About Us — Custom Heat Transfer Manufacturer in China | ChinaRhinestone",
+  title: "About | Custom Heat Transfer Manufacturer | ChinaRhinestone",
   description:
     "ChinaRhinestone is a Yiwu-based custom heat transfer manufacturer in China serving garment manufacturers in 30+ countries. Custom development, bulk production, quality control and repeat order supply.",
   alternates: {

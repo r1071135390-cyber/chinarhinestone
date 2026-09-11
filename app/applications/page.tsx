@@ -6,7 +6,7 @@ import { CtaBand } from "@/components/layout/CtaBand";
 import { APPLICATIONS } from "@/lib/v2";
 
 export const metadata: Metadata = {
-  title: "Custom Garment Transfer Applications — Logos, Labels, Names & Numbers | ChinaRhinestone",
+  title: "Transfer Applications for Garments | ChinaRhinestone",
   description:
     "Custom heat transfer applications for garment manufacturers: logo transfers, garment branding, heat transfer labels, name & number transfers, reflective markings and decorative transfers. Bulk production for apparel factories.",
   alternates: {

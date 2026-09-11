@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: {
     // Use a no-op template so each page owns its full title (most pages
     // already end with the brand; adding it here would duplicate it).
-    default: "ChinaRhinestone — Custom Heat Transfer Manufacturer for Garment Manufacturers",
+    default: "ChinaRhinestone — Custom Heat Transfer Manufacturer",
     template: "%s",
   },
   description:
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "ChinaRhinestone",
     url: SITE_URL,
-    title: "ChinaRhinestone — Custom Heat Transfer Manufacturer for Garment Manufacturers",
+    title: "Custom Heat Transfer Manufacturer | ChinaRhinestone",
     description:
       "Custom rhinestone, silicone, reflective, DTF, 3D, PU and specialty heat transfers for garment manufacturers. China manufacturer — bulk production, repeat orders, quote within 24 hours.",
     images: [

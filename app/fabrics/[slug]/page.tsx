@@ -143,7 +143,7 @@ export async function generateMetadata({
   const fabric = getFabric(slug);
   if (!fabric) return {};
   return {
-    title: `Heat Transfers for ${fabric.name} Fabric | Compatibility Guide — ChinaRhinestone`,
+    title: `${fabric.name} Fabric Heat Transfers | ChinaRhinestone`,
     description: `${fabric.description} Recommended transfer technologies, compatibility matrix and production considerations for custom heat transfers on ${fabric.name.toLowerCase()} garments. China manufacturer, bulk supply.`,
     alternates: {
       canonical: `/fabrics/${fabric.slug}`,
