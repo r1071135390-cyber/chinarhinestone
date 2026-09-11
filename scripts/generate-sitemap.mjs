@@ -115,16 +115,38 @@ async function main() {
 
   await writeFile(join(OUT_DIR, "sitemap.xml"), xml, "utf8");
 
+  /* Sitemap index — points Google at both the main sitemap and the
+   * image sitemap. Google requires a sitemap-index only when you
+   * have more than one sitemap. We submit the index, not the
+   * children, in Search Console. */
+  const indexXml =
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>\n` +
+    `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+    `  <sitemap>\n` +
+    `    <loc>${SITE_URL}/sitemap.xml</loc>\n` +
+    `    <lastmod>${TODAY}</lastmod>\n` +
+    `  </sitemap>\n` +
+    `  <sitemap>\n` +
+    `    <loc>${SITE_URL}/image-sitemap.xml</loc>\n` +
+    `    <lastmod>${TODAY}</lastmod>\n` +
+    `  </sitemap>\n` +
+    `</sitemapindex>\n`;
+  await writeFile(join(OUT_DIR, "sitemap-index.xml"), indexXml, "utf8");
+
   // robots.txt — only write if the project doesn't already ship one in
   // public/, which takes precedence when present.
   const robots =
     `User-agent: *\n` +
     `Allow: /\n` +
     `\n` +
-    `Sitemap: ${SITE_URL}/sitemap.xml\n`;
+    `Sitemap: ${SITE_URL}/sitemap-index.xml\n` +
+    `Sitemap: ${SITE_URL}/sitemap.xml\n` +
+    `Sitemap: ${SITE_URL}/image-sitemap.xml\n`;
   await writeFile(join(OUT_DIR, "robots.txt"), robots, "utf8");
 
   console.log(`[sitemap] Wrote ${routes.length} URLs to out/sitemap.xml`);
+  console.log(`[sitemap] Wrote sitemap-index.xml with 2 children`);
 }
 
 main().catch((err) => {
