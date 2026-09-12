@@ -158,8 +158,8 @@ export default function HomePage() {
             <div className="overflow-hidden rounded-2xl ring-1 ring-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/rhinestone-assets/RST-01.webp"
-                alt="Multi-color rhinestone logo on black fabric — custom heat transfer by ChinaRhinestone"
+                src="/images/hero-showcase.webp"
+                alt="Custom heat transfers on performance sportswear — silicone, reflective and rhinestone effects"
                 width={1200}
                 height={900}
                 fetchPriority="high"
