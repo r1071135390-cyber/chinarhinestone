@@ -29,7 +29,7 @@ const OUT_DIR = fileURLToPath(new URL("../out", import.meta.url));
  * that Google Images can actually index. Skip icons, favicons and
  * data: URIs.
  * ─────────────────────────────────────────────────────────── */
-const IMG_RE = /\/(images|logo|pictures|gallery|products|industries|apps|fabrics|hero)\/[^"')\s>]+\.(?:jpg|jpeg|png|webp|avif|gif|svg)(?:\?[^"')\s>]*)?/gi;
+const IMG_RE = /\/(images|logo|pictures|gallery|products|industries|apps|fabrics|hero|rhinestone-assets|silicone-assets|dtf-assets|3d-assets|pu-assets|flock-assets|glitter-assets|reflective-assets|specialty-assets|tech-assets|transfer-assets|product-assets|sample-assets)\/[^"')\s>]+\.(?:jpg|jpeg|png|webp|avif|gif|svg)(?:\?[^"')\s>]*)?/gi;
 
 const EXCLUDE_ROUTE = new Set(["/404", "/500", "/404.html", "/500.html"]);
 

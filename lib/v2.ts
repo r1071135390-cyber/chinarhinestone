@@ -73,6 +73,27 @@ export const TECHNOLOGIES: Technology[] = [
     image: "/images/tech-rhinestone.jpg",
     tier: "core",
     hasDesignerTool: true,
+    /* Real production gallery: full-cover showcase of the rhinestone
+     * product line (14 photos + 1 production-process video) lifted
+     * straight from public/rhinestone-assets/ (extracted from
+     * Rhinestone.7z on 2026-09-12). */
+    gallery: [
+      { type: "video", src: "/rhinestone-assets/RST-00.mp4", alt: "Rhinestone heat transfer production process" },
+      { type: "image", src: "/rhinestone-assets/RST-01.webp", alt: "Multi-color rhinestone logo on black fabric" },
+      { type: "image", src: "/rhinestone-assets/RST-02.webp", alt: "Crystal rhinestone pattern detail" },
+      { type: "image", src: "/rhinestone-assets/RST-03.webp", alt: "Custom rhinestone motif on apparel" },
+      { type: "image", src: "/rhinestone-assets/RST-04.webp", alt: "Dense rhinestone placement, close-up" },
+      { type: "image", src: "/rhinestone-assets/RST-05.webp", alt: "Rhinestone heat transfer on garment front" },
+      { type: "image", src: "/rhinestone-assets/RST-06.webp", alt: "Single-color rhinestone wordmark" },
+      { type: "image", src: "/rhinestone-assets/RST-07.webp", alt: "Rhinestone decoration on sleeve" },
+      { type: "image", src: "/rhinestone-assets/RST-08.webp", alt: "Full-coverage rhinestone transfer sample" },
+      { type: "image", src: "/rhinestone-assets/RST-09.webp", alt: "Rhinestone transfer applied to jersey" },
+      { type: "image", src: "/rhinestone-assets/RST-10.webp", alt: "Rhinestone badge with letter detail" },
+      { type: "image", src: "/rhinestone-assets/RST-11.webp", alt: "Iridescent rhinestone pattern" },
+      { type: "image", src: "/rhinestone-assets/RST-12.webp", alt: "Rhinestone logo on dark tee" },
+      { type: "image", src: "/rhinestone-assets/RST-13.webp", alt: "Rhinestone logo on cap" },
+      { type: "image", src: "/rhinestone-assets/RST-14.webp", alt: "Crystal AB-finish rhinestone close-up" },
+    ],
   },
   {
     slug: "silicone-heat-transfers",
