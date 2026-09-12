@@ -70,7 +70,7 @@ export const TECHNOLOGIES: Technology[] = [
       "32-color universal stone library",
       "Free online design tool",
     ],
-    image: "/images/tech-rhinestone.jpg",
+    image: "/rhinestone-assets/RST-01.webp",
     tier: "core",
     hasDesignerTool: true,
     /* Real production gallery: full-cover showcase of the rhinestone
