@@ -76,10 +76,15 @@ export const TECHNOLOGIES: Technology[] = [
     /* Real production gallery: full-cover showcase of the rhinestone
      * product line (14 photos + 1 production-process video) lifted
      * straight from public/rhinestone-assets/ (extracted from
-     * Rhinestone.7z on 2026-09-12). */
+     * Rhinestone.7z on 2026-09-12).
+     *
+     * Order is intentional:
+     *   1. RST-01 — best product photo, used as the page cover image
+     *   2. RST-00 — production-process video, plays in the carousel
+     *   3+. Additional production photos in sequence */
     gallery: [
-      { type: "video", src: "/rhinestone-assets/RST-00.mp4", alt: "Rhinestone heat transfer production process" },
       { type: "image", src: "/rhinestone-assets/RST-01.webp", alt: "Multi-color rhinestone logo on black fabric" },
+      { type: "video", src: "/rhinestone-assets/RST-00.mp4", alt: "Rhinestone heat transfer production process" },
       { type: "image", src: "/rhinestone-assets/RST-02.webp", alt: "Crystal rhinestone pattern detail" },
       { type: "image", src: "/rhinestone-assets/RST-03.webp", alt: "Custom rhinestone motif on apparel" },
       { type: "image", src: "/rhinestone-assets/RST-04.webp", alt: "Dense rhinestone placement, close-up" },
