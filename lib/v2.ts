@@ -202,8 +202,29 @@ export const TECHNOLOGIES: Technology[] = [
     tagline: "Sparkling glitter transfers for eye-catching garment decoration.",
     description: "Sparkling glitter transfers for eye-catching garment decoration.",
     features: ["Dense glitter surface", "Vivid color payoff", "Durable wash performance"],
-    image: "/images/tech-glitter.jpg",
-    tier: "specialty",
+    image: "/glitter-assets/GLT-01.webp",
+    tier: "core",
+    /* Real production gallery: 10 photos + 1 production-process video
+     * lifted from public/glitter-assets/ (extracted from
+     * "Glitter Heat transfer.7z" on 2026-09-12).
+     *
+     * Order is intentional:
+     *   1. GLT-01 — strongest product photo, used as the page cover.
+     *   2. GLT-00 — production-process video, plays in the carousel.
+     *   3..11. GLT-02..GLT-10 — additional production photos. */
+    gallery: [
+      { type: "image", src: "/glitter-assets/GLT-01.webp", alt: "Multi-color glitter transfer on apparel" },
+      { type: "video", src: "/glitter-assets/GLT-00.mp4", alt: "Glitter heat transfer production process" },
+      { type: "image", src: "/glitter-assets/GLT-02.webp", alt: "Glitter pattern detail close-up" },
+      { type: "image", src: "/glitter-assets/GLT-03.webp", alt: "Glitter wordmark on dark fabric" },
+      { type: "image", src: "/glitter-assets/GLT-04.webp", alt: "Coarse-glitter transfer sample" },
+      { type: "image", src: "/glitter-assets/GLT-05.webp", alt: "Fine-glitter motif on garment" },
+      { type: "image", src: "/glitter-assets/GLT-06.webp", alt: "Glitter logo applied to jersey" },
+      { type: "image", src: "/glitter-assets/GLT-07.webp", alt: "Glitter decoration on sleeve" },
+      { type: "image", src: "/glitter-assets/GLT-08.webp", alt: "Full-coverage glitter transfer" },
+      { type: "image", src: "/glitter-assets/GLT-09.webp", alt: "Glitter badge with letter detail" },
+      { type: "image", src: "/glitter-assets/GLT-10.webp", alt: "Holographic glitter close-up" },
+    ],
   },
   {
     slug: "flock-heat-transfers",
@@ -231,24 +252,7 @@ export const TECHNOLOGIES: Technology[] = [
     tier: "specialty",
   },
 
-  /* ── Rhinestone product line (8 SKUs) ─────────────────── */
-  {
-    slug: "rhinestone-austrian-grade",
-    name: "Austrian-Grade Rhinestone Transfers",
-    shortName: "Austrian Rhinestone",
-    tagline: "Premium Austrian-cut crystal rhinestone transfers for luxury apparel, dancewear and high-end fashion.",
-    description:
-      "Top-tier Austrian-cut crystal rhinestone transfers, manufactured for luxury apparel, dancewear and high-end fashion. Precision stone placement with maximum brilliance and clarity.",
-    features: [
-      "Austrian-cut crystal stones",
-      "Maximum brilliance and clarity",
-      "12-facet precision cut",
-      "Ideal for luxury and dancewear",
-    ],
-    image: "/images/products/rhinestone-austrian-grade.webp",
-    tier: "core",
-    hasDesignerTool: true,
-  },
+  /* ── Rhinestone product line (7 SKUs) ─────────────────── */
   {
     slug: "rhinestone-korean-grade",
     name: "Korean-Grade Rhinestone Transfers",
@@ -1236,7 +1240,6 @@ export const getRelatedProducts = (slug: string, limit = 4): Technology[] => {
 export const getRelatedResources = (slug: string): string[] => {
   const map: Record<string, string[]> = {
     "rhinestone-heat-transfers": ["heat-transfer-guide", "artwork-guidelines"],
-    "rhinestone-austrian-grade": ["heat-transfer-guide", "heat-transfer-durability"],
     "rhinestone-korean-grade": ["heat-transfer-guide", "silicone-vs-pu"],
     "rhinestone-china-grade-a": ["heat-transfer-guide", "heat-transfer-durability"],
     "rhinestone-china-grade-b": ["heat-transfer-guide", "heat-transfer-durability"],
