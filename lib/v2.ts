@@ -252,23 +252,48 @@ export const TECHNOLOGIES: Technology[] = [
     tier: "specialty",
   },
 
-  /* ── Rhinestone product line (7 SKUs) ─────────────────── */
+  /* ── Rhinestone product line (6 SKUs) ─────────────────── */
   {
-    slug: "rhinestone-korean-grade",
-    name: "Korean-Grade Rhinestone Transfers",
-    shortName: "Korean Rhinestone",
-    tagline: "High-quality Korean rhinestone transfers — the sweet spot for fashion apparel and premium teamwear.",
-    description:
-      "Korean-grade rhinestone transfers for fashion apparel and premium teamwear. Excellent clarity and cut at a more accessible price point than Austrian stones.",
+    slug: "luminous-heat-transfers",
+    name: "Luminous Heat Transfers",
+    shortName: "Luminous",
+    tagline: "Glow-in-the-dark luminous transfers that charge in daylight and shine at night.",
+    description: "Glow-in-the-dark luminous heat transfers for novelty apparel, kidswear, party wear and any garment that needs to shine when the lights go down. Photo-luminescent pigment charges under daylight or UV and re-emits for hours.",
     features: [
-      "Korean-cut crystal stones",
-      "High brilliance and clarity",
-      "Reliable for fashion programs",
-      "Strong price-quality balance",
+      "Photo-luminescent glow pigment",
+      "Multi-hour after-glow performance",
+      "Recharges indefinitely with light exposure",
+      "Soft hand feel on cotton, polyester and blends",
     ],
-    image: "/images/products/rhinestone-korean-grade.webp",
+    image: "/luminous-assets/LUM-01.webp",
     tier: "core",
-    hasDesignerTool: true,
+    /* Real production gallery: 16 photos + 1 production-process video
+     * lifted from public/luminous-assets/ (extracted from
+     * "luminous heat transfer.7z" on 2026-09-12).
+     *
+     * Order is intentional:
+     *   1.  LUM-01 — strongest product photo, used as the page cover.
+     *   2.  LUM-00 — production-process video, plays in the carousel.
+     *   3..17. LUM-02..LUM-16 — additional production photos. */
+    gallery: [
+      { type: "image", src: "/luminous-assets/LUM-01.webp", alt: "Glow-in-the-dark luminous transfer lit under daylight" },
+      { type: "video", src: "/luminous-assets/LUM-00.mp4", alt: "Luminous heat transfer production process" },
+      { type: "image", src: "/luminous-assets/LUM-02.webp", alt: "Luminous pattern glowing in the dark" },
+      { type: "image", src: "/luminous-assets/LUM-03.webp", alt: "Glow-pigment logo on black tee" },
+      { type: "image", src: "/luminous-assets/LUM-04.webp", alt: "Luminous wordmark on dark fabric" },
+      { type: "image", src: "/luminous-assets/LUM-05.webp", alt: "Luminous motif on sportswear sleeve" },
+      { type: "image", src: "/luminous-assets/LUM-06.webp", alt: "Photoluminescent pattern close-up" },
+      { type: "image", src: "/luminous-assets/LUM-07.webp", alt: "Glow logo on cotton garment" },
+      { type: "image", src: "/luminous-assets/LUM-08.webp", alt: "Luminous emblem on hooded sweatshirt" },
+      { type: "image", src: "/luminous-assets/LUM-09.webp", alt: "Side-by-side day and night luminous effect" },
+      { type: "image", src: "/luminous-assets/LUM-10.webp", alt: "Large-area luminous transfer on jersey" },
+      { type: "image", src: "/luminous-assets/LUM-11.webp", alt: "Luminous decoration on kidswear" },
+      { type: "image", src: "/luminous-assets/LUM-12.webp", alt: "Custom luminous badge with letter detail" },
+      { type: "image", src: "/luminous-assets/LUM-13.webp", alt: "Luminous accent strip on apparel" },
+      { type: "image", src: "/luminous-assets/LUM-14.webp", alt: "Charged-luminous transfer glowing brightly" },
+      { type: "image", src: "/luminous-assets/LUM-15.webp", alt: "Luminous application on backpack" },
+      { type: "image", src: "/luminous-assets/LUM-16.webp", alt: "Luminous design on light fabric" },
+    ],
   },
   {
     slug: "rhinestone-china-grade-a",
@@ -1240,7 +1265,6 @@ export const getRelatedProducts = (slug: string, limit = 4): Technology[] => {
 export const getRelatedResources = (slug: string): string[] => {
   const map: Record<string, string[]> = {
     "rhinestone-heat-transfers": ["heat-transfer-guide", "artwork-guidelines"],
-    "rhinestone-korean-grade": ["heat-transfer-guide", "silicone-vs-pu"],
     "rhinestone-china-grade-a": ["heat-transfer-guide", "heat-transfer-durability"],
     "rhinestone-china-grade-b": ["heat-transfer-guide", "heat-transfer-durability"],
     "rhinestone-custom-designs": ["artwork-guidelines", "heat-transfer-guide"],
