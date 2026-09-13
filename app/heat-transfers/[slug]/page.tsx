@@ -67,6 +67,7 @@ export async function generateMetadata({
       "custom heat transfer China manufacturer",
       "garment heat transfer bulk order",
       "apparel heat press transfers",
+      ...(tech.aliases ?? []).map((a) => a.toLowerCase()),
     ],
   };
 }
@@ -138,6 +139,11 @@ export default async function TechnologyPage({
               <h1 className="mt-3 text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                 {tech.name}
               </h1>
+              {tech.aliases && tech.aliases.length > 0 && (
+                <p className="mt-2 text-sm font-medium text-slate-400">
+                  Also known as: {tech.aliases.join(" · ")}
+                </p>
+              )}
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-300">
                 {tech.description}
               </p>

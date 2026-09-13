@@ -49,6 +49,14 @@ export type Technology = {
   tier: "core" | "specialty";
   hasDesignerTool?: boolean;
   /**
+   * Optional alternative names / common synonyms. Surfaced in two
+   * places: (1) a small "Also known as: …" line directly under the
+   * H1 on the product page, so visitors can see at a glance that
+   * we also mean the alias term, and (2) the SEO keywords meta tag,
+   * so search engines understand the alias is the same product.
+   */
+  aliases?: string[];
+  /**
    * Optional gallery shown in the hero carousel and the lightbox gallery
    * below the page. Mixed media is supported — entries can be either
    * images or short video clips. If omitted, only `image` is used.
@@ -267,6 +275,11 @@ export const TECHNOLOGIES: Technology[] = [
     ],
     image: "/luminous-assets/LUM-01.webp",
     tier: "core",
+    /* Common synonym in English-speaking markets. Surfaced as
+     * "Also known as: Glow-in-the-Dark" under the H1 and folded
+     * into the SEO keywords so search engines treat both terms
+     * as the same product. */
+    aliases: ["Glow-in-the-Dark"],
     /* Real production gallery: 16 photos + 1 production-process video
      * lifted from public/luminous-assets/ (extracted from
      * "luminous heat transfer.7z" on 2026-09-12).
