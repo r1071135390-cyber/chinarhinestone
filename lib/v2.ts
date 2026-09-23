@@ -1075,6 +1075,20 @@ export const RESOURCES: Resource[] = [
     tagline:
       "What garment manufacturers should evaluate when sourcing custom heat transfers from a Chinese manufacturer — MOQ, lead time, sampling, QC and shipping.",
   },
+  {
+    /* Long-tail: a recurring production question from buyers who
+     * receive their transfers and want the exact settings for the
+     * press on the factory line. This article owns the "heat press
+     * temperature and time chart" SERP. Includes an inline chart
+     * panel image (visible below section 02) and a before/after
+     * mistakes panel (visible below section 04), all with semantic
+     * alt text for image SEO. */
+    slug: "heat-press-temperature-chart",
+    name: "Heat Press Temperature & Time Chart",
+    category: "Guides",
+    tagline:
+      "Exact heat press temperature, time and pressure settings for every transfer material we produce — cotton, polyester, nylon, spandex, leather and performance fabrics.",
+  },
 ];
 
 /* ── Transfer Selector mapping (Homepage Section 04) ─────── */
@@ -1282,8 +1296,8 @@ export const getRelatedResources = (slug: string): string[] => {
     "rhinestone-china-grade-b": ["heat-transfer-guide", "heat-transfer-durability"],
     "rhinestone-custom-designs": ["artwork-guidelines", "heat-transfer-guide"],
     "rhinestone-multi-color": ["artwork-guidelines", "heat-transfer-guide"],
-    "rhinestone-iron-on": ["heat-transfer-application-guide", "heat-transfer-guide"],
-    "rhinestone-hot-fix": ["heat-transfer-application-guide", "heat-transfer-guide"],
+    "rhinestone-iron-on": ["heat-transfer-application-guide", "heat-press-temperature-chart"],
+    "rhinestone-hot-fix": ["heat-transfer-application-guide", "heat-press-temperature-chart"],
     "silicone-heat-transfers": ["silicone-vs-pu", "best-heat-transfers-for-sportswear"],
     "silicone-3d-thick": ["silicone-vs-pu", "best-heat-transfers-for-sportswear"],
     "silicone-3d-density": ["silicone-vs-pu", "best-heat-transfers-for-sportswear"],
