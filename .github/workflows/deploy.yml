@@ -51,6 +51,22 @@ jobs:
           du -sh out 2>/dev/null || true
 
       - name: Deploy to Cloudflare Pages
+        # We use the `wrangler pages deploy` direct-upload path because the
+        # project's git auto-deploy is intentionally disabled (see Cloudflare
+        # Dashboard → Settings → Builds & deployments → "Enable automatic
+        # deployments on push"). GitHub Actions is the only trigger.
+        #
+        # `--branch` is the deployment alias and source-branch metadata.
+        # Cloudflare Pages checks the project-level
+        # `production_deployments_enabled` setting for the branch matching
+        # `production_branch` (default: main). If that toggle is OFF, every
+        # production deployment gets skipped with:
+        #   "The deployment was skipped because production deployments are
+        #   disabled for this project."
+        # If you see that skip message, flip "Enable production deployments"
+        # back ON in the dashboard. It is a SEPARATE toggle from the git
+        # auto-deploy one — leaving git auto-deploy off does NOT bypass the
+        # production gate.
         run: npx wrangler pages deploy out --project-name chinarhinestone --branch=main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
