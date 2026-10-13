@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { ProformaInvoice } from "@/components/pi/PIDisplay";
 import type { BankAccount } from "@/lib/bank-accounts";
 import PIDisplay from "@/components/pi/PIDisplay";
@@ -10,12 +10,9 @@ import PayWithStripeElements from "@/components/stripe/PayWithStripeElements";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
-interface PayClientProps {
-  searchParams: Promise<{ pi?: string; payment?: string }>;
-}
-
-export default function PayClient({ searchParams }: PayClientProps) {
+export default function PayClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [piNumber, setPiNumber] = useState<string | null>(null);
   const [pi, setPi] = useState<ProformaInvoice | null>(null);
   const [bankAccount, setBankAccount] = useState<BankAccount | null>(null);
@@ -27,10 +24,8 @@ export default function PayClient({ searchParams }: PayClientProps) {
   const [bankTransferConfirmed, setBankTransferConfirmed] = useState(false);
 
   useEffect(() => {
-    searchParams.then((params) => {
-      setPiNumber(params.pi ?? null);
-      setPaymentSuccess(params.payment === "success");
-    });
+    setPiNumber(searchParams.get("pi") ?? null);
+    setPaymentSuccess(searchParams.get("payment") === "success");
   }, [searchParams]);
 
   useEffect(() => {

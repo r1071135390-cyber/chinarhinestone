@@ -3,11 +3,26 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Save, RefreshCw, AlertCircle, CheckCircle2, Building2, RotateCcw } from "lucide-react";
-import { SUPPORTED_CURRENCIES, bankAccountFromRow, type BankAccount, type BankAccountRow as DbBankAccountRow, type SupportedCurrency } from "@/lib/bank-accounts";
+import { SUPPORTED_CURRENCIES, type BankAccountRow as DbBankAccountRow, type SupportedCurrency } from "@/lib/bank-accounts";
 
-interface FormBankAccountRow extends BankAccount {
+interface FormBankAccountRow {
   id: number;
   site_slug: string;
+  currency: string;
+  label: string;
+  symbol: string;
+  beneficiary: string;
+  company_address: string;
+  bank_name: string;
+  account: string;
+  swift: string;
+  bank_address: string;
+  iban?: string;
+  bank_country?: string;
+  routing_number?: string;
+  cnaps?: string;
+  intermediary_bank?: string;
+  notes?: string;
   updated_at: string;
 }
 
@@ -42,16 +57,16 @@ function emptyBankAccount(currency: SupportedCurrency): FormBankAccountRow {
     label: `${currency.toUpperCase()} — ${CURRENCY_LABELS[currency]}`,
     symbol: CURRENCY_SYMBOLS[currency],
     beneficiary: "",
-    companyAddress: "",
-    bankName: "",
+    company_address: "",
+    bank_name: "",
     account: "",
     swift: "",
-    bankAddress: "",
+    bank_address: "",
     iban: undefined,
-    bankCountry: undefined,
-    routingNumber: undefined,
+    bank_country: undefined,
+    routing_number: undefined,
     cnaps: undefined,
-    intermediaryBank: undefined,
+    intermediary_bank: undefined,
     notes: undefined,
     updated_at: new Date().toISOString(),
   };
@@ -253,16 +268,16 @@ function CurrencyCard({
 
         <FieldRow label="Beneficiary address (company_address)">
           <TextArea
-            value={row.companyAddress}
-            onChange={(v) => setField("companyAddress", v)}
+            value={row.company_address}
+            onChange={(v) => setField("company_address", v)}
             rows={2}
           />
         </FieldRow>
 
         <FieldRow label="Bank name">
           <TextInput
-            value={row.bankName}
-            onChange={(v) => setField("bankName", v)}
+            value={row.bank_name}
+            onChange={(v) => setField("bank_name", v)}
           />
         </FieldRow>
 
@@ -284,8 +299,8 @@ function CurrencyCard({
 
         <FieldRow label="Bank address">
           <TextArea
-            value={row.bankAddress}
-            onChange={(v) => setField("bankAddress", v)}
+            value={row.bank_address}
+            onChange={(v) => setField("bank_address", v)}
             rows={2}
           />
         </FieldRow>
@@ -300,16 +315,16 @@ function CurrencyCard({
 
         <FieldRow label="Bank country (ISO-3166-1 alpha-2)">
           <NullableTextInput
-            value={row.bankCountry}
-            onChange={(v) => setField("bankCountry", v)}
+            value={row.bank_country}
+            onChange={(v) => setField("bank_country", v)}
             placeholder="e.g. CN, US, DE"
           />
         </FieldRow>
 
         <FieldRow label="Routing number" hint="USD wires via Fed/ACH only.">
           <NullableTextInput
-            value={row.routingNumber}
-            onChange={(v) => setField("routingNumber", v)}
+            value={row.routing_number}
+            onChange={(v) => setField("routing_number", v)}
             mono
           />
         </FieldRow>
@@ -324,8 +339,8 @@ function CurrencyCard({
 
         <FieldRow label="Intermediary bank" hint="Optional — some corridors require one.">
           <NullableTextInput
-            value={row.intermediaryBank}
-            onChange={(v) => setField("intermediaryBank", v)}
+            value={row.intermediary_bank}
+            onChange={(v) => setField("intermediary_bank", v)}
           />
         </FieldRow>
 
@@ -365,11 +380,24 @@ export default function BankAccountsClient() {
       for (const c of SUPPORTED_CURRENCIES) {
         const dbRow = rows.find((r) => r.currency === c);
         if (dbRow) {
-          const converted = bankAccountFromRow(dbRow, c);
           const formRow: FormBankAccountRow = {
-            ...converted,
             id: dbRow.id,
             site_slug: dbRow.site_slug,
+            currency: dbRow.currency,
+            label: dbRow.label,
+            symbol: dbRow.symbol,
+            beneficiary: dbRow.beneficiary,
+            company_address: dbRow.company_address,
+            bank_name: dbRow.bank_name,
+            account: dbRow.account,
+            swift: dbRow.swift,
+            bank_address: dbRow.bank_address,
+            iban: dbRow.iban,
+            bank_country: dbRow.bank_country,
+            routing_number: dbRow.routing_number,
+            cnaps: dbRow.cnaps,
+            intermediary_bank: dbRow.intermediary_bank,
+            notes: dbRow.notes,
             updated_at: dbRow.updated_at,
           };
           next[c] = { row: formRow, dirty: false, saveState: "idle", errorMsg: null };
@@ -405,11 +433,24 @@ export default function BankAccountsClient() {
       const rows = data.accounts ?? [];
       const dbRow = rows.find((r) => r.currency === currency);
       if (!dbRow) return;
-      const converted = bankAccountFromRow(dbRow, currency);
       const fresh: FormBankAccountRow = {
-        ...converted,
         id: dbRow.id,
         site_slug: dbRow.site_slug,
+        currency: dbRow.currency,
+        label: dbRow.label,
+        symbol: dbRow.symbol,
+        beneficiary: dbRow.beneficiary,
+        company_address: dbRow.company_address,
+        bank_name: dbRow.bank_name,
+        account: dbRow.account,
+        swift: dbRow.swift,
+        bank_address: dbRow.bank_address,
+        iban: dbRow.iban,
+        bank_country: dbRow.bank_country,
+        routing_number: dbRow.routing_number,
+        cnaps: dbRow.cnaps,
+        intermediary_bank: dbRow.intermediary_bank,
+        notes: dbRow.notes,
         updated_at: dbRow.updated_at,
       };
       setForms({
@@ -429,11 +470,11 @@ export default function BankAccountsClient() {
       { key: "label", label: "Label" },
       { key: "symbol", label: "Symbol" },
       { key: "beneficiary", label: "Beneficiary" },
-      { key: "companyAddress", label: "Beneficiary address (company_address)" },
-      { key: "bankName", label: "Bank name" },
+      { key: "company_address", label: "Beneficiary address (company_address)" },
+      { key: "bank_name", label: "Bank name" },
       { key: "account", label: "Account number / IBAN" },
       { key: "swift", label: "SWIFT / BIC" },
-      { key: "bankAddress", label: "Bank address" },
+      { key: "bank_address", label: "Bank address" },
     ];
     const missing = requiredFields
       .filter(({ key }) => !current.row[key] || String(current.row[key]).trim() === "")
@@ -464,16 +505,16 @@ export default function BankAccountsClient() {
           label: r.label,
           symbol: r.symbol,
           beneficiary: r.beneficiary,
-          company_address: r.companyAddress,
-          bank_name: r.bankName,
+          company_address: r.company_address,
+          bank_name: r.bank_name,
           account: r.account,
           swift: r.swift,
-          bank_address: r.bankAddress,
+          bank_address: r.bank_address,
           iban: r.iban,
-          bank_country: r.bankCountry,
-          routing_number: r.routingNumber,
+          bank_country: r.bank_country,
+          routing_number: r.routing_number,
           cnaps: r.cnaps,
-          intermediary_bank: r.intermediaryBank,
+          intermediary_bank: r.intermediary_bank,
           notes: r.notes,
         }),
       });

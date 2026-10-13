@@ -1,3 +1,7 @@
+export type SupportedCurrency = "usd" | "eur" | "gbp" | "cny";
+
+export const SUPPORTED_CURRENCIES: SupportedCurrency[] = ["usd", "eur", "gbp", "cny"];
+
 export interface BankAccount {
   id: string;
   currency: string;
@@ -45,3 +49,41 @@ export const BANK_ACCOUNTS: BankAccount[] = [
     is_active: true,
   },
 ];
+
+export interface BankAccountRow {
+  id: number;
+  site_slug: string;
+  currency: string;
+  label: string;
+  symbol: string;
+  beneficiary: string;
+  company_address: string;
+  bank_name: string;
+  account: string;
+  swift: string;
+  bank_address: string;
+  iban?: string;
+  bank_country?: string;
+  routing_number?: string;
+  cnaps?: string;
+  intermediary_bank?: string;
+  intermediary_swift?: string;
+  notes?: string;
+  updated_at: string;
+}
+
+/** Convert Supabase snake_case row → client camelCase BankAccount shape */
+export function bankAccountFromRow(row: BankAccountRow): BankAccount {
+  return {
+    id: String(row.id),
+    currency: row.currency,
+    beneficiary_name: row.beneficiary,
+    bank_name: row.bank_name,
+    bank_address: row.bank_address,
+    account_number: row.account,
+    swift_code: row.swift,
+    intermediary_bank: row.intermediary_bank,
+    intermediary_swift: row.intermediary_swift,
+    is_active: true,
+  };
+}

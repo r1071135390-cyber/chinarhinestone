@@ -7,14 +7,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function PayPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ pi?: string; payment?: string }>;
-}) {
+export default function PayPage() {
   return (
     <Suspense fallback={<div className="p-8">Loading...</div>}>
-      <PayClient searchParams={searchParams} />
+      <PayClient />
     </Suspense>
   );
 }
