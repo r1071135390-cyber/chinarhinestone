@@ -1089,6 +1089,20 @@ export const RESOURCES: Resource[] = [
     tagline:
       "Exact heat press temperature, time and pressure settings for every transfer material we produce — cotton, polyester, nylon, spandex, leather and performance fabrics.",
   },
+  {
+    /* Long-tail: SS size selection is the most-asked B2B question
+     * on rhinestone programs. Owns the "rhinestone sizes chart",
+     * "ss6 ss8 ss10 size comparison", "rhinestone size in mm",
+     * "what is ss10 rhinestone" SERPs. Three inline figures
+     * (cover, chart panel, size comparison) with semantic alt
+     * text for image SEO. Deep-links to seven rhinestone
+     * product pages so the article drives the buying funnel. */
+    slug: "rhinestone-sizes-chart",
+    name: "Rhinestone Sizes Chart & SS Stone Size Guide",
+    category: "Guides",
+    tagline:
+      "What SS6, SS8, SS10, SS12, SS16, SS20 actually mean in millimetres and inches — and how to choose the right rhinestone size for your garment design.",
+  },
 ];
 
 /* ── Transfer Selector mapping (Homepage Section 04) ─────── */
@@ -1291,13 +1305,13 @@ export const getRelatedProducts = (slug: string, limit = 4): Technology[] => {
  * ───────────────────────────────────────────────────────────── */
 export const getRelatedResources = (slug: string): string[] => {
   const map: Record<string, string[]> = {
-    "rhinestone-heat-transfers": ["heat-transfer-guide", "artwork-guidelines"],
-    "rhinestone-china-grade-a": ["heat-transfer-guide", "heat-transfer-durability"],
-    "rhinestone-china-grade-b": ["heat-transfer-guide", "heat-transfer-durability"],
-    "rhinestone-custom-designs": ["artwork-guidelines", "heat-transfer-guide"],
-    "rhinestone-multi-color": ["artwork-guidelines", "heat-transfer-guide"],
-    "rhinestone-iron-on": ["heat-transfer-application-guide", "heat-press-temperature-chart"],
-    "rhinestone-hot-fix": ["heat-transfer-application-guide", "heat-press-temperature-chart"],
+    "rhinestone-heat-transfers": ["heat-transfer-guide", "rhinestone-sizes-chart"],
+    "rhinestone-china-grade-a": ["heat-transfer-guide", "heat-transfer-durability", "rhinestone-sizes-chart"],
+    "rhinestone-china-grade-b": ["heat-transfer-guide", "heat-transfer-durability", "rhinestone-sizes-chart"],
+    "rhinestone-custom-designs": ["artwork-guidelines", "heat-transfer-guide", "rhinestone-sizes-chart"],
+    "rhinestone-multi-color": ["artwork-guidelines", "heat-transfer-guide", "rhinestone-sizes-chart"],
+    "rhinestone-iron-on": ["heat-transfer-application-guide", "heat-press-temperature-chart", "rhinestone-sizes-chart"],
+    "rhinestone-hot-fix": ["heat-transfer-application-guide", "heat-press-temperature-chart", "rhinestone-sizes-chart"],
     "silicone-heat-transfers": ["silicone-vs-pu", "best-heat-transfers-for-sportswear"],
     "silicone-3d-thick": ["silicone-vs-pu", "best-heat-transfers-for-sportswear"],
     "silicone-3d-density": ["silicone-vs-pu", "best-heat-transfers-for-sportswear"],

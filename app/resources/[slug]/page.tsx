@@ -501,6 +501,99 @@ const ARTICLES: Record<string, Article> = {
       },
     ],
   },
+
+  /* ── Rhinestone Sizes Chart & SS Stone Size Guide ──────────
+   *
+   * Long-tail SERP targets: "rhinestone sizes chart", "ss6
+   * size", "ss8 vs ss10", "rhinestone size comparison",
+   * "what is ss10 rhinestone", "rhinestone size in mm",
+   * "ss rhinestone size chart", "rhinestone iron on size",
+   * "hot fix rhinestone size". Three figures embedded inline
+   * (cover photo, chart panel, side-by-side size comparison)
+   * — all with semantic alt text. Deep-links to seven
+   * rhinestone product pages so the article drives the
+   * buying funnel. The reverse link is wired in
+   * lib/v2.ts → getRelatedResources.
+   * ───────────────────────────────────────────────────────── */
+  "rhinestone-sizes-chart": {
+    intro:
+      "Rhinestone size is the single biggest decision when specifying a custom rhinestone transfer — and the most common source of mis-orders. A logo that looks refined in SS16 can look chunky and toy-like in SS6, while a delicate letterform in SS20 will read from across the room but can dominate a small design. This guide explains what the SS numbering actually means in millimetres, shows the full SS6 → SS34 reference chart, and gives you a practical method to pick the right size for your artwork, fabric and viewing distance. For the technology overview see our rhinestone heat transfers family; for press settings after you have a transfer in hand, see the heat press temperature & time chart.",
+    sections: [
+      {
+        heading: "What SS Sizes Actually Mean",
+        paragraphs: [
+          "SS stands for Stone Size and originates from the original Swarovski sizing system used across the crystal-rhinestone industry. Today every major rhinestone manufacturer — Swarovski, Preciosa, our Chinese A-grade and B-grade stones — uses the same SS numbering, which is why a SS10 stone from one supplier is dimensionally identical to a SS10 from another (within cut tolerance). The rule is counter-intuitive: a higher SS number means a smaller stone, not a larger one. SS6 is 2.0 mm across the table; SS30 is 6.3 mm. The number tracks historical use, not physical size — it is one of the most-asked questions from new buyers, and worth getting right the first time.",
+          "Two more numbers you will see on a stone spec: PP (Pearl Plate) is an older parallel numbering used mostly for flat-back pearls and crystals, where PP means the same as SS for our purposes. And \"ss\" written in lowercase is the same as \"SS\" — there is no case-sensitivity, the industry just capitalises the abbreviation. If you have an old artwork file referenced in PP, the PP → SS conversion for our program is: PP16 ≈ SS6, PP21 ≈ SS8, PP24 ≈ SS10, PP30 ≈ SS12, PP39 ≈ SS16, PP45 ≈ SS20.",
+        ],
+      },
+      {
+        heading: "The Complete SS Size Reference Chart",
+        paragraphs: [
+          "The chart below covers every SS size we regularly run in our production. The \"Size (mm)\" column is the table diameter of a single stone, which is what rhinestone-transfer design software (and your production file) uses for stone placement and gap calculation. The \"Application\" column describes the typical garment use; a 4-inch-wide logo on a center-chest placement works with most sizes, but the visual effect changes dramatically.",
+        ],
+        bullets: [
+          "SS6 — 2.0 mm — ultra-fine detail, small text, sub-1-inch logos, monograms, lettering on kidswear",
+          "SS8 — 2.4 mm — small detail, monograms, fine-line artwork, premium fashion logos",
+          "SS10 — 2.7 mm — the most popular size, balanced sparkle, full chest logos, team numbers",
+          "SS12 — 3.1 mm — slightly larger, more sparkle, used on cheer and dance uniforms",
+          "SS16 — 3.8 mm — bold logos, large initials, statement graphics, dance and stage wear",
+          "SS20 — 4.6 mm — maximum sparkle for garment logos, single-stone focal points, large number sets",
+          "SS30 — 6.3 mm — statement crystals, single-stone accents, runway and costume, not for full logos",
+          "SS34 — 7.0 mm — extra-large focal stones, couture accents, not used for full logos",
+        ],
+        image: {
+          src: "/resources/rhinestone-sizes-chart-panel.jpg",
+          alt: "Rhinestone SS size reference chart showing the size in millimetres and inches for SS6 (2.0 mm), SS8 (2.4 mm), SS10 (2.7 mm), SS12 (3.1 mm), SS16 (3.8 mm), SS20 (4.6 mm), SS30 (6.3 mm) and SS34 (7.0 mm), with recommended garment application for each size — small detail through to statement single-stone accents.",
+          caption: "Reference chart: SS size to millimetre to garment application. Always specify the size in the artwork file, not the name of the stone grade.",
+        },
+      },
+      {
+        heading: "How to Choose the Right Size for Your Design",
+        paragraphs: [
+          "There are three variables that drive the size decision: the physical size of the design on the garment, the viewing distance the design is meant to be read at, and the fabric / placement. A 4-inch chest logo that will be read at arm's length (1 m) wants SS10 or SS12 — small enough to show clean letterforms, large enough to sparkle. The same logo on a back-yoke 6 inches wide can carry SS16 because there is more room between letters and the design is read from further away. A single letter on a cap front (sub-1-inch) wants SS8 or smaller; the artwork cannot resolve larger stones without the letterform collapsing into a solid shape.",
+          "Fabric and placement matter too. Stretch fabrics (lycra, spandex, performance knits) tolerate small stones well because the matrix flexes with the garment; large stones (SS20 and up) on a tight stretch fabric can pop off under repeated elongation. Heavy knits and outerwear comfortably carry larger stones because the fabric supports them. For high-stretch placements, see our performance fabric compatibility guidance — the same logic that informs silicone and DTF choice applies to rhinestone size selection.",
+        ],
+        image: {
+          src: "/resources/rhinestone-sizes-comparison-panel.jpg",
+          alt: "Side-by-side size comparison of the same heart shape rhinestone design rendered in four SS sizes — SS6 (tiny), SS10 (small), SS16 (medium) and SS20 (large) — on separate black fabric swatches, labelled below each sample. The image shows how the same artwork reads differently as stone size increases: dense and fine at SS6, balanced and clear at SS10, bolder at SS16, and a statement focal at SS20.",
+          caption: "Same artwork, four SS sizes. SS10 is the workhorse for most programs; SS16 reads as bold; SS20 is for statement and stage wear.",
+        },
+      },
+      {
+        heading: "Iron-On vs Hot-Fix: Which Application by Size?",
+        paragraphs: [
+          "The two main application methods — iron-on (a pre-glued transfer that you press on) and hot-fix (loose stones, applied one at a time with a hot-fix tool or machine) — behave differently across SS sizes. For garment-manufacturer programs the practical rule is: iron-on transfers are the right choice for SS6 through SS20, hot-fix is reserved for special cases (custom stone placement, garment embellishment at retail) or for very large stones (SS30 and SS34) where a pre-laid matrix is impractical.",
+          "Iron-on transfers give you a pre-aligned matrix in the exact artwork shape, which means uniform spacing, no stone loss in application, and a fast production line — the garment receives a single press. The trade-off is that the design must be reproducible from artwork, and very small details can be limited by the minimum stone-spacing of the smallest size used. Hot-fix gives you total freedom to place each stone but is much slower on a production line and depends on operator skill. Most of our programs are iron-on; we recommend it unless there is a specific reason to choose hot-fix. See rhinestone iron-on transfers and rhinestone hot-fix transfers for the technology-specific product pages.",
+        ],
+      },
+      {
+        heading: "Stone Grade, AB Finish, and How They Affect the Look",
+        paragraphs: [
+          "Size determines the silhouette of the design; grade and finish determine the sparkle. Our rhinestone product line covers four stone grades — China A-grade crystal, China B-grade crystal, premium imported crystals, and special-effect stones — each with consistent cut and clarity at the SS sizes above. Within a grade, the AB (Aurora Borealis) finish adds an iridescent coating that shifts colour in the light; it is the single most common finish upgrade we run on fashion and cheer programs, and the price impact is modest relative to the visual difference.",
+          "Larger stones show grade and finish more obviously than smaller ones. An SS10 China B-grade stone looks very similar to an SS10 China A-grade stone in a logo at chest height; the same two stones at SS20 read more differently because the cut facets are larger and any cloudiness in the crystal is more visible. For most programs, SS10 in China A-grade AB is the sweet spot for cost-effective sparkle. For maximum impact on dance, runway, and performance uniforms, SS16 in premium imported AB is the high end.",
+        ],
+      },
+      {
+        heading: "Common Mistakes When Ordering Custom Rhinestone Transfers",
+        paragraphs: [
+          "Four mistakes we see on almost every mis-ordered program, in order of frequency:",
+        ],
+        bullets: [
+          "Specifying the size in the artwork file, not in the conversation — the file should name the SS size in millimetres (e.g. 2.7 mm = SS10) on the production layer; a verbal \"SS10\" in an email is easy to misread and the studio will default to SS12 if the file is ambiguous. See our artwork guidelines for the production-layer convention.",
+          "Choosing a size too large for the letterforms — fine-script fonts with thin strokes lose readability at SS16 and above; either increase the artwork size or drop to SS12 or SS10. A 5 mm letterform with 1 mm strokes cannot resolve SS16 cleanly.",
+          "Ignoring fabric stretch — SS16 and larger on a stretch placement (leggings, performance tees, dance leotards) will lose stones under repeated stretch; either drop to SS10 / SS12 or use a stretch-tolerant matrix (our performance fabric compatibility page covers the construction).",
+          "Forgetting to spec the AB finish explicitly — AB is an additional finish on top of the base stone, and it is an opt-in on every quote. If you want AB, say so; if you don't, the order will run as crystal clear (still very sparkly, but no colour shift).",
+        ],
+      },
+      {
+        heading: "Get a Sample at the Right Size Before You Order Bulk",
+        paragraphs: [
+          "Once you have an SS size in mind, the fastest path to a confident bulk order is a 5-piece sample on the actual fabric. Send us the artwork file, the target fabric spec, the SS size in millimetres on the production layer, and the stone grade / finish. We will produce the sample, ship it to you, and lock the specification for the bulk run. The same program can be re-quoted in a different size at no tooling cost if the first sample is not the right look — which is why we recommend sampling on the actual garment before committing to 1,000+ pieces.",
+          "If you are still deciding between sizes, send two artwork versions and we will sample both — the cost difference is small and the visual answer is worth the few extra days.",
+        ],
+      },
+    ],
+  },
 };
 
 export function generateStaticParams() {
@@ -531,12 +624,26 @@ export async function generateMetadata({
             "heat press PSI by fabric",
             "custom heat transfer manufacturer China",
           ]
-        : [
-            `${resource.name.toLowerCase()}`,
-            "custom heat transfer guide",
-            "garment decoration guide",
-            "China heat transfer manufacturer",
-          ],
+        : resource.slug === "rhinestone-sizes-chart"
+          ? [
+              "rhinestone sizes chart",
+              "ss6 size rhinestone",
+              "ss8 ss10 ss12 size comparison",
+              "rhinestone size in mm",
+              "what is ss10 rhinestone",
+              "ss rhinestone size chart",
+              "rhinestone iron on size",
+              "hot fix rhinestone size",
+              "rhinestone size in inches",
+              "rhinestone size guide for apparel",
+              "custom rhinestone transfer manufacturer",
+            ]
+          : [
+              `${resource.name.toLowerCase()}`,
+              "custom heat transfer guide",
+              "garment decoration guide",
+              "China heat transfer manufacturer",
+            ],
     alternates: {
       canonical: `/resources/${resource.slug}`,
     },
@@ -556,7 +663,22 @@ export async function generateMetadata({
               },
             ],
           }
-        : undefined,
+        : resource.slug === "rhinestone-sizes-chart"
+          ? {
+              type: "article",
+              title: resource.name,
+              description: resource.tagline,
+              url: `${SITE_URL}/resources/${resource.slug}`,
+              images: [
+                {
+                  url: `${SITE_URL}/resources/rhinestone-sizes-cover.jpg`,
+                  width: 1280,
+                  height: 720,
+                  alt: "Scattered clear crystal rhinestones in various SS sizes from SS6 to SS20 next to a stainless steel ruler for scale, on a white marble surface",
+                },
+              ],
+            }
+          : undefined,
   };
 }
 
@@ -587,10 +709,12 @@ export default async function ResourcePage({
     image:
       resource.slug === "heat-press-temperature-chart"
         ? "/resources/heat-press-cover.jpg"
-        : undefined,
+        : resource.slug === "rhinestone-sizes-chart"
+          ? "/resources/rhinestone-sizes-cover.jpg"
+          : undefined,
     authorName: "ChinaRhinestone Production Team",
-    datePublished: "2026-09-23",
-    dateModified: "2026-09-23",
+    datePublished: resource.slug === "rhinestone-sizes-chart" ? "2026-10-13" : "2026-09-23",
+    dateModified: resource.slug === "rhinestone-sizes-chart" ? "2026-10-13" : "2026-09-23",
   });
 
   const breadcrumbSchema = {
