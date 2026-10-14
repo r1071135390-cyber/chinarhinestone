@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
   // Note: `redirects()` is not available with `output: "export"`. The
   // V1 → V2 rewrites are configured in public/_redirects instead, which
   // Cloudflare Pages honours at the edge.
+  //
+  // Backend API routes live under ./cf-functions-src/ (kept OUT of the
+  // Next.js scan by convention) and are copied to ./out/functions/ by
+  // scripts/copy-functions.mjs at postbuild time. Cloudflare Pages picks
+  // them up as Pages Functions alongside the static export.
   output: "export",
   images: { unoptimized: true },
   reactStrictMode: true,
