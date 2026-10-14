@@ -51,10 +51,19 @@ jobs:
           du -sh out 2>/dev/null || true
 
       - name: Deploy to Cloudflare Pages
-        # We use the `wrangler pages deploy` direct-upload path because the
-        # project's git auto-deploy is intentionally disabled (see Cloudflare
-        # Dashboard → Settings → Builds & deployments → "Enable automatic
-        # deployments on push"). GitHub Actions is the only trigger.
+        # We use the official cloudflare/pages-action direct-upload path
+        # because the project's git auto-deploy is intentionally disabled
+        # (see Cloudflare Dashboard → Settings → Builds & deployments →
+        # "Enable automatic deployments on push"). GitHub Actions is the
+        # only trigger.
+        #
+        # Required GitHub repo secrets:
+        #   CLOUDFLARE_API_TOKEN  — Cloudflare API token with "Cloudflare
+        #                            Pages: Edit" permission for this account.
+        #                            Generate at:
+        #                            https://dash.cloudflare.com/profile/api-tokens
+        #   CLOUDFLARE_ACCOUNT_ID — Account ID (hex), shown on the
+        #                            Cloudflare Dashboard right sidebar.
         #
         # `--branch` is the deployment alias and source-branch metadata.
         # Cloudflare Pages checks the project-level
@@ -67,7 +76,10 @@ jobs:
         # back ON in the dashboard. It is a SEPARATE toggle from the git
         # auto-deploy one — leaving git auto-deploy off does NOT bypass the
         # production gate.
-        run: npx wrangler pages deploy out --project-name chinarhinestone --branch=main
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: chinarhinestone
+          directory: out
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
