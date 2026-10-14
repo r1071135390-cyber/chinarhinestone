@@ -51,11 +51,15 @@ jobs:
           du -sh out 2>/dev/null || true
 
       - name: Deploy to Cloudflare Pages
-        # We use the official cloudflare/wrangler-action direct-upload path
-        # because the project's git auto-deploy is intentionally disabled
-        # (see Cloudflare Dashboard → Settings → Builds & deployments →
-        # "Enable automatic deployments on push"). GitHub Actions is the
-        # only trigger.
+        # Direct wrangler invocation (not the wrangler-action wrapper) so
+        # that all stderr/stdout stream into the GH Actions log. The
+        # wrangler-action wrapper swallows the inner wrangler error and
+        # only shows a generic "exit code 1" — which made the original
+        # 'Invalid access token [code: 9109]' impossible to diagnose.
+        #
+        # The token is passed via env so it doesn't leak into process
+        # listings. `npx wrangler` resolves to the wrangler already in
+        # devDependencies (wrangler@^4) — no separate install needed.
         #
         # Required GitHub repo secrets:
         #   CLOUDFLARE_API_TOKEN  — Cloudflare API token with "Cloudflare
@@ -75,8 +79,7 @@ jobs:
         # back ON in the dashboard. It is a SEPARATE toggle from the git
         # auto-deploy one — leaving git auto-deploy off does NOT bypass the
         # production gate.
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy out --project-name=chinarhinestone --branch=main --commit-dirty=true
+        run: npx wrangler pages deploy out --project-name=chinarhinestone --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
