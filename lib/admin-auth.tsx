@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { Lock } from "lucide-react";
 
 // Change this password after first deployment — treat as an environment secret.
-export const OWNER_PASSWORD = "chinarhinestone2025";
+// This matches the ADMIN_TOKEN value set in Cloudflare Pages env vars.
+export const OWNER_PASSWORD = "CrhAdmin2026!PI";
 
 const SESSION_KEY = "pi_admin_session";
 

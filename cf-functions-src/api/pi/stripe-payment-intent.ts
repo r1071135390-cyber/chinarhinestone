@@ -68,6 +68,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return jsonResponse({ error: "PI already paid" }, { status: 409, request: context.request, env });
   }
 
+  // Stripe is optional during initial deployment — return a soft-unavailable
+  // signal so the frontend can hide the card-payment button instead of
+  // crashing the whole /pay page.
+  if (!env.STRIPE_SECRET_KEY) {
+    return jsonResponse(
+      { unavailable: true, reason: "stripe_not_configured" },
+      { status: 200, request: context.request, env }
+    );
+  }
+
   // 2. Reuse existing PaymentIntent if one is already attached
   const stripe = getStripe(env.STRIPE_SECRET_KEY);
   if (pi.stripe_payment_intent_id) {

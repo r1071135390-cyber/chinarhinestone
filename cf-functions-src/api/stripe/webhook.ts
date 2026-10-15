@@ -28,6 +28,17 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const env = context.env;
   const siteSlug = env.SITE_SLUG ?? "chinarhinestone";
 
+  // Stripe is optional during initial deployment. If keys are missing,
+  // accept-and-ignore the event (return 200 so Stripe stops retrying)
+  // instead of throwing 500. This lets the rest of the PI system work
+  // even before Stripe live keys are added.
+  if (!env.STRIPE_SECRET_KEY || !env.STRIPE_WEBHOOK_SECRET) {
+    return jsonResponse(
+      { received: true, ignored: true, reason: "stripe_not_configured" },
+      { status: 200, request: context.request, env }
+    );
+  }
+
   const signature = context.request.headers.get("Stripe-Signature") ?? "";
   if (!signature) {
     return new Response("Missing Stripe-Signature", { status: 400 });

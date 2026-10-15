@@ -22,6 +22,7 @@ export default function PayClient() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"card" | "bank" | null>(null);
   const [bankTransferConfirmed, setBankTransferConfirmed] = useState(false);
+  const [stripeUnavailable, setStripeUnavailable] = useState(false);
 
   useEffect(() => {
     setPiNumber(searchParams.get("pi") ?? null);
@@ -63,6 +64,10 @@ export default function PayClient() {
         body: JSON.stringify({ pi_number: piNumber, amount: pi.total, currency: pi.currency }),
       });
       const data = await res.json();
+      if (data.unavailable) {
+        setStripeUnavailable(true);
+        return;
+      }
       if (data.client_secret) {
         setClientSecret(data.client_secret);
         setPaymentMethod("card");
@@ -76,11 +81,14 @@ export default function PayClient() {
     if (!piNumber) return;
 
     try {
-      const res = await fetch(`/api/pi/${piNumber}/confirm-bank`, {
+      const res = await fetch(`/api/pi/confirm-bank`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pi_number: piNumber }),
       });
       if (res.ok) {
         setBankTransferConfirmed(true);
+        setPaymentMethod("bank");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to confirm bank transfer");
@@ -188,7 +196,7 @@ export default function PayClient() {
                 <span className="font-medium">PI Number:</span> {pi.pi_number}
               </p>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Amount:</span> {pi.currency} {pi.total.toFixed(2)}
+                <span className="font-medium">Amount:</span> {pi.currency} {(pi.total ?? 0).toFixed(2)}
               </p>
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Paid Via:</span> Card
@@ -254,16 +262,24 @@ export default function PayClient() {
         ) : (
           <div className="rounded-lg bg-white p-6 shadow-lg">
             <h2 className="text-lg font-bold mb-4">Select Payment Method</h2>
+            {stripeUnavailable && (
+              <div className="mb-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+                Card payments are temporarily unavailable. Please use Bank Transfer
+                below, or contact us to arrange another method.
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={handlePayByCard}
-                disabled={paymentMethod === "card"}
-                className="rounded-lg border-2 border-[#ff4d00] p-4 text-center hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="text-2xl mb-2">💳</div>
-                <div className="font-semibold text-[#ff4d00]">Pay by Card</div>
-                <div className="text-sm text-gray-500">Credit / Debit Card</div>
-              </button>
+              {!stripeUnavailable && (
+                <button
+                  onClick={handlePayByCard}
+                  disabled={paymentMethod === "card"}
+                  className="rounded-lg border-2 border-[#ff4d00] p-4 text-center hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="text-2xl mb-2">💳</div>
+                  <div className="font-semibold text-[#ff4d00]">Pay by Card</div>
+                  <div className="text-sm text-gray-500">Credit / Debit Card</div>
+                </button>
+              )}
               <button
                 onClick={handleBankTransfer}
                 disabled={paymentMethod === "bank"}
