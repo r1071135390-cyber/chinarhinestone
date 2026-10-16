@@ -74,7 +74,26 @@ jobs:
         #   CLOUDFLARE_API_TOKEN  — Cloudflare API token with "Cloudflare
         #                            Pages: Edit" permission for this account.
         #   CLOUDFLARE_ACCOUNT_ID — Account ID (hex).
-        run: npx wrangler pages deploy out --project-name=chinarhinestone --branch=main 2>&1 | tee /tmp/wrangler-deploy.log
+        run: |
+          set -e
+          echo "--- wrangler version ---"
+          npx wrangler --version
+          echo "--- _routes.json before deploy ---"
+          cat out/_routes.json || true
+          echo "--- functions dir before deploy ---"
+          ls -la out/functions || true
+          ls -la out/functions/api 2>/dev/null || true
+          echo "--- _worker.js / index.js before deploy ---"
+          ls -la out/_worker.js 2>/dev/null || echo "no _worker.js"
+          ls -la out/index.js 2>/dev/null || echo "no index.js"
+          echo "--- running wrangler pages deploy ---"
+          npx wrangler pages deploy out \
+            --project-name=chinarhinestone \
+            --branch=main \
+            --commit-message="${{ github.event.head_commit.message }}" \
+            --commit-dirty=true 2>&1 | tee /tmp/wrangler-deploy.log
+          echo "--- post-deploy _routes.json ---"
+          cat out/_routes.json || true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
