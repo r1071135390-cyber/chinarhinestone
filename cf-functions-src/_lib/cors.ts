@@ -47,6 +47,13 @@ export function jsonResponse(
   const { request, env, ...rest } = init;
   const headers = new Headers(rest.headers);
   headers.set("Content-Type", "application/json; charset=utf-8");
+  // All API responses are dynamic — never let CF cache them at the edge.
+  // The static 404.html from Next.js is what we were accidentally serving
+  // for GET /api/* until we added this header; CF Pages' default static
+  // cache was keeping stale copies of the 404 page at the edge.
+  headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  headers.set("Pragma", "no-cache");
+  headers.set("Expires", "0");
   if (request && env) {
     for (const [k, v] of corsHeaders(request, env).entries()) {
       headers.set(k, v);
