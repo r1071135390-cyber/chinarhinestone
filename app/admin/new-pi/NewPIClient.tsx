@@ -806,7 +806,7 @@ export function PIPreview(props: {
     <div className="bg-white dark:bg-neutral-900 shadow-lg rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800">
       {/* ── HEADER ── */}
       <div className="px-6 py-6 border-b-2 border-black dark:border-white">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-[14px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
