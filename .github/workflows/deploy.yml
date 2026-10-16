@@ -111,7 +111,17 @@ jobs:
         # back ON in the dashboard. It is a SEPARATE toggle from the git
         # auto-deploy one — leaving git auto-deploy off does NOT bypass the
         # production gate.
-        run: npx wrangler pages deploy out --project-name=chinarhinestone --branch=main --no-bundle
+        run: npx wrangler pages deploy out --project-name=chinarhinestone --branch=main --no-bundle 2>&1 | tee /tmp/wrangler-deploy.log
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        # If wrangler exits non-zero, attach its tail as a job-level error
+        # annotation so the actual Cloudflare error is visible without
+        # needing to click into the log.
+      - name: Surface wrangler deploy error
+        if: failure()
+        run: |
+          echo "::group::wrangler deploy output (tail)"
+          tail -n 80 /tmp/wrangler-deploy.log 2>/dev/null || echo "no log captured"
+          echo "::endgroup::"
+          echo "::error::wrangler pages deploy failed — see group above for the actual Cloudflare error message"
