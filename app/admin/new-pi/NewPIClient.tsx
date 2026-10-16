@@ -806,7 +806,7 @@ export function PIPreview(props: {
     <div className="bg-white dark:bg-neutral-900 shadow-lg rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800">
       {/* ── HEADER ── */}
       <div className="px-6 py-6 border-b-2 border-black dark:border-white">
-        <div className="flex items-center gap-[14px]">
+        <div className="flex items-center gap-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
@@ -815,9 +815,9 @@ export function PIPreview(props: {
             height={88}
             loading="eager"
             decoding="async"
-            className="h-[58px] w-auto shrink-0 ml-[30px] hover:scale-[1.01] transition-transform"
+            className="h-[58px] w-auto shrink-0 ml-[20px] hover:scale-[1.01] transition-transform"
           />
-          <div className="flex-1 pl-[6%]">
+          <div className="flex-1 pl-[30px]">
             <div className="text-lg font-bold tracking-wide whitespace-nowrap">
               YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD
             </div>
