@@ -56,7 +56,12 @@ export default function PIDisplay({ pi, bankAccount }: PIDisplayProps) {
     >
       {/* Header */}
       <header className="border-b-2 border-black pb-4 mb-6">
-        <div className="flex justify-between items-start">
+        <div className="flex items-center gap-4">
+          <img
+            src="/logo.png"
+            alt="chinarhinestone.com"
+            className="h-8 w-auto shrink-0"
+          />
           <div>
             <h1 className="text-2xl font-bold uppercase tracking-wide">
               Proforma Invoice
@@ -73,12 +78,12 @@ export default function PIDisplay({ pi, bankAccount }: PIDisplayProps) {
               })}
             </p>
           </div>
-          <div className="text-right">
-            <p className="font-bold text-lg">{SITE.company}</p>
-            <p className="text-sm text-gray-600">{SITE.address}</p>
-            <p className="text-sm text-gray-600">{SITE.phone}</p>
-            <p className="text-sm text-gray-600">{SITE.email}</p>
-          </div>
+        </div>
+        <div className="text-right mt-3">
+          <p className="font-bold text-lg">{SITE.company}</p>
+          <p className="text-sm text-gray-600">{SITE.address}</p>
+          <p className="text-sm text-gray-600">{SITE.phone}</p>
+          <p className="text-sm text-gray-600">{SITE.email}</p>
         </div>
       </header>
 
