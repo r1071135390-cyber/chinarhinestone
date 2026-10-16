@@ -50,6 +50,24 @@ jobs:
           echo "Total out size:"
           du -sh out 2>/dev/null || true
 
+      - name: Pre-build Functions worker (debug)
+        # Compile cf-functions-src/functions into out/_worker.js locally
+        # so we can see build errors right here in the GH Actions log
+        # instead of discovering them after deploy.
+        # NOTE: This overwrites any _worker.js that `wrangler pages deploy`
+        # would otherwise auto-generate. The deploy step will use this one.
+        run: |
+          echo "=== out/functions/ contents ==="
+          ls -la out/functions/
+          echo
+          echo "=== Building _worker.js ==="
+          npx wrangler pages functions build out/functions \
+            --outdir out \
+            --build-output-directory out \
+            --compatibility-date 2025-06-01 \
+            --compatibility-flag nodejs_compat || \
+            echo "::warning::wrangler pages functions build failed — deploy will fall back to Next.js static 404.html for /api/*"
+
       - name: Deploy to Cloudflare Pages
         # Direct wrangler invocation (not the wrangler-action wrapper) so
         # that all stderr/stdout stream into the GH Actions log. The
