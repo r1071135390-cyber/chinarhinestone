@@ -134,34 +134,36 @@ END;
 $$;
 
 -- 4. Seed chinarhinestone bank accounts (4 currencies).
--- Reuses sublimapparel account numbers for now (owner confirmed).
+-- Identical to sublimapparel.com's factory accounts (owner confirmed same factory).
 INSERT INTO public.bank_accounts
   (site_slug, currency, label, symbol, beneficiary, company_address,
-   bank_name, account, swift, bank_address, intermediary_bank, intermediary_swift)
+   bank_name, account, swift, bank_address, intermediary_bank, intermediary_swift, notes)
 VALUES
   ('chinarhinestone', 'USD', 'USD — US Dollar', '$',
-   'Yiwu HomeDorm Commodity Manufacturing Co., Ltd.',
-   'No. 168 Mid Yangdong Road, Yiwu, Zhejiang, China',
-   'Bank of China, Yiwu Branch', '1234567890123456', 'BKCHCNBJ95N',
-   'No. 168 Mid Yangdong Road, Yiwu, Zhejiang, China', NULL, NULL),
+   'YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD',
+   '2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China',
+   'Agricultural Bank of China, Zhejiang Branch', '19648014040108531', 'ABOCCNBJ110',
+   'No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China',
+   NULL, NULL, 'Add reference: PI number (e.g. CR202610020002).'),
 
   ('chinarhinestone', 'EUR', 'EUR — Euro', '€',
-   'Yiwu HomeDorm Commodity Manufacturing Co., Ltd.',
-   'No. 168 Mid Yangdong Road, Yiwu, Zhejiang, China',
-   'Bank of China, Yiwu Branch', '1234567890123457', 'BKCHCNBJ95N',
-   'No. 168 Mid Yangdong Road, Yiwu, Zhejiang, China',
-   'Bank of America, New York', 'BOFAUS3N'),
+   'YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD',
+   '2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China',
+   'Agricultural Bank of China, Zhejiang Branch', '19648014040108531', 'ABOCCNBJ110',
+   'No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China',
+   NULL, NULL, 'EUR wires may route via intermediary bank. Sender''s bank may charge a fee; we receive net only.'),
 
   ('chinarhinestone', 'GBP', 'GBP — British Pound', '£',
-   'Yiwu HomeDorm Commodity Manufacturing Co., Ltd.',
-   'No. 168 Mid Yangdong Road, Yiwu, Zhejiang, China',
-   'Bank of China, Yiwu Branch', '1234567890123458', 'BKCHCNBJ95N',
-   'No. 168 Mid Yangdong Road, Yiwu, Zhejiang, China',
-   'Barclays Bank PLC, London', 'BARCGB22'),
+   'YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD',
+   '2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China',
+   'Agricultural Bank of China, Zhejiang Branch', '19648014040108531', 'ABOCCNBJ110',
+   'No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China',
+   NULL, NULL, 'GBP wires via SWIFT; please add PI number in the wire reference.'),
 
   ('chinarhinestone', 'CNY', 'CNY — Chinese Yuan (RMB)', '¥',
-   '义乌市豪多商品制造有限公司',
-   '中国浙江省义乌市稠州中路168号',
-   '中国银行义乌支行', '1234567890123459', 'BKCHCNBJ95N',
-   '中国浙江省义乌市稠州中路168号', NULL, NULL)
+   '义乌市好梦家居用品制造有限公司',
+   '浙江省义乌市安商路11号二楼',
+   '中国农业银行浙江省分行', '19648014040108531', 'ABOCCNBJ110',
+   '浙江省金华市义乌市宾王路181号',
+   NULL, NULL, '国内人民币电汇请使用CNAPS代码103338671188。')
 ON CONFLICT (site_slug, currency) DO NOTHING;
