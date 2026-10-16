@@ -38,6 +38,10 @@ async function copyDir(src, dst) {
     const s = path.join(src, entry.name);
     const d = path.join(dst, entry.name);
     if (entry.isDirectory()) {
+      // Skip node_modules — CF Pages installs deps from
+      // out/functions/package.json itself at deploy time. Bundling
+      // node_modules/*.d.ts into the build triggers esbuild type errors.
+      if (entry.name === "node_modules") continue;
       await copyDir(s, d);
     } else if (entry.isFile()) {
       // _routes.json doesn't belong inside functions/ — skip it.

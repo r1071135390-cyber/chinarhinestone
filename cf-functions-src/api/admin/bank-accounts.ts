@@ -10,8 +10,8 @@
  * factory has a single source of truth across all sites.
  */
 
-import { getBankSupabase, isBankSupabaseConfigured, type Env } from "../../../_lib/supabase";
-import { jsonResponse } from "../../../_lib/cors";
+import { getBankSupabase, isBankSupabaseConfigured, type Env } from "../../_lib/supabase";
+import { jsonResponse } from "../../_lib/cors";
 
 interface BankAccountRow {
   id: number;
