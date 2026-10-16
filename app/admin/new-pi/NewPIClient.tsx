@@ -815,7 +815,7 @@ export function PIPreview(props: {
             height={88}
             loading="eager"
             decoding="async"
-            className="h-12 w-auto shrink-0 ml-[30px] hover:scale-[1.01] transition-transform"
+            className="h-[58px] w-auto shrink-0 ml-[30px] hover:scale-[1.01] transition-transform"
           />
           <div className="flex-1 pl-[6%]">
             <div className="text-lg font-bold tracking-wide whitespace-nowrap">
