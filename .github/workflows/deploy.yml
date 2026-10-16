@@ -50,37 +50,42 @@ jobs:
           echo "Total out size:"
           du -sh out 2>/dev/null || true
 
-      - name: Pre-build Functions worker (debug)
-        # Compile cf-functions-src/functions into out/_worker.js locally
-        # so we can see build errors right here in the GH Actions log
-        # instead of discovering them after deploy.
-        # NOTE: This overwrites any _worker.js that `wrangler pages deploy`
-        # would otherwise auto-generate. The deploy step will use this one.
+      - name: Pre-build Functions worker
+        # Compile out/functions/* into out/_worker.js locally so we can see
+        # build errors in the GH Actions log instead of discovering them
+        # after deploy. We use --outdir (NOT --outfile) — the latter emits
+        # a wrangler-internal multipart/form-data blob that CF Pages
+        # silently ignores, so /api/* falls through to Next.js's static
+        # 404.html. --outdir produces a plain ES module index.js, which is
+        # what CF Pages' Pages Functions runtime actually executes.
         run: |
           echo "=== out/functions/ contents ==="
           ls -la out/functions/
           echo
           echo "=== Building _worker.js ==="
-          # wrangler pages functions build needs --external for any npm
-          # packages we import (stripe, @supabase/supabase-js) so esbuild
-          # doesn't try to bundle their transitive deps (e.g. @supabase/
-          # phoenix ships .d.ts files that esbuild trips on). Runtime
-          # resolves them via nodejs_compat.
-          # NOTE: do NOT npm install into out/functions/node_modules —
-          # wrangler's bundler recursively scans that dir and chokes on
-          # those .d.ts files even with --external.
+          rm -f out/_worker.js
+          wrangler_build_dir=$(mktemp -d)
           npx wrangler pages functions build out/functions \
-            --outfile out/_worker.js \
-            --build-output-directory out \
-            --output-routes-path out/_routes.json \
+            --outdir "$wrangler_build_dir" \
             --compatibility-date 2025-06-01 \
             --compatibility-flag nodejs_compat \
             --external stripe \
-            --external "@supabase/supabase-js" || \
-            echo "::warning::wrangler pages functions build failed — deploy will fall back to Next.js static 404.html for /api/*"
-          echo
-          echo "=== out/_worker.js size (if any) ==="
-          ls -la out/_worker.js 2>/dev/null || echo "no _worker.js was generated"
+            --external "@supabase/supabase-js" || {
+              echo "::warning::wrangler pages functions build failed — /api/* will fall back to Next.js static 404.html"
+              exit 0
+            }
+          echo "=== build artifacts ==="
+          ls -la "$wrangler_build_dir"
+          # Copy the plain ES module main entry into out/_worker.js so
+          # wrangler pages deploy --no-bundle picks it up. (--outdir names
+          # the entry 'index.js'; --outfile names it '_worker.js'.)
+          cp "$wrangler_build_dir/index.js" out/_worker.js
+          echo "=== out/_worker.js head ==="
+          head -n 5 out/_worker.js
+          echo "=== out/_worker.js tail ==="
+          tail -n 5 out/_worker.js
+          echo "=== out/_worker.js size ==="
+          ls -la out/_worker.js
 
       - name: Deploy to Cloudflare Pages
         # Direct wrangler invocation (not the wrangler-action wrapper) so
@@ -89,35 +94,23 @@ jobs:
         # only shows a generic "exit code 1" — which made the original
         # 'Invalid access token [code: 9109]' impossible to diagnose.
         #
-        # The token is passed via env so it doesn't leak into process
-        # listings. `npx wrangler` resolves to the wrangler already in
-        # devDependencies (wrangler@^4) — no separate install needed.
+        # No --no-bundle: wrangler pages deploy auto-bundles out/functions/
+        # into _worker.js on its own. Pre-bundling here (--outfile) plus
+        # --no-bundle uploads a multipart _worker.js that CF Pages silently
+        # ignores — /api/* then falls through to the Next.js 404.html.
+        #
+        # cf-functions-src/ is copied into out/functions/ by the postbuild
+        # hook (scripts/copy-functions.mjs). The copy skips node_modules so
+        # wrangler's bundler doesn't choke on @supabase/phoenix .d.ts files.
         #
         # Required GitHub repo secrets:
         #   CLOUDFLARE_API_TOKEN  — Cloudflare API token with "Cloudflare
         #                            Pages: Edit" permission for this account.
-        #                            Generate at:
-        #                            https://dash.cloudflare.com/profile/api-tokens
-        #   CLOUDFLARE_ACCOUNT_ID — Account ID (hex), shown on the
-        #                            Cloudflare Dashboard right sidebar.
-        #
-        # Cloudflare Pages checks the project-level
-        # `production_deployments_enabled` setting for the branch matching
-        # `production_branch` (default: main). If that toggle is OFF, every
-        # production deployment gets skipped with:
-        #   "The deployment was skipped because production deployments are
-        #   disabled for this project."
-        # If you see that skip message, flip "Enable production deployments"
-        # back ON in the dashboard. It is a SEPARATE toggle from the git
-        # auto-deploy one — leaving git auto-deploy off does NOT bypass the
-        # production gate.
-        run: npx wrangler pages deploy out --project-name=chinarhinestone --branch=main --no-bundle 2>&1 | tee /tmp/wrangler-deploy.log
+        #   CLOUDFLARE_ACCOUNT_ID — Account ID (hex).
+        run: npx wrangler pages deploy out --project-name=chinarhinestone --branch=main 2>&1 | tee /tmp/wrangler-deploy.log
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        # If wrangler exits non-zero, attach its tail as a job-level error
-        # annotation so the actual Cloudflare error is visible without
-        # needing to click into the log.
       - name: Surface wrangler deploy error
         if: failure()
         run: |
