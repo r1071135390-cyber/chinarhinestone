@@ -61,12 +61,26 @@ jobs:
           ls -la out/functions/
           echo
           echo "=== Building _worker.js ==="
+          # wrangler pages functions build needs --external for any npm
+          # packages we import (stripe, @supabase/supabase-js) so esbuild
+          # doesn't try to bundle their transitive deps (e.g. @supabase/
+          # phoenix ships .d.ts files that esbuild trips on). Runtime
+          # resolves them via nodejs_compat.
+          # NOTE: do NOT npm install into out/functions/node_modules —
+          # wrangler's bundler recursively scans that dir and chokes on
+          # those .d.ts files even with --external.
           npx wrangler pages functions build out/functions \
-            --outdir out \
+            --outfile out/_worker.js \
             --build-output-directory out \
+            --output-routes-path out/_routes.json \
             --compatibility-date 2025-06-01 \
-            --compatibility-flag nodejs_compat || \
+            --compatibility-flag nodejs_compat \
+            --external stripe \
+            --external "@supabase/supabase-js" || \
             echo "::warning::wrangler pages functions build failed — deploy will fall back to Next.js static 404.html for /api/*"
+          echo
+          echo "=== out/_worker.js size (if any) ==="
+          ls -la out/_worker.js 2>/dev/null || echo "no _worker.js was generated"
 
       - name: Deploy to Cloudflare Pages
         # Direct wrangler invocation (not the wrangler-action wrapper) so
