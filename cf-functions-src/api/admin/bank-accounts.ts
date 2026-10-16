@@ -1,15 +1,16 @@
 /**
  * functions/api/admin/bank-accounts.ts
  *
- * GET  /api/admin/bank-accounts          — list all 4 currencies for this site
- * PUT  /api/admin/bank-accounts          — upsert one account
+ * GET  /api/admin/bank-accounts          — list 4 currencies (read from BANK Supabase)
+ * PUT  /api/admin/bank-accounts          — DISABLED (BANK is read-only across sites)
  *
- * Auth: the AdminGuard password gate on the frontend is the only barrier.
- * Server-side: optionally require X-Admin-Token == ADMIN_TOKEN env var.
- * (In production, the owner is the only person who ever calls this.)
+ * Bank accounts live in a shared BANK Supabase project owned by sublimapparel.
+ * Chinarhinestone reads from there to keep bank info in sync automatically.
+ * Edits must happen in sublimapparel's admin or directly in the BANK DB — the
+ * factory has a single source of truth across all sites.
  */
 
-import { getSupabase, type Env } from "../../../_lib/supabase";
+import { getBankSupabase, isBankSupabaseConfigured, type Env } from "../../../_lib/supabase";
 import { jsonResponse } from "../../../_lib/cors";
 
 interface BankAccountRow {
@@ -34,85 +35,58 @@ interface BankAccountRow {
   updated_at: string;
 }
 
-export const onRequestGet: PagesFunction<Env & { ADMIN_TOKEN?: string }> = async (context) => {
+/**
+ * Filter site_slug used when reading from the shared BANK Supabase.
+ * sublimapparel's BANK DB rows are stored under site_slug='sublimapparel'.
+ */
+const BANK_SOURCE_SITE = "sublimapparel";
+
+export const onRequestGet: PagesFunction<Env> = async (context) => {
   const env = context.env;
-  const siteSlug = env.SITE_SLUG ?? "chinarhinestone";
-  const supabase = getSupabase(env);
+  const bankConfigured = isBankSupabaseConfigured(env);
+  const supabase = getBankSupabase(env);
+
+  // When BANK is configured, rows come from site_slug='sublimapparel'.
+  // When BANK is missing, we fall back to this site's own bank_accounts
+  // (site_slug=chinarhinestone) for local-dev convenience.
+  const filterSlug = bankConfigured ? BANK_SOURCE_SITE : env.SITE_SLUG ?? "chinarhinestone";
 
   const { data, error } = await supabase
     .from("bank_accounts")
     .select("*")
-    .eq("site_slug", siteSlug)
+    .eq("site_slug", filterSlug)
     .order("currency", { ascending: true });
 
   if (error) {
     return jsonResponse({ error: error.message }, { status: 500, request: context.request, env });
   }
-  return jsonResponse({ accounts: data ?? [] }, { status: 200, request: context.request, env });
+  return jsonResponse(
+    {
+      accounts: data ?? [],
+      bankSource: bankConfigured ? "shared-bank-supabase" : "local-main-supabase",
+      readOnly: bankConfigured,
+    },
+    { status: 200, request: context.request, env }
+  );
 };
 
-interface PutBody extends Partial<Omit<BankAccountRow, "id" | "site_slug" | "updated_at">> {
-  currency: string;
-}
-
-export const onRequestPut: PagesFunction<Env & { ADMIN_TOKEN?: string }> = async (context) => {
+/**
+ * PUT is disabled because:
+ *   - The BANK DB is the shared source of truth across all factory sites.
+ *   - Edits made through chinarhinestone's admin would silently break
+ *     sublimapparel.com PI defaults.
+ *   - Edits should be done via sublimapparel's admin or the BANK SQL editor.
+ */
+export const onRequestPut: PagesFunction<Env> = async (context) => {
   const env = context.env;
-  const siteSlug = env.SITE_SLUG ?? "chinarhinestone";
-
-  if (env.ADMIN_TOKEN) {
-    const supplied = context.request.headers.get("X-Admin-Token") ?? "";
-    if (supplied !== env.ADMIN_TOKEN) {
-      return jsonResponse({ error: "Forbidden" }, { status: 403, request: context.request, env });
-    }
-  }
-
-  let body: PutBody;
-  try {
-    body = await context.request.json<PutBody>();
-  } catch {
-    return jsonResponse({ error: "Invalid JSON body" }, { status: 400, request: context.request, env });
-  }
-
-  if (!body.currency || !body.beneficiary || !body.bank_name || !body.account || !body.swift) {
-    return jsonResponse(
-      { error: "Missing required fields: currency, beneficiary, bank_name, account, swift" },
-      { status: 400, request: context.request, env }
-    );
-  }
-
-  const supabase = getSupabase(env);
-  const { data, error } = await supabase
-    .from("bank_accounts")
-    .upsert(
-      {
-        site_slug: siteSlug,
-        currency: body.currency,
-        label: body.label ?? `${body.currency} — ${body.beneficiary}`,
-        symbol: body.symbol ?? "$",
-        beneficiary: body.beneficiary,
-        company_address: body.company_address ?? "",
-        bank_name: body.bank_name,
-        account: body.account,
-        swift: body.swift,
-        bank_address: body.bank_address ?? "",
-        iban: body.iban ?? null,
-        bank_country: body.bank_country ?? null,
-        routing_number: body.routing_number ?? null,
-        cnaps: body.cnaps ?? null,
-        intermediary_bank: body.intermediary_bank ?? null,
-        intermediary_swift: body.intermediary_swift ?? null,
-        notes: body.notes ?? null,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "site_slug,currency" }
-    )
-    .select()
-    .single();
-
-  if (error) {
-    return jsonResponse({ error: error.message }, { status: 500, request: context.request, env });
-  }
-  return jsonResponse({ account: data }, { status: 200, request: context.request, env });
+  return jsonResponse(
+    {
+      error: "Read-only",
+      message:
+        "Bank accounts are managed in the shared BANK Supabase (sublimapparel-owned). Edits through this site are disabled. Update sublimapparel's admin or the BANK DB directly.",
+    },
+    { status: 405, request: context.request, env }
+  );
 };
 
 interface PagesFunction<E = unknown> {

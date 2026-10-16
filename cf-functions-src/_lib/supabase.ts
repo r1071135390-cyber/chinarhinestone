@@ -1,12 +1,20 @@
 /**
  * functions/_lib/supabase.ts
  *
- * Server-side Supabase client (Pages Function context).
+ * Server-side Supabase clients (Pages Function context).
  * Uses service_role key — bypasses RLS, so NEVER expose to the browser.
  *
  * Env vars (set in CF Pages Dashboard → Settings → Functions):
- *   SUPABASE_URL
- *   SUPABASE_SERVICE_ROLE_KEY
+ *   MAIN Supabase (PI data for this site):
+ *     SUPABASE_URL
+ *     SUPABASE_SERVICE_ROLE_KEY
+ *   BANK Supabase (authoritative bank accounts — shared with sublimapparel):
+ *     BANK_SUPABASE_URL
+ *     BANK_SUPABASE_SERVICE_ROLE_KEY
+ *
+ * If BANK_* env vars are missing, getBankSupabase() falls back to MAIN
+ * so the function still works with a local seed (bank_accounts table),
+ * but the canonical deployment points BANK_* at sublimapparel's project.
  */
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
@@ -30,12 +38,60 @@ export function getSupabase(env: Env): SupabaseClient {
   });
 }
 
+/**
+ * Bank Supabase client.
+ *
+ * The user runs three factory sites (sublimapparel, oemtshirts, chinarhinestone)
+ * under one legal entity (Yiwu HomeDorm). Bank details change rarely and apply
+ * to every site, so they live in a single "BANK" Supabase project — same
+ * physical Postgres instance is queried regardless of which site the request
+ * originates from.
+ *
+ * The BANK DB rows are filtered by site_slug = 'sublimapparel' (the owner
+ * of the BANK project). Other sites read sublimapparel's authoritative rows.
+ *
+ * If BANK env vars are unset (local dev), we fall back to the MAIN client
+ * using its own bank_accounts table — keeps the system runnable without
+ * the shared BANK project.
+ */
+export function getBankSupabase(env: Env): SupabaseClient {
+  const url = env.BANK_SUPABASE_URL || env.SUPABASE_URL;
+  const key = env.BANK_SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    throw new Error(
+      "Missing BANK or MAIN Supabase env vars. Set BANK_SUPABASE_URL and BANK_SUPABASE_SERVICE_ROLE_KEY (preferred) or SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Cloudflare Pages → Settings → Functions."
+    );
+  }
+
+  return createClient(url, key, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
+/**
+ * Returns true when BANK env vars are configured.
+ * Functions use this to decide whether the /admin/bank-accounts page can be
+ * edited (NO when BANK is configured — single source of truth lives there)
+ * or read-only.
+ */
+export function isBankSupabaseConfigured(env: Env): boolean {
+  return Boolean(env.BANK_SUPABASE_URL && env.BANK_SUPABASE_SERVICE_ROLE_KEY);
+}
+
 export interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
+  /** Shared bank-accounts Supabase (sublimapparel-owned). */
+  BANK_SUPABASE_URL?: string;
+  BANK_SUPABASE_SERVICE_ROLE_KEY?: string;
   STRIPE_SECRET_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
   // Optional: which site this Pages project serves.
   // Used to scope bank_accounts / proforma_invoices queries.
   SITE_SLUG?: string;
 }
+

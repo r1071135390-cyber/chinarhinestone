@@ -99,11 +99,13 @@ function TextInput({
   onChange,
   placeholder,
   mono,
+  readOnly,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   mono?: boolean;
+  readOnly?: boolean;
 }) {
   return (
     <input
@@ -111,7 +113,10 @@ function TextInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
+      readOnly={readOnly}
       className={`w-full border-2 border-black/15 bg-white px-3 py-2 text-sm text-black outline-none transition-colors focus:border-[#ff4d00] ${
+        readOnly ? "cursor-not-allowed bg-black/5 text-black/70" : ""
+      } ${
         mono ? "font-mono" : ""
       }`}
     />
@@ -123,11 +128,13 @@ function TextArea({
   onChange,
   placeholder,
   rows = 2,
+  readOnly,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   rows?: number;
+  readOnly?: boolean;
 }) {
   return (
     <textarea
@@ -135,7 +142,10 @@ function TextArea({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full border-2 border-black/15 bg-white px-3 py-2 text-sm text-black outline-none transition-colors focus:border-[#ff4d00]"
+      readOnly={readOnly}
+      className={`w-full border-2 border-black/15 bg-white px-3 py-2 text-sm text-black outline-none transition-colors focus:border-[#ff4d00] ${
+        readOnly ? "cursor-not-allowed bg-black/5 text-black/70" : ""
+      }`}
     />
   );
 }
@@ -145,11 +155,13 @@ function NullableTextInput({
   onChange,
   placeholder,
   mono,
+  readOnly,
 }: {
   value: string | undefined;
   onChange: (v: string | undefined) => void;
   placeholder?: string;
   mono?: boolean;
+  readOnly?: boolean;
 }) {
   return (
     <input
@@ -157,7 +169,10 @@ function NullableTextInput({
       value={value ?? ""}
       onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
       placeholder={placeholder}
+      readOnly={readOnly}
       className={`w-full border-2 border-black/15 bg-white px-3 py-2 text-sm text-black outline-none transition-colors focus:border-[#ff4d00] ${
+        readOnly ? "cursor-not-allowed bg-black/5 text-black/70" : ""
+      } ${
         mono ? "font-mono" : ""
       }`}
     />
@@ -170,12 +185,14 @@ function CurrencyCard({
   onChange,
   onSave,
   onReset,
+  readOnly,
 }: {
   currency: SupportedCurrency;
   state: FormState;
   onChange: (next: FormBankAccountRow) => void;
   onSave: () => void;
   onReset: () => void;
+  readOnly?: boolean;
 }) {
   const row = state.row;
   const setField = <K extends keyof FormBankAccountRow>(k: K, v: FormBankAccountRow[K]) =>
@@ -216,29 +233,41 @@ function CurrencyCard({
               {state.errorMsg}
             </span>
           )}
-          <button
-            type="button"
-            onClick={onReset}
-            disabled={!state.dirty || state.saveState === "saving"}
-            title="Discard unsaved changes and reload the saved values"
-            className="inline-flex items-center gap-2 border-2 border-black/30 bg-white px-4 py-2 text-sm font-black uppercase tracking-wider text-black transition-all hover:border-black hover:bg-black/5 disabled:cursor-not-allowed disabled:border-black/10 disabled:text-black/30"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Reset
-          </button>
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={!state.dirty || state.saveState === "saving"}
-            className="inline-flex items-center gap-2 border-2 border-black bg-[#ff4d00] px-4 py-2 text-sm font-black uppercase tracking-wider text-white transition-all hover:bg-black disabled:cursor-not-allowed disabled:border-black/20 disabled:bg-black/10 disabled:text-black/40"
-          >
-            {state.saveState === "saving" ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            Save
-          </button>
+          {!readOnly && (
+            <>
+              <button
+                type="button"
+                onClick={onReset}
+                disabled={!state.dirty || state.saveState === "saving"}
+                title="Discard unsaved changes and reload the saved values"
+                className="inline-flex items-center gap-2 border-2 border-black/30 bg-white px-4 py-2 text-sm font-black uppercase tracking-wider text-black transition-all hover:border-black hover:bg-black/5 disabled:cursor-not-allowed disabled:border-black/10 disabled:text-black/30"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Reset
+              </button>
+              <button
+                type="button"
+                onClick={onSave}
+                disabled={!state.dirty || state.saveState === "saving"}
+                className="inline-flex items-center gap-2 border-2 border-black bg-[#ff4d00] px-4 py-2 text-sm font-black uppercase tracking-wider text-white transition-all hover:bg-black disabled:cursor-not-allowed disabled:border-black/20 disabled:bg-black/10 disabled:text-black/40"
+              >
+                {state.saveState === "saving" ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                Save
+              </button>
+            </>
+          )}
+          {readOnly && (
+            <span
+              className="inline-flex items-center gap-1 border border-black/30 bg-black/5 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-black/60"
+              title="Bank accounts are managed in the shared BANK Supabase"
+            >
+              Read-only
+            </span>
+          )}
         </div>
       </header>
 
@@ -248,6 +277,7 @@ function CurrencyCard({
             value={row.label}
             onChange={(v) => setField("label", v)}
             placeholder={`${currency.toUpperCase()} — ${CURRENCY_LABELS[currency]}`}
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -256,6 +286,7 @@ function CurrencyCard({
             value={row.symbol}
             onChange={(v) => setField("symbol", v)}
             placeholder={CURRENCY_SYMBOLS[currency]}
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -263,6 +294,7 @@ function CurrencyCard({
           <TextInput
             value={row.beneficiary}
             onChange={(v) => setField("beneficiary", v)}
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -271,6 +303,7 @@ function CurrencyCard({
             value={row.company_address}
             onChange={(v) => setField("company_address", v)}
             rows={2}
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -278,6 +311,7 @@ function CurrencyCard({
           <TextInput
             value={row.bank_name}
             onChange={(v) => setField("bank_name", v)}
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -286,6 +320,7 @@ function CurrencyCard({
             value={row.account}
             onChange={(v) => setField("account", v)}
             mono
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -294,6 +329,7 @@ function CurrencyCard({
             value={row.swift}
             onChange={(v) => setField("swift", v)}
             mono
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -302,6 +338,7 @@ function CurrencyCard({
             value={row.bank_address}
             onChange={(v) => setField("bank_address", v)}
             rows={2}
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -310,6 +347,7 @@ function CurrencyCard({
             value={row.iban}
             onChange={(v) => setField("iban", v)}
             mono
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -318,6 +356,7 @@ function CurrencyCard({
             value={row.bank_country}
             onChange={(v) => setField("bank_country", v)}
             placeholder="e.g. CN, US, DE"
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -326,6 +365,7 @@ function CurrencyCard({
             value={row.routing_number}
             onChange={(v) => setField("routing_number", v)}
             mono
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -334,6 +374,7 @@ function CurrencyCard({
             value={row.cnaps}
             onChange={(v) => setField("cnaps", v)}
             mono
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -341,6 +382,7 @@ function CurrencyCard({
           <NullableTextInput
             value={row.intermediary_bank}
             onChange={(v) => setField("intermediary_bank", v)}
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -349,6 +391,7 @@ function CurrencyCard({
             value={row.notes ?? ""}
             onChange={(v) => setField("notes", v === "" ? undefined : v)}
             rows={3}
+            readOnly={readOnly}
           />
         </FieldRow>
 
@@ -369,13 +412,22 @@ function CurrencyCard({
 export default function BankAccountsClient() {
   const [forms, setForms] = useState<Record<SupportedCurrency, FormState> | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [readOnly, setReadOnly] = useState(false);
+  const [bankSource, setBankSource] = useState<string>("unknown");
 
   const fetchAll = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/bank-accounts", { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = (await res.json()) as { ok: boolean; accounts?: DbBankAccountRow[] };
+      const data = (await res.json()) as {
+        ok: boolean;
+        accounts?: DbBankAccountRow[];
+        bankSource?: string;
+        readOnly?: boolean;
+      };
       const rows = data.accounts ?? [];
+      setReadOnly(Boolean(data.readOnly));
+      setBankSource(data.bankSource ?? "unknown");
       const next: Record<SupportedCurrency, FormState> = {} as Record<SupportedCurrency, FormState>;
       for (const c of SUPPORTED_CURRENCIES) {
         const dbRow = rows.find((r) => r.currency === c);
@@ -565,11 +617,26 @@ export default function BankAccountsClient() {
             Receiving Accounts
           </h1>
           <p className="max-w-3xl text-base text-[#6b6b6b]">
-            Each PI shows the bank account that matches the customer&apos;s
-            currency. Edit any field below and Save — the change flows into
-            every new PI&apos;s <em>Bank Info</em> block immediately.
+            {readOnly
+              ? "Bank accounts are sourced from the shared BANK Supabase (sublimapparel-owned). Updates there flow into every site automatically."
+              : "Each PI shows the bank account that matches the customer's currency. Edit any field below and Save — the change flows into every new PI's Bank Info block immediately."}
           </p>
         </div>
+
+        {readOnly && (
+          <div className="mb-6 flex items-start gap-2 border-2 border-amber-700 bg-amber-50 p-4 text-sm text-amber-900">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+            <div>
+              <strong className="font-black">Read-only mode:</strong> bank accounts
+              are managed in the shared BANK Supabase{" "}
+              <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-xs">
+                {bankSource}
+              </code>
+              . To update, edit the BANK DB directly or use sublimapparel&apos;s
+              admin.
+            </div>
+          </div>
+        )}
 
         {loadError && (
           <div className="mb-6 flex items-start gap-2 border-2 border-red-700 bg-red-50 p-4 text-sm text-red-800">
@@ -594,6 +661,7 @@ export default function BankAccountsClient() {
                 onChange={(next) => handleChange(c, next)}
                 onSave={() => handleSave(c)}
                 onReset={() => handleReset(c)}
+                readOnly={readOnly}
               />
             ))}
           </div>
