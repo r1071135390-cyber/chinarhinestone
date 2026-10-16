@@ -50,58 +50,25 @@ jobs:
           echo "Total out size:"
           du -sh out 2>/dev/null || true
 
-      - name: Pre-build Functions worker
-        # Compile out/functions/* into out/_worker.js locally so we can see
-        # build errors in the GH Actions log instead of discovering them
-        # after deploy. We use --outdir (NOT --outfile) — the latter emits
-        # a wrangler-internal multipart/form-data blob that CF Pages
-        # silently ignores, so /api/* falls through to Next.js's static
-        # 404.html. --outdir produces a plain ES module index.js, which is
-        # what CF Pages' Pages Functions runtime actually executes.
-        run: |
-          echo "=== out/functions/ contents ==="
-          ls -la out/functions/
-          echo
-          echo "=== Building _worker.js ==="
-          rm -f out/_worker.js
-          wrangler_build_dir=$(mktemp -d)
-          npx wrangler pages functions build out/functions \
-            --outdir "$wrangler_build_dir" \
-            --compatibility-date 2025-06-01 \
-            --compatibility-flag nodejs_compat \
-            --external stripe \
-            --external "@supabase/supabase-js" || {
-              echo "::warning::wrangler pages functions build failed — /api/* will fall back to Next.js static 404.html"
-              exit 0
-            }
-          echo "=== build artifacts ==="
-          ls -la "$wrangler_build_dir"
-          # Copy the plain ES module main entry into out/_worker.js so
-          # wrangler pages deploy --no-bundle picks it up. (--outdir names
-          # the entry 'index.js'; --outfile names it '_worker.js'.)
-          cp "$wrangler_build_dir/index.js" out/_worker.js
-          echo "=== out/_worker.js head ==="
-          head -n 5 out/_worker.js
-          echo "=== out/_worker.js tail ==="
-          tail -n 5 out/_worker.js
-          echo "=== out/_worker.js size ==="
-          ls -la out/_worker.js
-
       - name: Deploy to Cloudflare Pages
         # Direct wrangler invocation (not the wrangler-action wrapper) so
         # that all stderr/stdout stream into the GH Actions log. The
         # wrangler-action wrapper swallows the inner wrangler error and
-        # only shows a generic "exit code 1" — which made the original
-        # 'Invalid access token [code: 9109]' impossible to diagnose.
+        # only shows a generic "exit code 1".
         #
         # No --no-bundle: wrangler pages deploy auto-bundles out/functions/
-        # into _worker.js on its own. Pre-bundling here (--outfile) plus
-        # --no-bundle uploads a multipart _worker.js that CF Pages silently
-        # ignores — /api/* then falls through to the Next.js 404.html.
+        # into _worker.js itself, and any compile errors are streamed into
+        # the deploy step's stdout (which we capture with `tee`). Pre-
+        # bundling here + --no-bundle was uploading a multipart
+        # form-data _worker.js that CF Pages silently ignored, so /api/*
+        # fell through to the Next.js 404.html.
         #
         # cf-functions-src/ is copied into out/functions/ by the postbuild
-        # hook (scripts/copy-functions.mjs). The copy skips node_modules so
-        # wrangler's bundler doesn't choke on @supabase/phoenix .d.ts files.
+        # hook (scripts/copy-functions.mjs). The copy skips node_modules
+        # and out/functions/_routes.json so wrangler can re-discover routes
+        # cleanly. out/functions/package.json (with stripe + supabase as
+        # deps) is the runtime manifest — CF Pages reads it during
+        # deployment and resolves those imports from nodejs_compat.
         #
         # Required GitHub repo secrets:
         #   CLOUDFLARE_API_TOKEN  — Cloudflare API token with "Cloudflare
