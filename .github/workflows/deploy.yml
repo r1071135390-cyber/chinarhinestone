@@ -111,7 +111,7 @@ jobs:
         # back ON in the dashboard. It is a SEPARATE toggle from the git
         # auto-deploy one — leaving git auto-deploy off does NOT bypass the
         # production gate.
-        run: npx wrangler pages deploy out --project-name=chinarhinestone --branch=main
+        run: npx wrangler pages deploy out --project-name=chinarhinestone --branch=main --no-bundle
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
