@@ -750,7 +750,7 @@ export function PIPreview(props: {
           </div>
           <BlackCell>YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD</BlackCell>
           <BlackCell>2ND FLOOR, NO.11 ANSHANG ROAD, YIWU, CHINA</BlackCell>
-          <BlackCell>Annt.: Miss Chris Ma / +86 19817930190 / chris@chinarhinestone.com</BlackCell>
+          <BlackCell>Annt.: Mr. RamonWang / +86 13764593988 / ramon@chinarhinestone.com</BlackCell>
         </div>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
