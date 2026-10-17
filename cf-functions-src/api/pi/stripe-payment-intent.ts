@@ -15,6 +15,7 @@
 import { getSupabase, type Env } from "../../_lib/supabase";
 import { getStripe } from "../../_lib/stripe";
 import { jsonResponse } from "../../_lib/cors";
+import { PagesFunction } from "../../_lib/pages-function";
 
 interface CreateIntentBody {
   pi_number?: string;
@@ -128,14 +129,3 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     { status: 200, request: context.request, env }
   );
 };
-
-interface PagesFunction<E = unknown> {
-  (context: {
-    request: Request;
-    env: E;
-    params: Record<string, string | string[]>;
-    data: unknown;
-    next: () => Promise<Response>;
-    waitUntil: (promise: Promise<unknown>) => void;
-  }): Promise<Response> | Response;
-}

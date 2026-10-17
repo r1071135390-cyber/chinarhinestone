@@ -12,6 +12,7 @@
 
 import { getSupabase, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
+import { PagesFunction } from "../../_lib/pages-function";
 
 interface CreatePiBody {
   pi_number?: string;
@@ -102,14 +103,3 @@ export const onRequestPost: PagesFunction<Env & { ADMIN_TOKEN?: string }> = asyn
 
   return jsonResponse({ pi: data }, { status: 201, request: context.request, env });
 };
-
-interface PagesFunction<E = unknown> {
-  (context: {
-    request: Request;
-    env: E;
-    params: Record<string, string | string[]>;
-    data: unknown;
-    next: () => Promise<Response>;
-    waitUntil: (promise: Promise<unknown>) => void;
-  }): Promise<Response> | Response;
-}

@@ -10,6 +10,7 @@
  */
 
 import { corsHeaders, handleOptions } from "./_lib/cors";
+import { PagesFunction } from "./_lib/pages-function";
 
 export const onRequest: PagesFunction<{ ALLOWED_ORIGINS?: string }> = async (context) => {
   // Preflight: short-circuit
@@ -27,14 +28,3 @@ export const onRequest: PagesFunction<{ ALLOWED_ORIGINS?: string }> = async (con
   }
   return response;
 };
-
-interface PagesFunction<E = unknown> {
-  (context: {
-    request: Request;
-    env: E;
-    params: Record<string, string | string[]>;
-    data: unknown;
-    next: () => Promise<Response>;
-    waitUntil: (promise: Promise<unknown>) => void;
-  }): Promise<Response> | Response;
-}

@@ -9,6 +9,7 @@
 
 import { getSupabase, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
+import { PagesFunction } from "../../_lib/pages-function";
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const env = context.env;
@@ -28,14 +29,3 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   return jsonResponse({ pi_number: data }, { status: 200, request: context.request, env });
 };
-
-interface PagesFunction<E = unknown> {
-  (context: {
-    request: Request;
-    env: E;
-    params: Record<string, string | string[]>;
-    data: unknown;
-    next: () => Promise<Response>;
-    waitUntil: (promise: Promise<unknown>) => void;
-  }): Promise<Response> | Response;
-}

@@ -12,6 +12,7 @@
 
 import { getBankSupabase, isBankSupabaseConfigured, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
+import { PagesFunction } from "../../_lib/pages-function";
 
 interface BankAccountRow {
   id: number;
@@ -88,14 +89,3 @@ export const onRequestPut: PagesFunction<Env> = async (context) => {
     { status: 405, request: context.request, env }
   );
 };
-
-interface PagesFunction<E = unknown> {
-  (context: {
-    request: Request;
-    env: E;
-    params: Record<string, string | string[]>;
-    data: unknown;
-    next: () => Promise<Response>;
-    waitUntil: (promise: Promise<unknown>) => void;
-  }): Promise<Response> | Response;
-}

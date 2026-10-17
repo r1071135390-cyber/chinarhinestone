@@ -23,6 +23,7 @@ import type Stripe from "stripe";
 import { getSupabase, type Env } from "../../_lib/supabase";
 import { constructWebhookEvent, getStripe } from "../../_lib/stripe";
 import { jsonResponse } from "../../_lib/cors";
+import { PagesFunction } from "../../_lib/pages-function";
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const env = context.env;
@@ -132,15 +133,4 @@ async function fetchPiNumberFromIntent(stripe: Stripe, intentId: string): Promis
   } catch {
     return null;
   }
-}
-
-interface PagesFunction<E = unknown> {
-  (context: {
-    request: Request;
-    env: E;
-    params: Record<string, string | string[]>;
-    data: unknown;
-    next: () => Promise<Response>;
-    waitUntil: (promise: Promise<unknown>) => void;
-  }): Promise<Response> | Response;
-}
+};
