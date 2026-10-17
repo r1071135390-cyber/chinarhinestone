@@ -57,19 +57,19 @@ jobs:
           echo "--- Top-level entries under out/ ---"
           ls -la out | head -50
           echo
-          echo "--- Functions present? ---"
-          if [ -d out/functions ]; then
-            echo "out/functions exists"
-            ls out/functions
-            ls out/functions/api 2>/dev/null || echo "no out/functions/api"
+          echo "--- Functions at project root (CF Pages reads from here) ---"
+          if [ -d functions ]; then
+            echo "functions/ exists at project root"
+            ls functions
+            ls functions/api 2>/dev/null || echo "no functions/api"
+            echo
+            echo "--- _routes.json (copied to build output root by postbuild) ---"
+            cat out/_routes.json || echo "no out/_routes.json"
+            echo
+            echo "--- Build size ---"
+            du -sh out 2>/dev/null || true
+            du -sh out/* 2>/dev/null | sort -hr | head -10 || true
           else
-            echo "ERROR: out/functions missing — copy-functions.mjs didn't run or failed"
+            echo "ERROR: functions/ missing from project root — CF Pages build pipeline cannot bundle _worker.js"
             exit 1
           fi
-          echo
-          echo "--- _routes.json ---"
-          cat out/_routes.json || echo "no _routes.json"
-          echo
-          echo "--- Build size ---"
-          du -sh out 2>/dev/null || true
-          du -sh out/* 2>/dev/null | sort -hr | head -10 || true
