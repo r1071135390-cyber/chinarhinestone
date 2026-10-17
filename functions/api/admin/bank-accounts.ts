@@ -44,28 +44,59 @@ const BANK_SOURCE_SITE = "sublimapparel";
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const env = context.env;
-  const bankConfigured = isBankSupabaseConfigured(env);
-  const supabase = getBankSupabase(env);
+
+  // Diagnostic — exposes which env vars are set so we can tell from the
+  // JSON response whether missing config is the cause of any 500.
+  // Returns boolean only (NOT values) so no secrets leak.
+  const diag = {
+    bankUrlSet: Boolean(env.BANK_SUPABASE_URL),
+    bankKeySet: Boolean(env.BANK_SUPABASE_SERVICE_ROLE_KEY),
+    mainUrlSet: Boolean(env.SUPABASE_URL),
+    mainKeySet: Boolean(env.SUPABASE_SERVICE_ROLE_KEY),
+    siteSlug: env.SITE_SLUG ?? null,
+  };
+
+  let bankConfigured = false;
+  let supabase;
+  try {
+    bankConfigured = isBankSupabaseConfigured(env);
+    supabase = bankConfigured ? getBankSupabase(env) : getSupabase(env);
+  } catch (e) {
+    return jsonResponse(
+      { error: (e as Error).message, bankConfigured: false, ...diag },
+      { status: 500, request: context.request, env }
+    );
+  }
 
   // When BANK is configured, rows come from site_slug='sublimapparel'.
   // When BANK is missing, we fall back to this site's own bank_accounts
   // (site_slug=chinarhinestone) for local-dev convenience.
   const filterSlug = bankConfigured ? BANK_SOURCE_SITE : env.SITE_SLUG ?? "chinarhinestone";
 
-  const { data, error } = await supabase
-    .from("bank_accounts")
-    .select("*")
-    .eq("site_slug", filterSlug)
-    .order("currency", { ascending: true });
+  let data, error;
+  try {
+    ({ data, error } = await supabase
+      .from("bank_accounts")
+      .select("*")
+      .eq("site_slug", filterSlug)
+      .order("currency", { ascending: true }));
+  } catch (e) {
+    return jsonResponse(
+      { error: (e as Error).message, bankConfigured, ...diag },
+      { status: 500, request: context.request, env }
+    );
+  }
 
   if (error) {
-    return jsonResponse({ error: error.message }, { status: 500, request: context.request, env });
+    return jsonResponse({ error: error.message, bankConfigured, ...diag }, { status: 500, request: context.request, env });
   }
   return jsonResponse(
     {
       accounts: data ?? [],
       bankSource: bankConfigured ? "shared-bank-supabase" : "local-main-supabase",
       readOnly: bankConfigured,
+      bankConfigured,
+      ...diag,
     },
     { status: 200, request: context.request, env }
   );
