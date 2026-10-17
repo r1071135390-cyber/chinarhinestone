@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "node scripts/copy-functions.mjs && node scripts/generate-sitemap.mjs && node scripts/generate-image-sitemap.mjs",
+    "postbuild": "node -e \"require('fs').copyFileSync('functions/_routes.json', 'out/_routes.json')\" && node scripts/generate-sitemap.mjs && node scripts/generate-image-sitemap.mjs",
     "start": "next start",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
