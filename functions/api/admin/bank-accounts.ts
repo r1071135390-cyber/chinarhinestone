@@ -48,12 +48,30 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   // Diagnostic — exposes which env vars are set so we can tell from the
   // JSON response whether missing config is the cause of any 500.
   // Returns boolean only (NOT values) so no secrets leak.
+  // Also includes a direct deep-link into the CF Pages env-vars UI
+  // so the operator can fix the issue in one click instead of guessing
+  // which project / tab the vars were set under.
   const diag = {
     bankUrlSet: Boolean(env.BANK_SUPABASE_URL),
     bankKeySet: Boolean(env.BANK_SUPABASE_SERVICE_ROLE_KEY),
     mainUrlSet: Boolean(env.SUPABASE_URL),
     mainKeySet: Boolean(env.SUPABASE_SERVICE_ROLE_KEY),
     siteSlug: env.SITE_SLUG ?? null,
+    setupLinks: {
+      // CF Pages dashboard → Environment variables. /view/:project redirects
+      // to whichever project the deploy came from. We hardcode
+      // "chinarhinestone" here because this endpoint only ever serves that
+      // project.
+      envVars: "https://dash.cloudflare.com/?to=/:account/pages/view/chinarhinestone",
+    },
+    expectedEnvVars: [
+      { name: "SUPABASE_URL", value: "https://zxobbdaqzkbfaoyahggz.supabase.co" },
+      { name: "SUPABASE_SERVICE_ROLE_KEY", value: "<from MAIN Supabase: zxobbdaqzkbfaoyahggz → Settings → API → service_role>" },
+      { name: "BANK_SUPABASE_URL", value: "https://viyqjlfdguhycbvqbrny.supabase.co" },
+      { name: "BANK_SUPABASE_SERVICE_ROLE_KEY", value: "<from sublimapparel BANK Supabase: viyqjlfdguhycbvqbrny → Settings → API → service_role>" },
+    ],
+    note:
+      "CF Pages has two environment-variable tabs — Production and Preview. Both must be set for this endpoint to see the values. Changing values does NOT auto-redeploy; push a new commit (or click Retry deployment in the dashboard) for the new values to be picked up.",
   };
 
   let bankConfigured = false;
