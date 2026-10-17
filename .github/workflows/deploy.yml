@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Pages
+name: Deploy to Cloudflare Pages (GitHub Integration build)
 
 on:
   # Auto-deploy on every push to main
@@ -9,7 +9,25 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  # Verify build only. CF Pages GitHub Integration does the actual deploy.
+  # We intentionally do NOT call `wrangler pages deploy` here — it conflicts
+  # with the project's GitHub Integration mode (pushes an _worker.js in
+  # a format CF Pages silently ignores, leaving /api/* 404'd).
+  #
+  # The Cloudflare GitHub App installs its own deploy check run on every
+  # push (see Check Runs on the commit), which runs the configured
+  # Build command + Build output directory on the dashboard:
+  #
+  #   Build command:         npm run build
+  #   Build output directory: out
+  #   Root directory:        (project root)
+  #
+  # That dashboard build runs `next build` (the `build` script), which
+  # fires `postbuild` and copies cf-functions-src/ → out/functions/ via
+  # scripts/copy-functions.mjs. The CF Pages build pipeline then bundles
+  # out/functions/ into _worker.js automatically using its built-in
+  # pages-functions-build tool. No wrangler invocation needed on our side.
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,82 +43,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Build with Next.js static export. The output goes to ./out/ which
-      # the Pages deploy step uploads directly. We use static export because
-      # the previous Workers (OpenNext SSR) build hit the 10ms CPU limit on
-      # the free plan and returned "worker exceeded resource limit". The
-      # site is fully static content — no SSR / cookies / headers needed —
-      # so serving plain HTML from the edge cache is the right fit.
-      - name: Build with Next.js static export
-        # Use `npm run build` (not `npx next build`) so the `postbuild`
-        # hook runs. The postbuild regenerates sitemap.xml from the
-        # rendered HTML in out/ — Next.js's default sitemap is built at
-        # prerender time and would otherwise ship stale lastmod values.
+      - name: Build (dry-run via npm run build)
+        # Runs the same build the CF Pages dashboard build will run, so
+        # any compile/import error fails fast here instead of producing
+        # a 404 on prod.
+        #
+        # `npm run build` (not `npx next build`) so the `postbuild` hook
+        # runs and copy-functions.mjs populates out/functions/.
         run: npm run build
 
-      # Check the build size before uploading. Cloudflare Pages free plan
-      # caps a single deployment at 25 MiB (any single file). If the build
-      # ever exceeds this, the deploy step below will fail and this size
-      # log will tell us which folder is too heavy.
-      - name: Check build size
+      - name: Verify build artifacts
         run: |
-          echo "Build size by top-level entry under out:"
-          du -sh out/* 2>/dev/null | sort -hr || true
+          echo "--- Top-level entries under out/ ---"
+          ls -la out | head -50
           echo
-          echo "Total out size:"
+          echo "--- Functions present? ---"
+          if [ -d out/functions ]; then
+            echo "out/functions exists"
+            ls out/functions
+            ls out/functions/api 2>/dev/null || echo "no out/functions/api"
+          else
+            echo "ERROR: out/functions missing — copy-functions.mjs didn't run or failed"
+            exit 1
+          fi
+          echo
+          echo "--- _routes.json ---"
+          cat out/_routes.json || echo "no _routes.json"
+          echo
+          echo "--- Build size ---"
           du -sh out 2>/dev/null || true
-
-      - name: Deploy to Cloudflare Pages
-        # Direct wrangler invocation (not the wrangler-action wrapper) so
-        # that all stderr/stdout stream into the GH Actions log. The
-        # wrangler-action wrapper swallows the inner wrangler error and
-        # only shows a generic "exit code 1".
-        #
-        # No --no-bundle: wrangler pages deploy auto-bundles out/functions/
-        # into _worker.js itself, and any compile errors are streamed into
-        # the deploy step's stdout (which we capture with `tee`). Pre-
-        # bundling here + --no-bundle was uploading a multipart
-        # form-data _worker.js that CF Pages silently ignored, so /api/*
-        # fell through to the Next.js 404.html.
-        #
-        # cf-functions-src/ is copied into out/functions/ by the postbuild
-        # hook (scripts/copy-functions.mjs). The copy skips node_modules
-        # and out/functions/_routes.json so wrangler can re-discover routes
-        # cleanly. out/functions/package.json (with stripe + supabase as
-        # deps) is the runtime manifest — CF Pages reads it during
-        # deployment and resolves those imports from nodejs_compat.
-        #
-        # Required GitHub repo secrets:
-        #   CLOUDFLARE_API_TOKEN  — Cloudflare API token with "Cloudflare
-        #                            Pages: Edit" permission for this account.
-        #   CLOUDFLARE_ACCOUNT_ID — Account ID (hex).
-        run: |
-          set -e
-          echo "--- wrangler version ---"
-          npx wrangler --version
-          echo "--- _routes.json before deploy ---"
-          cat out/_routes.json || true
-          echo "--- functions dir before deploy ---"
-          ls -la out/functions || true
-          ls -la out/functions/api 2>/dev/null || true
-          echo "--- _worker.js / index.js before deploy ---"
-          ls -la out/_worker.js 2>/dev/null || echo "no _worker.js"
-          ls -la out/index.js 2>/dev/null || echo "no index.js"
-          echo "--- running wrangler pages deploy ---"
-          npx wrangler pages deploy out \
-            --project-name=chinarhinestone \
-            --branch=main \
-            --commit-message="${{ github.event.head_commit.message }}" \
-            --commit-dirty=true 2>&1 | tee /tmp/wrangler-deploy.log
-          echo "--- post-deploy _routes.json ---"
-          cat out/_routes.json || true
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      - name: Surface wrangler deploy error
-        if: failure()
-        run: |
-          echo "::group::wrangler deploy output (tail)"
-          tail -n 80 /tmp/wrangler-deploy.log 2>/dev/null || echo "no log captured"
-          echo "::endgroup::"
-          echo "::error::wrangler pages deploy failed — see group above for the actual Cloudflare error message"
+          du -sh out/* 2>/dev/null | sort -hr | head -10 || true
