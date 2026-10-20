@@ -28,8 +28,15 @@ const OUT_DIR = fileURLToPath(new URL("../out", import.meta.url));
  * Only output an entry for raster / vector / video poster images
  * that Google Images can actually index. Skip icons, favicons and
  * data: URIs.
+ *
+ * The list is an allow-list of public asset directories. `resources`
+ * must stay in it: the /resources/* article pages carry the
+ * editorial diagrams and comparison panels, and they are the
+ * images most likely to surface in Google Images for the long-tail
+ * chart queries ("rhinestone sizes chart", "heat press temperature
+ * chart").
  * ─────────────────────────────────────────────────────────── */
-const IMG_RE = /\/(images|logo|pictures|gallery|products|industries|apps|fabrics|hero|rhinestone-assets|silicone-assets|dtf-assets|3d-assets|pu-assets|flock-assets|glitter-assets|reflective-assets|specialty-assets|tech-assets|transfer-assets|product-assets|sample-assets)\/[^"')\s>]+\.(?:jpg|jpeg|png|webp|avif|gif|svg)(?:\?[^"')\s>]*)?/gi;
+const IMG_RE = /\/(images|logo|pictures|gallery|products|industries|apps|fabrics|resources|hero|rhinestone-assets|silicone-assets|dtf-assets|3d-assets|pu-assets|flock-assets|glitter-assets|reflective-assets|specialty-assets|tech-assets|transfer-assets|product-assets|sample-assets)\/[^"')\s>]+\.(?:jpg|jpeg|png|webp|avif|gif|svg)(?:\?[^"')\s>]*)?/gi;
 
 const EXCLUDE_ROUTE = new Set(["/404", "/500", "/404.html", "/500.html"]);
 
@@ -73,7 +80,13 @@ function captionFromImageUrl(url, pageTitle) {
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
   const short = human || pageTitle.split("—")[0].trim();
-  return `${short} — production sample from ChinaRhinestone`;
+  /* Article figures are diagrams and comparison panels, not physical
+   * samples — labelling them "production sample" would misrepresent
+   * them in Google Images. */
+  const suffix = url.startsWith("/resources/")
+    ? "reference chart from the ChinaRhinestone guide"
+    : "production sample from ChinaRhinestone";
+  return `${short} — ${suffix}`;
 }
 
 function escapeXml(s) {

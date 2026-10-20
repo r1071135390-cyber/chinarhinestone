@@ -22,12 +22,71 @@ type Section = {
    * visuals. Path is public-relative (e.g. "/resources/foo.jpg").
    */
   image?: { src: string; alt: string; caption?: string };
+  /**
+   * Optional in-body internal links, rendered as anchor chips after
+   * the section content. Real clickable internal links with
+   * descriptive anchor text (not plain-text mentions) — this is what
+   * Google's crawler actually follows between /resources/* and
+   * /heat-transfers/*.
+   */
+  links?: { label: string; href: string }[];
 };
 
 type Article = {
   intro: string;
   sections: Section[];
 };
+
+/* ── Inline link rendering ──────────────────────────────────
+ *
+ * Article prose is stored as plain strings so the content stays
+ * easy to edit. To place a real, crawlable link inside a
+ * sentence we use a minimal markdown-style token:
+ *
+ *   [anchor text](/resources/some-guide)      → internal <Link>
+ *   [anchor text](https://example.org/spec)   → external <a>
+ *
+ * Everything outside the brackets renders as plain text, so
+ * articles written before this helper existed need no changes.
+ * Descriptive anchor text matters: Google's crawler follows the
+ * link, and the anchor phrase is what tells it what the target
+ * page is actually about.
+ * ───────────────────────────────────────────────────────── */
+const INLINE_LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+
+const LINK_CLASS =
+  "font-medium text-blue-700 underline decoration-blue-700/30 underline-offset-2 transition hover:decoration-blue-700";
+
+function RichText({ text }: { text: string }) {
+  /* String.split with a capturing regex lays the output out as
+   * [text, label, href, text, label, href, …] — even indexes are
+   * plain text, odd indexes hold the two captured link parts. */
+  const parts = text.split(INLINE_LINK);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (i % 3 === 2) return null;
+        if (i % 3 === 0) return <span key={i}>{part}</span>;
+        const href = parts[i + 1];
+        return /^https?:\/\//.test(href) ? (
+          <a
+            key={i}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={LINK_CLASS}
+          >
+            {part}
+          </a>
+        ) : (
+          <Link key={i} href={href} className={LINK_CLASS}>
+            {part}
+          </Link>
+        );
+      })}
+    </>
+  );
+}
 
 const ARTICLES: Record<string, Article> = {
   "heat-transfer-guide": {
@@ -517,7 +576,7 @@ const ARTICLES: Record<string, Article> = {
    * ───────────────────────────────────────────────────────── */
   "rhinestone-sizes-chart": {
     intro:
-      "Rhinestone size is the single biggest decision when specifying a custom rhinestone transfer — and the most common source of mis-orders. A logo that looks refined in SS16 can look chunky and toy-like in SS6, while a delicate letterform in SS20 will read from across the room but can dominate a small design. This guide explains what the SS numbering actually means in millimetres, shows the full SS6 → SS34 reference chart, and gives you a practical method to pick the right size for your artwork, fabric and viewing distance. For the technology overview see our rhinestone heat transfers family; for press settings after you have a transfer in hand, see the heat press temperature & time chart.",
+      "Rhinestone size is the single biggest decision when specifying a custom rhinestone transfer — and the most common source of mis-orders. A logo that looks refined in SS16 can look chunky and toy-like in SS6, while a delicate letterform in SS20 will read from across the room but can dominate a small design. This guide explains what the SS numbering actually means in millimetres, shows the full SS6 → SS34 reference chart, and gives you a practical method to pick the right size for your artwork, fabric and viewing distance. For the technology overview see our [rhinestone heat transfers](/heat-transfers/rhinestone-heat-transfers) family; for press settings after you have a transfer in hand, see the [heat press temperature & time chart](/resources/heat-press-temperature-chart); and if you have not designed a rhinestone transfer yet, start with [how to make custom rhinestone transfers](/resources/how-to-make-custom-rhinestone-transfers), which walks the whole design-to-production flow around this chart.",
     sections: [
       {
         heading: "What SS Sizes Actually Mean",
@@ -594,6 +653,147 @@ const ARTICLES: Record<string, Article> = {
       },
     ],
   },
+
+  /* ── Custom rhinestone transfer process (long-tail SERP) ─────
+   *
+   * Long-tail SERP targets: "how to make custom rhinestone
+   * transfers", "custom rhinestone design online", "design your
+   * own rhinestone transfer", "rhinestone transfer maker",
+   * "rhinestone logo design tool", "custom rhinestone heat
+   * transfers wholesale". The article owns the B2B intent
+   * from designers and small brands who want a working rhinestone
+   * transfer without learning CAD. Four inline figures (cover
+   * shot, designer-tool mockup, four-step process panel, SS size
+   * comparison) — all with semantic alt text for image SEO. Six
+   * internal links to rhinestone + technology product pages so
+   * the article directly drives the buying funnel.
+   * ───────────────────────────────────────────────────────── */
+  "how-to-make-custom-rhinestone-transfers": {
+    intro:
+      "Making a custom rhinestone transfer used to mean handing an Illustrator file to a stone-placement studio and waiting a week for a digital proof. Today the design step runs in your browser — you upload artwork, pick the SS stone size, choose from a 32-color library, and watch the design come up live on a t-shirt mockup before you commit. This guide walks through every step of the process: from the first artwork upload, through stone grade and finish selection, to the heat-press settings that bond the finished transfer to the garment. If you are new to rhinestone programs start here; if you are sizing an existing design, jump to the [rhinestone sizes chart](/resources/rhinestone-sizes-chart). For the wider decoration context, a [heat press](https://en.wikipedia.org/wiki/Heat_press) is the machine that does the bonding — everything below happens inside one.",
+    sections: [
+      {
+        heading: "Step 1 — Upload Your Artwork or Start from a Template",
+        paragraphs: [
+          "Every custom rhinestone transfer starts with the design. The fastest path is to upload a vector file (AI, EPS, SVG, or a vector-source PDF). Vector artwork lets the design tool scale your logo to any size without quality loss and place stones along mathematically clean edges. If you only have a raster file (PNG, JPG), most tools can still process it at 300 dpi or higher; anything below 150 dpi will look pixelated at the stone-placement stage and is worth redrawing before you order.",
+          "If you don't have artwork yet, most rhinestone design tools — including ours — ship with a library of editable templates: hearts, stars, letters, numbers, mascots, monograms, flames, wings, and standard shapes. Pick a template, recolor it, and you're effectively designing without a vector file. The free online design tool is linked from our [rhinestone heat transfers](/heat-transfers/rhinestone-heat-transfers) page; no account or install is required to start a design.",
+        ],
+        image: {
+          src: "/resources/custom-rhinestone-designer-tool.jpg",
+          alt: "Browser-based rhinestone design tool interface showing a heart-shaped rhinestone design preview rendered on a black t-shirt mockup, with a 32-color stone palette swatches panel and SS6 to SS20 size selector buttons for live design preview.",
+          caption: "The free online design tool: upload artwork, pick stones, see the design on the garment before you commit.",
+        },
+        links: [
+          { label: "Rhinestone heat transfers", href: "/heat-transfers/rhinestone-heat-transfers" },
+          { label: "Artwork guidelines", href: "/resources/artwork-guidelines" },
+        ],
+      },
+      {
+        heading: "Step 2 — Set the Design Size and Stone Spacing",
+        paragraphs: [
+          "Once the artwork is in, the next decision is the design size on the garment. The two most common placements are center-chest (typically 3 to 5 inches / 7.5 to 12.5 cm wide) and full back (typically 9 to 12 inches / 23 to 30 cm wide). Set the width in inches or centimetres; the design tool will lock the aspect ratio and recompute the height automatically. Always size to the garment and the viewing distance — a 4-inch chest logo is read at arm's length and wants a different stone size than a 10-inch back panel read from across a room.",
+          "Stone spacing — the gap between individual stones — is the second decision. Tight spacing gives a denser, more solid look with stronger sparkle; wider spacing reads as more individual stones and works for fine-line art or letterforms. The default in most design tools is a tight, even spacing; loosen it slightly for lettering and fine details to keep the shapes readable. If you are not sure how a given design size and stone size interact, work through the [rhinestone SS size chart](/resources/rhinestone-sizes-chart) before you settle on a specification.",
+        ],
+        links: [
+          { label: "Rhinestone sizes chart", href: "/resources/rhinestone-sizes-chart" },
+        ],
+      },
+      {
+        heading: "Step 3 — Choose SS Size, Stone Grade, and Finish",
+        paragraphs: [
+          "Three selection layers drive the look and the cost. SS size is the silhouette of the design: SS6 for ultra-fine detail, SS10 for balanced logos, SS16 for bold statements, SS20 for focal points. Stone grade determines the sparkle: China A-grade for sportswear and teamwear at production pricing, China B-grade for budget programs on kidswear and promos, premium imported crystal for high-end fashion. The AB (Aurora Borealis) finish is an iridescent coating that shifts colour in the light — it is the most common upgrade on fashion and cheer programs and the price impact is modest relative to the visual difference.",
+          "For full sizing, application, and grade guidance see the [rhinestone sizes chart](/resources/rhinestone-sizes-chart) and the [rhinestone heat transfers](/heat-transfers/rhinestone-heat-transfers) family page. The short rule: SS10 China A-grade AB is the cost-effective workhorse for most programs, and SS16 premium AB is the high end for dance and runway.",
+        ],
+        image: {
+          src: "/resources/custom-rhinestone-sizes-comparison.jpg",
+          alt: "Side-by-side comparison of the same heart-shaped rhinestone design rendered in five different SS stone sizes on separate black fabric swatches, arranged from smallest to largest — showing how stone size changes the silhouette, density, and visual weight of the same artwork.",
+          caption: "Same artwork, five SS sizes. SS10 is the workhorse for most programs; SS16 reads as bold; SS20 is for statement and stage wear.",
+        },
+        links: [
+          { label: "Rhinestone sizes chart", href: "/resources/rhinestone-sizes-chart" },
+          { label: "China grade A rhinestone", href: "/heat-transfers/rhinestone-china-grade-a" },
+          { label: "China grade B rhinestone", href: "/heat-transfers/rhinestone-china-grade-b" },
+        ],
+      },
+      {
+        heading: "Step 4 — Preview on a Garment Mockup and Adjust Colors",
+        paragraphs: [
+          "Before you place the order, preview the design on a t-shirt (or any garment color) in the design tool. The mockup shows the design at scale on the actual fabric color you will be pressing onto — light-on-dark and dark-on-light read very differently, and the same color stone looks brighter on a black tee than on a heather grey. Use the 32-color library to swap colors in and out until the design matches the brand palette; if the design needs a color we don't stock, our stone library is supplemented by special-order colors at MOQ 1,000 pieces per design.",
+          "This is also the moment to confirm the placement. Center-chest is the default, but a left-chest or full-back placement is a one-click change in the tool. For unusual placements (sleeve, hem, yoke) talk to us before sampling — some placements need a different adhesive grade to survive repeat wash cycles. If the design is multi-color, the [multi-color rhinestone transfers](/heat-transfers/rhinestone-multi-color) page explains how we handle color separation across the stone matrix.",
+        ],
+        links: [
+          { label: "Multi-color rhinestone transfers", href: "/heat-transfers/rhinestone-multi-color" },
+          { label: "Fabric compatibility", href: "/resources/fabric-compatibility" },
+        ],
+      },
+      {
+        heading: "Step 5 — Submit the Design and Approve the Proof",
+        paragraphs: [
+          "Once the preview is right, submit the design through the tool. Our studio receives a production file with the SS size, grade, finish, color list, dimensions, and artwork vector. Within one business day we send back a digital proof showing the stone layout on the same garment color, with a stone count and per-piece quote. Approve the proof (or request changes — color swaps and size changes are free at this stage) and we move to production sampling if your program needs physical approval, or straight to bulk if you are re-ordering an approved spec.",
+        ],
+        image: {
+          src: "/resources/custom-rhinestone-process-panel.jpg",
+          alt: "Four-panel workflow diagram showing the custom rhinestone transfer production process: panel 1 shows a vector logo file on a design workstation, panel 2 shows a t-shirt mockup with a rhinestone heart design rendered in blue stones, panel 3 shows a gloved hand placing SS10 rhinestones into a metal mold on the production line, panel 4 shows the finished rhinestone heart on a clear carrier film ready for heat-press application — connected by directional arrows.",
+          caption: "From artwork to finished transfer: four steps, roughly 7–10 business days for a sampled bulk order.",
+        },
+      },
+      {
+        heading: "Step 6 — Production, QC, and Delivery",
+        paragraphs: [
+          "Production runs on the same line that produced the approved sample, in the same facility, with in-process QC at the stone-placement and adhesive-coat stages. Every production order ships with a recommended heat-press settings card tuned to your fabric, technology and program — most [iron-on rhinestone transfers](/heat-transfers/rhinestone-iron-on) apply at 165 °C (330 °F) for 15 seconds at medium pressure, but the exact card is matched to your fabric during sampling. For full press parameters across every transfer material we produce, see the [heat press temperature & time chart](/resources/heat-press-temperature-chart).",
+          "Standard lead times are 5–10 business days for samples and 10–20 business days for bulk, depending on quantity and the stone grade. Repeat orders run on the locked specification with no re-sampling required, which is why most of our garment-manufacturer customers specify a program once and reorder on the same file for seasons. When you need a different application method — for retail embellishment or stones larger than the transfer matrix allows — [hot-fix rhinestone](/heat-transfers/rhinestone-hot-fix) is the alternative.",
+        ],
+        links: [
+          { label: "Heat press temperature chart", href: "/resources/heat-press-temperature-chart" },
+          { label: "Iron-on rhinestone transfers", href: "/heat-transfers/rhinestone-iron-on" },
+          { label: "Hot-fix rhinestone transfers", href: "/heat-transfers/rhinestone-hot-fix" },
+        ],
+      },
+      {
+        heading: "What File Format and Resolution Do You Need?",
+        paragraphs: [
+          "Vector source is always preferred: AI, EPS, SVG, or a PDF exported from a vector source. For raster artwork, supply PNG or PSD at 300 dpi or higher at the actual final transfer size. Photographs and gradients cannot be reproduced as rhinestone (the technology is fundamentally a stone-placement medium) but vector logos, line art, lettering, monograms, mascots and most graphic logos convert cleanly. If your file is below the resolution bar, send what you have — we will tell you in the artwork review whether it can run as-is or needs a redraw. For a full file-prep guide see [artwork guidelines](/resources/artwork-guidelines).",
+        ],
+        links: [
+          { label: "Artwork guidelines", href: "/resources/artwork-guidelines" },
+        ],
+      },
+      {
+        heading: "Common Mistakes to Avoid on Your First Order",
+        bullets: [
+          "Specifying the size in conversation, not in the file — the file should name the SS size in millimetres (e.g. 2.7 mm = SS10) on the production layer; a verbal 'SS10' in an email is easy to misread and the studio will default to SS12 if the file is ambiguous",
+          "Choosing a size too large for the letterforms — fine-script fonts with thin strokes lose readability at SS16 and above; either increase the artwork size or drop to SS12 or SS10",
+          "Ignoring fabric stretch — SS16 and larger on a stretch placement (leggings, performance tees, dance leotards) will lose stones under repeated stretch; either drop to SS10 / SS12 or use a stretch-tolerant matrix",
+          "Forgetting to spec the AB finish explicitly — AB is an additional finish on top of the base stone; if you want AB, say so; if you don't, the order will run as crystal clear",
+          "Skipping the fabric compatibility check — cotton, polyester and stretch knits all take rhinestone transfers, but the adhesive grade, press temperature, and stretch tolerance differ; see fabric compatibility before you sample on a new substrate",
+        ],
+      },
+      {
+        heading: "Sample First, Then Bulk — The Fastest Path to a Confident Order",
+        paragraphs: [
+          "Once you have an SS size and grade in mind, the fastest path to a confident bulk order is a 5-piece sample on the actual fabric. Send us the artwork file, the target fabric spec, the SS size in millimetres on the production layer, and the stone grade / finish. We produce the sample, ship it to you, and lock the specification for the bulk run. The same program can be re-quoted in a different size at no tooling cost if the first sample is not the right look — which is why we recommend sampling on the actual garment before committing to 1,000+ pieces. If you are still deciding between sizes, send two artwork versions and we will sample both; the cost difference is small and the visual answer is worth the few extra days.",
+          "One thing that trips up first-time buyers on the retail side is the care instruction. A rhinestone transfer changes how a garment should be washed, and in the US the care instruction itself is a regulated claim — the FTC's [Care Labeling Rule](https://www.ftc.gov/business-guidance/resources/clothes-captioning-complying-care-labeling-rule) requires that whatever you print is truthful and substantiated. We will supply the tested care guidance for your transfer so the label on your hangtag matches what the decoration actually survives.",
+        ],
+        links: [
+          { label: "Heat transfer durability", href: "/resources/heat-transfer-durability" },
+          { label: "Sourcing heat transfers from China", href: "/resources/sourcing-custom-heat-transfers-from-china" },
+        ],
+      },
+      {
+        heading: "Where to Start",
+        bullets: [
+          "Open the [free online rhinestone design tool](/designer.html) and start a design — no account required",
+          "Need a stone size reference? See the [rhinestone sizes chart](/resources/rhinestone-sizes-chart) for SS6 to SS34 in millimetres and recommended application",
+          "Working on a stretch placement? Read [fabric compatibility](/resources/fabric-compatibility) before sampling on performance knits or spandex",
+          "Ready to sample? Send the artwork, target fabric, SS size, and grade / finish on our [quote request](/get-a-quote) and we will come back with a 5-piece sample price within 24 hours",
+        ],
+        links: [
+          { label: "Free design tool", href: "/designer.html" },
+          { label: "Get a quote", href: "/get-a-quote" },
+        ],
+      },
+    ],
+  },
 };
 
 export function generateStaticParams() {
@@ -638,12 +838,26 @@ export async function generateMetadata({
               "rhinestone size guide for apparel",
               "custom rhinestone transfer manufacturer",
             ]
-          : [
-              `${resource.name.toLowerCase()}`,
-              "custom heat transfer guide",
-              "garment decoration guide",
-              "China heat transfer manufacturer",
-            ],
+          : resource.slug === "how-to-make-custom-rhinestone-transfers"
+            ? [
+                "how to make custom rhinestone transfers",
+                "custom rhinestone design online",
+                "design your own rhinestone transfer",
+                "rhinestone transfer maker",
+                "rhinestone logo design tool",
+                "custom rhinestone heat transfers wholesale",
+                "rhinestone transfer design online free",
+                "make custom rhinestone heat transfers",
+                "rhinestone transfer design process",
+                "custom rhinestone transfer workflow",
+                "rhinestone transfer manufacturer China",
+              ]
+            : [
+                `${resource.name.toLowerCase()}`,
+                "custom heat transfer guide",
+                "garment decoration guide",
+                "China heat transfer manufacturer",
+              ],
     alternates: {
       canonical: `/resources/${resource.slug}`,
     },
@@ -678,7 +892,22 @@ export async function generateMetadata({
                 },
               ],
             }
-          : undefined,
+          : resource.slug === "how-to-make-custom-rhinestone-transfers"
+            ? {
+                type: "article",
+                title: resource.name,
+                description: resource.tagline,
+                url: `${SITE_URL}/resources/${resource.slug}`,
+                images: [
+                  {
+                    url: `${SITE_URL}/resources/custom-rhinestone-cover.jpg`,
+                    width: 1280,
+                    height: 720,
+                    alt: "Custom heart-shaped rhinestone transfer being lifted from a black fabric swatch on a white worktable, with scattered SS10 and SS16 clear crystal rhinestones and a stainless steel ruler for scale",
+                  },
+                ],
+              }
+            : undefined,
   };
 }
 
@@ -711,10 +940,22 @@ export default async function ResourcePage({
         ? "/resources/heat-press-cover.jpg"
         : resource.slug === "rhinestone-sizes-chart"
           ? "/resources/rhinestone-sizes-cover.jpg"
-          : undefined,
+          : resource.slug === "how-to-make-custom-rhinestone-transfers"
+            ? "/resources/custom-rhinestone-cover.jpg"
+            : undefined,
     authorName: "ChinaRhinestone Production Team",
-    datePublished: resource.slug === "rhinestone-sizes-chart" ? "2026-10-13" : "2026-09-23",
-    dateModified: resource.slug === "rhinestone-sizes-chart" ? "2026-10-13" : "2026-09-23",
+    datePublished:
+      resource.slug === "rhinestone-sizes-chart"
+        ? "2026-10-13"
+        : resource.slug === "how-to-make-custom-rhinestone-transfers"
+          ? "2026-10-20"
+          : "2026-09-23",
+    dateModified:
+      resource.slug === "rhinestone-sizes-chart"
+        ? "2026-10-13"
+        : resource.slug === "how-to-make-custom-rhinestone-transfers"
+          ? "2026-10-20"
+          : "2026-09-23",
   });
 
   const breadcrumbSchema = {
@@ -754,7 +995,9 @@ export default async function ResourcePage({
           <article className="lg:col-span-2">
             {article ? (
               <>
-                <p className="text-lg leading-relaxed text-slate-700">{article.intro}</p>
+                <p className="text-lg leading-relaxed text-slate-700">
+                  <RichText text={article.intro} />
+                </p>
                 <div className="mt-12 space-y-12">
                   {article.sections.map((s, i) => (
                     <div key={s.heading}>
@@ -783,7 +1026,7 @@ export default async function ResourcePage({
                       )}
                       {s.paragraphs?.map((p) => (
                         <p key={p.slice(0, 40)} className="mt-4 leading-relaxed text-slate-600">
-                          {p}
+                          <RichText text={p} />
                         </p>
                       ))}
                       {s.bullets && (
@@ -791,10 +1034,29 @@ export default async function ResourcePage({
                           {s.bullets.map((b) => (
                             <li key={b} className="flex items-start gap-3">
                               <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-700" />
-                              <span className="leading-relaxed text-slate-600">{b}</span>
+                              <span className="leading-relaxed text-slate-600">
+                                <RichText text={b} />
+                              </span>
                             </li>
                           ))}
                         </ul>
+                      )}
+                      {s.links && s.links.length > 0 && (
+                        <div className="mt-6 flex flex-wrap items-center gap-2">
+                          <span className="mr-1 text-xs font-bold uppercase tracking-[0.15em] text-slate-400">
+                            Related
+                          </span>
+                          {s.links.map((l) => (
+                            <Link
+                              key={l.href}
+                              href={l.href}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-800 transition hover:border-blue-400 hover:bg-blue-100"
+                            >
+                              {l.label}
+                              <ArrowRight className="h-3.5 w-3.5" />
+                            </Link>
+                          ))}
+                        </div>
                       )}
                     </div>
                   ))}
