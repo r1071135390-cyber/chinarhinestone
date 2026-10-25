@@ -18,19 +18,11 @@ import { customerKey, decodeCustomerId, groupCustomers, type PiCustomerRow } fro
 const PI_FIELDS =
   "id, pi_number, customer_name, customer_email, customer_company, customer_phone, total_cents, currency, status, created_at";
 
-export const onRequestGet: PagesFunction<Env & { ADMIN_TOKEN?: string }> = async (context) => {
+export const onRequestGet: PagesFunction<Env> = async (context) => {
   const env = context.env;
   const siteSlug = env.SITE_SLUG ?? "chinarhinestone";
 
-  if (env.ADMIN_TOKEN) {
-    const supplied = context.request.headers.get("X-Admin-Token") ?? "";
-    if (supplied !== env.ADMIN_TOKEN) {
-      return jsonResponse(
-        { ok: false, error: "Forbidden" },
-        { status: 403, request: context.request, env }
-      );
-    }
-  }
+  // No token gate here on purpose — see list.ts for the reasoning.
 
   const rawId = Array.isArray(context.params.id) ? context.params.id[0] : context.params.id;
   if (!rawId) {

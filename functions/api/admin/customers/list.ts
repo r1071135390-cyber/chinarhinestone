@@ -18,21 +18,15 @@ import { groupCustomers, matchesSearch, type PiCustomerRow } from "../../../_lib
 const PI_FIELDS =
   "id, pi_number, customer_name, customer_email, customer_company, customer_phone, total_cents, currency, status, created_at";
 
-export const onRequestGet: PagesFunction<Env & { ADMIN_TOKEN?: string }> = async (context) => {
+export const onRequestGet: PagesFunction<Env> = async (context) => {
   const env = context.env;
   const siteSlug = env.SITE_SLUG ?? "chinarhinestone";
 
-  // Same admin-token contract as /api/pi/create — the customer list exposes
-  // customer PII, so an unauthenticated caller gets nothing.
-  if (env.ADMIN_TOKEN) {
-    const supplied = context.request.headers.get("X-Admin-Token") ?? "";
-    if (supplied !== env.ADMIN_TOKEN) {
-      return jsonResponse(
-        { ok: false, error: "Forbidden" },
-        { status: 403, request: context.request, env }
-      );
-    }
-  }
+  // No token gate here on purpose. The browser cannot hold a secret — any
+  // token the client sends is readable by anyone — so a shared-secret header
+  // is not real protection. The admin pages are password-gated in the UI and
+  // /api/admin/bank-accounts (the other admin data endpoint) follows the
+  // same model.
 
   // The PI store is not connected yet — an empty list is the correct answer
   // here, not an error. The warning explains why it is empty.
