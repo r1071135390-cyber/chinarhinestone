@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, FileText } from "lucide-react";
+import { OWNER_PASSWORD } from "@/lib/admin-auth";
 
 interface PIHistory {
   id: string;
@@ -29,7 +30,10 @@ export default function CustomerDetailClient({ customerId }: { customerId: strin
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/customers/${customerId}`, { cache: "no-store" });
+      const res = await fetch(`/api/admin/customers/${customerId}`, {
+        cache: "no-store",
+        headers: { "X-Admin-Token": OWNER_PASSWORD },
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = (await res.json()) as { ok: boolean; customer?: CustomerDetail };
       if (!json.customer) throw new Error("Customer not found");

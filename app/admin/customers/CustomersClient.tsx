@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Users, Search, FileText } from "lucide-react";
+import { OWNER_PASSWORD } from "@/lib/admin-auth";
 
 interface CustomerSummary {
   id: string;
@@ -25,7 +26,10 @@ export default function CustomersClient() {
     try {
       const params = new URLSearchParams();
       if (search.trim()) params.set("search", search.trim());
-      const res = await fetch(`/api/admin/customers/list?${params}`, { cache: "no-store" });
+      const res = await fetch(`/api/admin/customers/list?${params}`, {
+        cache: "no-store",
+        headers: { "X-Admin-Token": OWNER_PASSWORD },
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as { ok: boolean; customers?: CustomerSummary[] };
       setCustomers(data.customers ?? []);
