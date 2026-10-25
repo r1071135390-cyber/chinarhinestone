@@ -212,7 +212,9 @@ function todayPiNumber() {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
-  return `CR${yyyy}${mm}${dd}0001`;
+  // Same shape the next_pi_number RPC produces (CH-YYYYMMDD-NNNN) so a
+  // second PI on the same day never collides on UNIQUE(site_slug, pi_number).
+  return `CH-${yyyy}${mm}${dd}-0001`;
 }
 
 // ---------------------------------------------------------------------------
@@ -374,7 +376,8 @@ export default function NewPIPage() {
         if (!res.ok) return;
         const data = (await res.json()) as { ok: boolean; accounts?: BankAccountRow[] };
         if (cancelled || !data.accounts) return;
-        const row = data.accounts.find((r) => r.currency === currency) ?? null;
+        const row =
+          data.accounts.find((r) => r.currency?.toUpperCase() === currency.toUpperCase()) ?? null;
         setBankInfo(bankAccountFromRow(row, currency));
       } catch {
         // network blip — keep hardcoded fallback
@@ -499,7 +502,8 @@ export default function NewPIPage() {
     () => items.reduce((sum, it) => sum + getItemQty(it) * it.unitPrice, 0),
     [items],
   );
-  const grandTotal = itemsSubtotal + shippingCost;
+  const shippingTotal = shippingQty * shippingCost;
+  const grandTotal = itemsSubtotal + shippingTotal;
 
   function onPiNumberChange(v: string) {
     hasEditedPiRef.current = true;
@@ -595,8 +599,9 @@ export default function NewPIPage() {
             }),
           shippingLabel: shippingLabel.trim() || undefined,
           shippingMethod: shippingMethod.trim() || undefined,
+          shippingQty: Number(shippingQty) || 1,
           shippingCost: Number(shippingCost) || 0,
-          currency,
+          currency: currency.toUpperCase(),
           notes: termsPaymentText || undefined,
         }),
       });
@@ -801,6 +806,7 @@ export function PIPreview(props: {
     BlackCell, RedInput, BlueText, RedReminder,
   } = props;
   const currencyUpper = currency.toUpperCase();
+  const shippingTotal = shippingQty * shippingCost;
 
   return (
     <div className="bg-white dark:bg-neutral-900 shadow-lg rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800">
@@ -849,7 +855,7 @@ export function PIPreview(props: {
               <RedInput
                 value={piNumber}
                 onChange={(e) => onPiNumberChange(e.target.value)}
-                placeholder="CR202610020001"
+                placeholder="CH-20261025-0001"
                 disabled={piNumberLocked}
                 className={piNumberLocked ? "opacity-70 cursor-not-allowed" : ""}
               />
@@ -1188,7 +1194,7 @@ export function PIPreview(props: {
             Add item
           </button>
           <div className="text-neutral-500 text-xs">
-            Subtotal: {fmt(itemsSubtotal, bank.symbol)} + Shipping: {fmt(shippingCost, bank.symbol)} = <strong className="text-black dark:text-white">{fmt(grandTotal, bank.symbol)}</strong>
+            Subtotal: {fmt(itemsSubtotal, bank.symbol)} + Shipping: {fmt(shippingTotal, bank.symbol)} = <strong className="text-black dark:text-white">{fmt(grandTotal, bank.symbol)}</strong>
           </div>
         </div>
       </div>

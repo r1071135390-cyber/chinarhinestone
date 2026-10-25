@@ -3,45 +3,141 @@
  *
  * POST /api/pi/create
  *
- * Body: the full PI record. Inserts into proforma_invoices.
- * If `pi_number` is omitted, we generate one via next_pi_number('CH').
- * Status is set to 'sent' by default (owner is creating live invoices).
+ * Accepts the admin "New PI" payload (camelCase, as produced by
+ * app/admin/new-pi/NewPIClient.tsx) and inserts one row into
+ * proforma_invoices.
  *
- * Auth: soft — X-Admin-Token must match ADMIN_TOKEN env var if set.
+ * Auth: none. The browser cannot hold a secret — any token the client sends
+ * is readable from the bundle — so a shared-secret header is not real
+ * protection. This follows the same model as /api/admin/customers/list and
+ * /api/admin/bank-accounts.
+ *
+ * Money: the client sends major units (dollars). The DB stores cents
+ * (subtotal_cents / shipping_cents / total_cents), so every amount is
+ * converted here. Totals are recomputed server-side from the line items —
+ * the client's totals are never trusted.
  */
 
 import { getSupabase, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
 
-interface CreatePiBody {
-  pi_number?: string;
-  status?: string;
-  customer_name?: string;
-  customer_email?: string;
-  customer_phone?: string;
-  customer_company?: string;
-  customer_address?: string;
-  customer_country?: string;
-  currency: string;
-  line_items: unknown[];
-  subtotal_cents?: number;
-  shipping_cents?: number;
-  total_cents: number;
-  bank_account_currency?: string;
-  notes?: string;
-  valid_until?: string;
+interface SizeRow {
+  label?: string;
+  qty?: number;
 }
 
-export const onRequestPost: PagesFunction<Env & { ADMIN_TOKEN?: string }> = async (context) => {
+interface ItemRow {
+  description?: string;
+  fabric?: string;
+  quantity?: number;
+  unit?: string;
+  unitPrice?: number;
+  imageUrl?: string;
+  sizes?: SizeRow[];
+}
+
+interface CreatePiBody {
+  piNumber?: string;
+  issueDate?: string;
+  leadTimeText?: string;
+  paymentTermsText?: string;
+  customer?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    company?: string;
+    address?: string;
+    country?: string;
+  };
+  items?: ItemRow[];
+  shippingLabel?: string;
+  shippingMethod?: string;
+  shippingQty?: number;
+  shippingCost?: number;
+  currency?: string;
+  notes?: string;
+}
+
+/** Columns added by supabase/migrations/20261025_pi_admin_fields.sql. */
+const OPTIONAL_COLUMNS = [
+  "issue_date",
+  "lead_time_text",
+  "shipping_label",
+  "shipping_method",
+  "shipping_qty",
+] as const;
+
+function text(v: unknown): string {
+  return typeof v === "string" ? v.trim() : "";
+}
+
+function num(v: unknown): number {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function toCents(v: unknown): number {
+  return Math.round(num(v) * 100);
+}
+
+/**
+ * Normalize one line item for storage.
+ * `unit_price` / `total` stay in major units — line_items is a JSONB
+ * document (not a money column) and the PI document renders it that way.
+ * Inline `data:` artwork URLs are dropped — they are megabytes of base64 and
+ * would bloat the row.
+ */
+function buildLineItem(raw: ItemRow) {
+  const description = text(raw.description);
+  const quantity = num(raw.quantity);
+  const unitPrice = num(raw.unitPrice);
+  const sizes = (raw.sizes ?? [])
+    .map((s) => ({ label: text(s.label), qty: num(s.qty) }))
+    .filter((s) => s.label);
+
+  const row: Record<string, unknown> = {
+    description,
+    quantity,
+    unit_price: unitPrice,
+    total: Math.round(quantity * unitPrice * 100) / 100,
+  };
+
+  const fabric = text(raw.fabric);
+  if (fabric) row.fabric = fabric;
+  const unit = text(raw.unit);
+  if (unit) row.unit = unit;
+
+  const imageUrl = text(raw.imageUrl);
+  if (imageUrl && !imageUrl.startsWith("data:")) row.image_url = imageUrl;
+
+  if (sizes.length > 0) {
+    row.sizes = sizes;
+    row.size = sizes.map((s) => `${s.label}:${s.qty}`).join(" ");
+  }
+
+  return row;
+}
+
+export const onRequestPost: PagesFunction<Env> = async (context) => {
   const env = context.env;
   const siteSlug = env.SITE_SLUG ?? "chinarhinestone";
 
-  if (env.ADMIN_TOKEN) {
-    const supplied = context.request.headers.get("X-Admin-Token") ?? "";
-    if (supplied !== env.ADMIN_TOKEN) {
-      return jsonResponse({ error: "Forbidden" }, { status: 403, request: context.request, env });
-    }
+  // The PI store lives in this site's own Supabase project. Without these
+  // two vars nothing can be saved — say so plainly instead of throwing.
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    return jsonResponse(
+      {
+        error:
+          "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are not set on this Cloudflare Pages project, so proforma invoices cannot be saved yet.",
+        diagnostic: {
+          mainUrlSet: Boolean(env.SUPABASE_URL),
+          mainKeySet: Boolean(env.SUPABASE_SERVICE_ROLE_KEY),
+          siteSlug: env.SITE_SLUG ?? null,
+        },
+      },
+      { status: 500, request: context.request, env }
+    );
   }
 
   let body: CreatePiBody;
@@ -51,17 +147,22 @@ export const onRequestPost: PagesFunction<Env & { ADMIN_TOKEN?: string }> = asyn
     return jsonResponse({ error: "Invalid JSON body" }, { status: 400, request: context.request, env });
   }
 
-  if (!body.currency || !Array.isArray(body.line_items) || !Number.isFinite(body.total_cents)) {
-    return jsonResponse(
-      { error: "Missing required fields: currency, line_items, total_cents" },
-      { status: 400, request: context.request, env }
-    );
+  const currency = text(body.currency).toUpperCase();
+  const items = (body.items ?? [])
+    .filter((it) => text(it.description))
+    .map(buildLineItem);
+
+  if (!currency) {
+    return jsonResponse({ error: "Missing required field: currency" }, { status: 400, request: context.request, env });
+  }
+  if (items.length === 0) {
+    return jsonResponse({ error: "Missing required field: items" }, { status: 400, request: context.request, env });
   }
 
   const supabase = getSupabase(env);
 
-  // Generate pi_number if not provided
-  let piNumber = (body.pi_number ?? "").trim();
+  // ── PI number ────────────────────────────────────────────────────────────
+  let piNumber = text(body.piNumber);
   if (!piNumber) {
     const { data: generated, error: rpcErr } = await supabase.rpc("next_pi_number", { prefix: "CH" });
     if (rpcErr || !generated) {
@@ -70,36 +171,105 @@ export const onRequestPost: PagesFunction<Env & { ADMIN_TOKEN?: string }> = asyn
         { status: 500, request: context.request, env }
       );
     }
-    piNumber = generated as string;
+    piNumber = String(generated);
   }
 
-  const { data, error } = await supabase
-    .from("proforma_invoices")
-    .insert({
-      pi_number: piNumber,
-      site_slug: siteSlug,
-      status: body.status ?? "sent",
-      customer_name: body.customer_name ?? null,
-      customer_email: body.customer_email ?? null,
-      customer_phone: body.customer_phone ?? null,
-      customer_company: body.customer_company ?? null,
-      customer_address: body.customer_address ?? null,
-      customer_country: body.customer_country ?? null,
-      currency: body.currency,
-      line_items: body.line_items,
-      subtotal_cents: body.subtotal_cents ?? null,
-      shipping_cents: body.shipping_cents ?? null,
-      total_cents: body.total_cents,
-      bank_account_currency: body.bank_account_currency ?? null,
-      notes: body.notes ?? null,
-      valid_until: body.valid_until ?? null,
-    })
-    .select("pi_number, status, created_at")
-    .single();
+  // ── Amounts (recomputed server-side) ─────────────────────────────────────
+  const itemsSubtotal = items.reduce((sum, it) => sum + num(it.total), 0);
+  const shippingQty = Math.max(1, num(body.shippingQty) || 1);
+  const shippingTotal = num(body.shippingCost) * shippingQty;
+  const subtotalCents = toCents(itemsSubtotal);
+  const shippingCents = toCents(shippingTotal);
+  const totalCents = subtotalCents + shippingCents;
 
-  if (error) {
-    return jsonResponse({ error: error.message }, { status: 500, request: context.request, env });
+  const customer = body.customer ?? {};
+  const notes = text(body.notes) || text(body.paymentTermsText) || null;
+
+  const baseRow: Record<string, unknown> = {
+    pi_number: piNumber,
+    site_slug: siteSlug,
+    status: "sent",
+    customer_name: text(customer.name) || null,
+    customer_email: text(customer.email) || null,
+    customer_phone: text(customer.phone) || null,
+    customer_company: text(customer.company) || null,
+    customer_address: text(customer.address) || null,
+    customer_country: text(customer.country) || null,
+    currency,
+    line_items: items,
+    subtotal_cents: subtotalCents,
+    shipping_cents: shippingCents,
+    total_cents: totalCents,
+    bank_account_currency: currency,
+    notes,
+    valid_until: null,
+  };
+
+  // Extended metadata — only present after 20261025_pi_admin_fields.sql runs.
+  const extendedRow: Record<string, unknown> = {
+    ...baseRow,
+    issue_date: text(body.issueDate) || null,
+    lead_time_text: text(body.leadTimeText) || null,
+    shipping_label: text(body.shippingLabel) || null,
+    shipping_method: text(body.shippingMethod) || null,
+    shipping_qty: shippingQty,
+  };
+
+  const SELECT = "id, pi_number, status, created_at";
+
+  let row: { id: number; pi_number: string; status: string; created_at: string } | null = null;
+  let warning: string | undefined;
+
+  const first = await supabase.from("proforma_invoices").insert(extendedRow).select(SELECT).single();
+
+  if (first.error) {
+    const code = first.error.code ?? "";
+    const msg = first.error.message ?? "";
+    const missingColumn =
+      code === "42703" || code === "PGRST204" || /does not exist|unknown column/i.test(msg);
+
+    if (missingColumn) {
+      // The extra columns are not there yet — save the core record anyway.
+      const retry = await supabase.from("proforma_invoices").insert(baseRow).select(SELECT).single();
+      if (retry.error) {
+        if (retry.error.code === "23505") {
+          return jsonResponse(
+            { error: `PI number "${piNumber}" already exists. Change the invoice number and save again.` },
+            { status: 409, request: context.request, env }
+          );
+        }
+        return jsonResponse({ error: retry.error.message }, { status: 500, request: context.request, env });
+      }
+      row = retry.data;
+      warning = `Saved without ISSUE DATE / LEAD TIME / SHIPPING details — run supabase/migrations/20261025_pi_admin_fields.sql in the Supabase SQL editor to store them. (missing column: ${OPTIONAL_COLUMNS.join(", ")})`;
+    } else if (code === "23505") {
+      return jsonResponse(
+        { error: `PI number "${piNumber}" already exists. Change the invoice number and save again.` },
+        { status: 409, request: context.request, env }
+      );
+    } else {
+      return jsonResponse({ error: first.error.message }, { status: 500, request: context.request, env });
+    }
+  } else {
+    row = first.data;
   }
 
-  return jsonResponse({ pi: data }, { status: 201, request: context.request, env });
+  const total = totalCents / 100;
+
+  return jsonResponse(
+    {
+      success: true,
+      id: row?.id,
+      piNumber,
+      total,
+      totalCents,
+      subtotalCents,
+      shippingCents,
+      currency,
+      status: row?.status ?? "sent",
+      paymentUrl: `/pay/?pi=${encodeURIComponent(piNumber)}`,
+      ...(warning ? { warning } : {}),
+    },
+    { status: 201, request: context.request, env }
+  );
 };

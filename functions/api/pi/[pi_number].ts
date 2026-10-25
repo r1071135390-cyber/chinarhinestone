@@ -6,18 +6,12 @@
  * Public endpoint: returns a single PI by number plus its bank account.
  * Only returns the row if status is "sent" or "paid" (drafts are private).
  *
- * Response shape: { pi: PiRecord, bankAccount: BankAccountRow }
+ * Response shape: { pi: ProformaInvoice, bankAccount: BankAccount }
+ * Both use the camelCase contracts declared in
+ * components/pi/PIDisplay.tsx and lib/bank-accounts.ts, so the /pay page
+ * can hand them straight to <PIDisplay />.
  *
- * PiRecord columns we expose (snake_case to match Supabase):
- *   pi_number, customer_name, customer_email, customer_phone,
- *   customer_company, customer_address, customer_country,
- *   currency, line_items (JSONB), subtotal_cents, total_cents,
- *   status, notes, created_at, valid_until, payment_method,
- *   shipping_method, shipping_cents
- *
- * bankAccount is resolved from the shared BANK Supabase (filtered by the
- * PI's `bank_account_currency`). Falls back to local MAIN if BANK is not
- * configured. Used by /pay page to render Bank Info block.
+ * Money: the DB stores cents; the PI document renders major units.
  */
 
 import { getSupabase, getBankSupabase, type Env } from "../../_lib/supabase";
@@ -25,6 +19,7 @@ import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
 
 interface PiRow {
+  id: number;
   pi_number: string;
   customer_name: string | null;
   customer_email: string | null;
@@ -35,14 +30,13 @@ interface PiRow {
   currency: string;
   line_items: unknown;
   subtotal_cents: number | null;
+  shipping_cents: number | null;
   total_cents: number | null;
   status: string;
   notes: string | null;
   created_at: string;
   valid_until: string | null;
   payment_method: string | null;
-  shipping_method: string | null;
-  shipping_cents: number | null;
   bank_account_currency: string | null;
 }
 
@@ -70,6 +64,13 @@ interface BankAccountRow {
 
 const BANK_SOURCE_SITE = "sublimapparel";
 
+const SELLER = {
+  company: "Yiwu HomeDorm Commodity Manufacturing Co., Ltd.",
+  address: "No.35 Lingyun Road, Yiwu, Zhejiang, China",
+  phone: "+86 137 6459 3988",
+  email: "info@chinarhinestone.com",
+};
+
 async function fetchBankAccount(
   env: Env,
   currency: string,
@@ -85,9 +86,6 @@ async function fetchBankAccount(
     .eq("currency", currency)
     .maybeSingle<BankAccountRow>();
   if (fromBank.data) return fromBank.data;
-  if (fromBank.error) {
-    // continue to fallback
-  }
 
   const fallback = getSupabase(env);
   const fromMain = await fallback
@@ -97,6 +95,31 @@ async function fetchBankAccount(
     .eq("currency", currency)
     .maybeSingle<BankAccountRow>();
   return fromMain.data ?? null;
+}
+
+interface LineItem {
+  description: string;
+  size?: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
+function toLineItems(raw: unknown): LineItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((it) => {
+    const row = (it ?? {}) as Record<string, unknown>;
+    const quantity = Number(row.quantity ?? 0) || 0;
+    const unitPrice = Number(row.unit_price ?? 0) || 0;
+    const item: LineItem = {
+      description: String(row.description ?? ""),
+      quantity,
+      unit_price: unitPrice,
+      total: Number(row.total ?? quantity * unitPrice) || 0,
+    };
+    if (row.size) item.size = String(row.size);
+    return item;
+  });
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -112,7 +135,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { data, error } = await supabase
     .from("proforma_invoices")
     .select(
-      "pi_number, customer_name, customer_email, customer_phone, customer_company, customer_address, customer_country, currency, line_items, subtotal_cents, total_cents, status, notes, created_at, valid_until, payment_method, shipping_method, shipping_cents, bank_account_currency"
+      "id, pi_number, customer_name, customer_email, customer_phone, customer_company, customer_address, customer_country, currency, line_items, subtotal_cents, shipping_cents, total_cents, status, notes, created_at, valid_until, payment_method, bank_account_currency"
     )
     .eq("pi_number", piNumber)
     .eq("site_slug", siteSlug)
@@ -127,12 +150,51 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   }
 
   // Resolve bank account for this PI's currency (or fall back to PI's currency).
-  const bankCurrency =
-    (data.bank_account_currency ?? data.currency ?? "USD").toUpperCase();
-  const bankAccount = await fetchBankAccount(env, bankCurrency, siteSlug);
+  const bankCurrency = (data.bank_account_currency ?? data.currency ?? "USD").toUpperCase();
+  const bankRow = await fetchBankAccount(env, bankCurrency, siteSlug);
+
+  const bankAccount = bankRow
+    ? {
+        id: String(bankRow.id),
+        currency: bankRow.currency,
+        beneficiary_name: bankRow.beneficiary,
+        bank_name: bankRow.bank_name,
+        bank_address: bankRow.bank_address,
+        account_number: bankRow.account,
+        swift_code: bankRow.swift,
+        intermediary_bank: bankRow.intermediary_bank ?? undefined,
+        intermediary_swift: bankRow.intermediary_swift ?? undefined,
+        is_active: true,
+      }
+    : null;
+
+  const subtotal = (data.subtotal_cents ?? 0) / 100;
+  const shipping = (data.shipping_cents ?? 0) / 100;
+  const total = (data.total_cents ?? 0) / 100;
+
+  const pi = {
+    id: String(data.id),
+    pi_number: data.pi_number,
+    date: data.created_at,
+    from_company: SELLER.company,
+    from_address: SELLER.address,
+    from_phone: SELLER.phone,
+    from_email: SELLER.email,
+    to_company: data.customer_company || data.customer_name || "",
+    to_address: data.customer_address || "",
+    to_country: data.customer_country || "",
+    line_items: toLineItems(data.line_items),
+    subtotal,
+    shipping,
+    total,
+    currency: (data.currency ?? "USD").toUpperCase(),
+    notes: data.notes ?? undefined,
+    status: data.status,
+    created_at: data.created_at,
+  };
 
   return jsonResponse(
-    { pi: data, bankAccount },
+    { pi, bankAccount },
     { status: 200, request: context.request, env }
   );
 };

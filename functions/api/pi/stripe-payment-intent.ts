@@ -38,15 +38,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const piNumber = (body.pi_number ?? "").trim();
   const currency = (body.currency ?? "USD").toLowerCase();
-  const amountCents = Number(body.amount_cents ?? 0);
+  const requestedCents = Number(body.amount_cents ?? 0);
   const customerEmail = (body.customer_email ?? "").trim();
   const customerName = (body.customer_name ?? "").trim();
 
   if (!piNumber) {
     return jsonResponse({ error: "Missing pi_number" }, { status: 400, request: context.request, env });
-  }
-  if (!Number.isFinite(amountCents) || amountCents < 50) {
-    return jsonResponse({ error: "amount_cents must be at least 50" }, { status: 400, request: context.request, env });
   }
 
   const supabase = getSupabase(env);
@@ -67,6 +64,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
   if (pi.status === "paid") {
     return jsonResponse({ error: "PI already paid" }, { status: 409, request: context.request, env });
+  }
+
+  // The amount always comes from the stored PI — the client's figure is only
+  // a fallback for rows created before total_cents was populated.
+  const amountCents = pi.total_cents != null ? Number(pi.total_cents) : requestedCents;
+  if (!Number.isFinite(amountCents) || amountCents < 50) {
+    return jsonResponse({ error: "PI total is missing or below the minimum charge amount" }, { status: 400, request: context.request, env });
   }
 
   // Stripe is optional during initial deployment — return a soft-unavailable
