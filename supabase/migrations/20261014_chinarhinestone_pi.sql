@@ -134,36 +134,67 @@ END;
 $$;
 
 -- 4. Seed chinarhinestone bank accounts (4 currencies).
--- Identical to sublimapparel.com's factory accounts (owner confirmed same factory).
+--
+-- These are the REAL factory accounts, read live from the shared BANK
+-- Supabase project (viyqjlfdguhycbvqbrny, table bank_accounts,
+-- site_slug='sublimapparel') on 2026-10-26 — the same accounts
+-- sublimapparel.com and oemtshirts.com pay into. Earlier drafts of this
+-- file seeded placeholder values (Agricultural Bank of China for every
+-- currency, account 19648014040108531); those were wrong and would have
+-- sent customers to the wrong bank.
+--
+-- ON CONFLICT ... DO UPDATE so re-running this file also CORRECTS rows
+-- that were seeded with the old placeholders.
 INSERT INTO public.bank_accounts
   (site_slug, currency, label, symbol, beneficiary, company_address,
-   bank_name, account, swift, bank_address, intermediary_bank, intermediary_swift, notes)
+   bank_name, account, swift, bank_address, iban, bank_country,
+   routing_number, cnaps, intermediary_bank, intermediary_swift, notes)
 VALUES
   ('chinarhinestone', 'USD', 'USD — US Dollar', '$',
    'YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD',
-   '2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China',
-   'Agricultural Bank of China, Zhejiang Branch', '19648014040108531', 'ABOCCNBJ110',
-   'No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China',
-   NULL, NULL, 'Add reference: PI number (e.g. CR202610020002).'),
+   '2nd Floor, No.11 Anshang Road, Yiwu City, China',
+   'JPMorgan Chase Bank, N.A. New York Branch', '30000005242662', 'CHASUS33',
+   '270 Park Ave. New York, NY 10017',
+   NULL, 'US', '028000024(ACH) / 021000021(WIRE)', NULL, NULL, NULL,
+   'Add reference: PI number (e.g. SA202610020002).'),
 
   ('chinarhinestone', 'EUR', 'EUR — Euro', '€',
    'YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD',
-   '2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China',
-   'Agricultural Bank of China, Zhejiang Branch', '19648014040108531', 'ABOCCNBJ110',
-   'No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China',
-   NULL, NULL, 'EUR wires may route via intermediary bank. Sender''s bank may charge a fee; we receive net only.'),
+   '2nd Floor, No.11 Anshang Road, Yiwu City, China',
+   'World First Netherlands B.V.', 'NL39WOFT2010007024', 'WOFTNL22',
+   'Herengract 448, Amsterdam, 1017 CA, Netherlands',
+   'NL39WOFT2010007024', 'NL', NULL, NULL, NULL, NULL,
+   'EUR wires may route via intermediary bank. Sender''s bank may charge a fee; we receive net only.'),
 
   ('chinarhinestone', 'GBP', 'GBP — British Pound', '£',
    'YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD',
    '2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China',
    'Agricultural Bank of China, Zhejiang Branch', '19648014040108531', 'ABOCCNBJ110',
    'No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China',
-   NULL, NULL, 'GBP wires via SWIFT; please add PI number in the wire reference.'),
+   NULL, 'CN', NULL, NULL, NULL, NULL,
+   'GBP wires via SWIFT; please add PI number in the wire reference.'),
 
   ('chinarhinestone', 'CNY', 'CNY — Chinese Yuan (RMB)', '¥',
    '义乌市好梦家居用品制造有限公司',
    '浙江省义乌市安商路11号二楼',
    '中国农业银行浙江省分行', '19648014040108531', 'ABOCCNBJ110',
    '浙江省金华市义乌市宾王路181号',
-   NULL, NULL, '国内人民币电汇请使用CNAPS代码103338671188。')
-ON CONFLICT (site_slug, currency) DO NOTHING;
+   NULL, 'CN', NULL, '103338671188', NULL, NULL,
+   '国内人民币电汇请使用CNAPS代码103338671188。')
+ON CONFLICT (site_slug, currency) DO UPDATE SET
+  label              = EXCLUDED.label,
+  symbol             = EXCLUDED.symbol,
+  beneficiary        = EXCLUDED.beneficiary,
+  company_address    = EXCLUDED.company_address,
+  bank_name          = EXCLUDED.bank_name,
+  account            = EXCLUDED.account,
+  swift              = EXCLUDED.swift,
+  bank_address       = EXCLUDED.bank_address,
+  iban               = EXCLUDED.iban,
+  bank_country       = EXCLUDED.bank_country,
+  routing_number     = EXCLUDED.routing_number,
+  cnaps              = EXCLUDED.cnaps,
+  intermediary_bank  = EXCLUDED.intermediary_bank,
+  intermediary_swift = EXCLUDED.intermediary_swift,
+  notes              = EXCLUDED.notes,
+  updated_at         = NOW();

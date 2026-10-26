@@ -1,7 +1,34 @@
+/**
+ * lib/bank-accounts.ts
+ *
+ * Single source of truth for the factory's bank accounts.
+ *
+ * The values below are copied verbatim from the shared BANK Supabase
+ * (project viyqjlfdguhycbvqbrny, table bank_accounts, site_slug =
+ * 'sublimapparel') — the same factory that sublimapparel.com and
+ * oemtshirts.com pay into. They are the REAL account numbers; do not
+ * replace them with placeholders.
+ *
+ * At runtime the app reads the live rows from the BANK project
+ * (/api/admin/bank-accounts) and falls back to this table when the BANK
+ * project is not configured.
+ *
+ * Two shapes live here on purpose:
+ *   - BankAccount     snake_case, the PI-document display contract
+ *                     (components/pi/PIDisplay.tsx + GET /api/pi/:pi_number)
+ *   - BankAccountInfo camelCase, the admin editor contract
+ *                     (app/admin/new-pi, app/admin/edit-pi)
+ */
+
 export type SupportedCurrency = "usd" | "eur" | "gbp" | "cny";
 
 export const SUPPORTED_CURRENCIES: SupportedCurrency[] = ["usd", "eur", "gbp", "cny"];
 
+/**
+ * Display contract for the PI document. Field names match the JSON that
+ * GET /api/pi/:pi_number returns, so /pay can hand it straight to
+ * <PIDisplay />.
+ */
 export interface BankAccount {
   id: string;
   currency: string;
@@ -15,41 +42,26 @@ export interface BankAccount {
   is_active: boolean;
 }
 
-export const BANK_ACCOUNTS: BankAccount[] = [
-  {
-    id: "ba-usd-001",
-    currency: "USD",
-    beneficiary_name: "Yiwu HomeDorm Commodity Manufacturing Co., Ltd.",
-    bank_name: "Bank of China, Yiwu Branch",
-    bank_address: "No. 168 Mid Yangdong Road, Yiwu, Zhejiang, China",
-    account_number: "1234567890123456",
-    swift_code: "BKCHCNBJ95N",
-    is_active: true,
-  },
-  {
-    id: "ba-eur-001",
-    currency: "EUR",
-    beneficiary_name: "Yiwu HomeDorm Commodity Manufacturing Co., Ltd.",
-    bank_name: "Bank of China, Yiwu Branch",
-    bank_address: "No. 168 Mid Yangdong Road, Yiwu, Zhejiang, China",
-    account_number: "1234567890123457",
-    swift_code: "BKCHCNBJ95N",
-    intermediary_bank: "Bank of America, New York",
-    intermediary_swift: "BOFAUS3N",
-    is_active: true,
-  },
-  {
-    id: "ba-cny-001",
-    currency: "CNY",
-    beneficiary_name: "义乌市豪多商品制造有限公司",
-    bank_name: "中国银行义乌支行",
-    bank_address: "中国浙江省义乌市稠州中路168号",
-    account_number: "1234567890123458",
-    swift_code: "BKCHCNBJ95N",
-    is_active: true,
-  },
-];
+/** Admin editor contract (camelCase). */
+export interface BankAccountInfo {
+  currency: string;
+  label: string;
+  symbol: string;
+  beneficiary: string;
+  companyAddress: string;
+  bankName: string;
+  account: string;
+  swift: string;
+  bankAddress: string;
+  iban?: string;
+  bankCountry?: string;
+  routingNumber?: string;
+  cnaps?: string;
+  intermediaryBank?: string;
+  notes?: string;
+}
 
+/** A row of the Supabase `bank_accounts` table. */
 export interface BankAccountRow {
   id: number;
   site_slug: string;
@@ -62,28 +74,100 @@ export interface BankAccountRow {
   account: string;
   swift: string;
   bank_address: string;
-  iban?: string;
-  bank_country?: string;
-  routing_number?: string;
-  cnaps?: string;
-  intermediary_bank?: string;
-  intermediary_swift?: string;
-  notes?: string;
-  updated_at: string;
+  iban?: string | null;
+  bank_country?: string | null;
+  routing_number?: string | null;
+  cnaps?: string | null;
+  intermediary_bank?: string | null;
+  notes?: string | null;
+  updated_at?: string;
 }
 
-/** Convert Supabase snake_case row → client camelCase BankAccount shape */
-export function bankAccountFromRow(row: BankAccountRow): BankAccount {
+export const BANK_ACCOUNTS: Record<SupportedCurrency, BankAccountInfo> = {
+  usd: {
+    currency: "usd",
+    label: "USD — US Dollar",
+    symbol: "$",
+    beneficiary: "YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD",
+    companyAddress: "2nd Floor, No.11 Anshang Road, Yiwu City, China",
+    bankName: "JPMorgan Chase Bank, N.A. New York Branch",
+    account: "30000005242662",
+    swift: "CHASUS33",
+    bankAddress: "270 Park Ave. New York, NY 10017",
+    bankCountry: "US",
+    routingNumber: "028000024(ACH) / 021000021(WIRE)",
+    notes: "Add reference: PI number (e.g. SA202610020002).",
+  },
+  eur: {
+    currency: "eur",
+    label: "EUR — Euro",
+    symbol: "€",
+    beneficiary: "YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD",
+    companyAddress: "2nd Floor, No.11 Anshang Road, Yiwu City, China",
+    bankName: "World First Netherlands B.V.",
+    account: "NL39WOFT2010007024",
+    swift: "WOFTNL22",
+    bankAddress: "Herengract 448, Amsterdam, 1017 CA, Netherlands",
+    iban: "NL39WOFT2010007024",
+    bankCountry: "NL",
+    notes: "EUR wires may route via intermediary bank. Sender's bank may charge a fee; we receive net only.",
+  },
+  gbp: {
+    currency: "gbp",
+    label: "GBP — British Pound",
+    symbol: "£",
+    beneficiary: "YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD",
+    companyAddress: "2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China",
+    bankName: "Agricultural Bank of China, Zhejiang Branch",
+    account: "19648014040108531",
+    swift: "ABOCCNBJ110",
+    bankAddress: "No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China",
+    bankCountry: "CN",
+    notes: "GBP wires via SWIFT; please add PI number in the wire reference.",
+  },
+  cny: {
+    currency: "cny",
+    label: "CNY — Chinese Yuan (RMB)",
+    symbol: "¥",
+    beneficiary: "义乌市好梦家居用品制造有限公司",
+    companyAddress: "浙江省义乌市安商路11号二楼",
+    bankName: "中国农业银行浙江省分行",
+    account: "19648014040108531",
+    swift: "ABOCCNBJ110",
+    bankAddress: "浙江省金华市义乌市宾王路181号",
+    bankCountry: "CN",
+    cnaps: "103338671188",
+    notes: "国内人民币电汇请使用CNAPS代码103338671188。",
+  },
+};
+
+export function getBankAccount(currency: string | null | undefined): BankAccountInfo {
+  const key = (currency ?? "usd").toLowerCase() as SupportedCurrency;
+  return BANK_ACCOUNTS[key] ?? BANK_ACCOUNTS.usd;
+}
+
+/** Convert a Supabase snake_case row → the admin editor camelCase shape. */
+export function bankAccountFromRow(
+  row: BankAccountRow | null | undefined,
+  currency: string,
+): BankAccountInfo {
+  const fallback = getBankAccount(currency);
+  if (!row) return fallback;
   return {
-    id: String(row.id),
     currency: row.currency,
-    beneficiary_name: row.beneficiary,
-    bank_name: row.bank_name,
-    bank_address: row.bank_address,
-    account_number: row.account,
-    swift_code: row.swift,
-    intermediary_bank: row.intermediary_bank,
-    intermediary_swift: row.intermediary_swift,
-    is_active: true,
+    label: row.label,
+    symbol: row.symbol,
+    beneficiary: row.beneficiary,
+    companyAddress: row.company_address,
+    bankName: row.bank_name,
+    account: row.account,
+    swift: row.swift,
+    bankAddress: row.bank_address,
+    iban: row.iban ?? undefined,
+    bankCountry: row.bank_country ?? undefined,
+    routingNumber: row.routing_number ?? undefined,
+    cnaps: row.cnaps ?? undefined,
+    intermediaryBank: row.intermediary_bank ?? undefined,
+    notes: row.notes ?? undefined,
   };
 }

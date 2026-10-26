@@ -4,131 +4,20 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { Plus, Trash2, Save, ExternalLink, RefreshCw, Upload, X, Check, Copy, Eye, Ruler } from "lucide-react";
 
-// ─── Inline types (adapted from @/lib/bank-accounts) ────────────────────────
-export const SUPPORTED_CURRENCIES = ["usd", "eur", "gbp", "cny"] as const;
-export type SupportedCurrency = (typeof SUPPORTED_CURRENCIES)[number];
+// ─── Bank accounts ───────────────────────────────────────────────────────────
+// Single source of truth lives in @/lib/bank-accounts (the real factory
+// accounts, copied from the shared BANK Supabase project).
+import {
+  getBankAccount,
+  bankAccountFromRow,
+  SUPPORTED_CURRENCIES,
+  type BankAccountInfo,
+  type BankAccountRow,
+  type SupportedCurrency,
+} from "@/lib/bank-accounts";
 
-export interface BankAccount {
-  currency: string;
-  label: string;
-  symbol: string;
-  beneficiary: string;
-  companyAddress: string;
-  bankName: string;
-  account: string;
-  swift: string;
-  bankAddress: string;
-  iban?: string;
-  bankCountry?: string;
-  routingNumber?: string;
-  cnaps?: string;
-  intermediaryBank?: string;
-  notes?: string;
-}
-
-export interface BankAccountRow {
-  id: number;
-  site_slug: string;
-  currency: string;
-  label: string;
-  symbol: string;
-  beneficiary: string;
-  company_address: string;
-  bank_name: string;
-  account: string;
-  swift: string;
-  bank_address: string;
-  iban: string | null;
-  bank_country: string | null;
-  routing_number: string | null;
-  cnaps: string | null;
-  intermediary_bank: string | null;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export const BANK_ACCOUNTS: Record<SupportedCurrency, BankAccount> = {
-  usd: {
-    currency: "usd",
-    label: "USD — US Dollar",
-    symbol: "$",
-    beneficiary: "YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD",
-    companyAddress: "2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China",
-    bankName: "Agricultural Bank of China, Zhejiang Branch",
-    account: "19648014040108531",
-    swift: "ABOCCNBJ110",
-    bankAddress: "No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China",
-    notes: "Add reference: PI number (e.g. CR202610020002).",
-  },
-  eur: {
-    currency: "eur",
-    label: "EUR — Euro",
-    symbol: "€",
-    beneficiary: "YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD",
-    companyAddress: "2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China",
-    bankName: "Agricultural Bank of China, Zhejiang Branch",
-    account: "19648014040108531",
-    swift: "ABOCCNBJ110",
-    bankAddress: "No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China",
-    notes: "EUR wires may route via intermediary bank. Sender's bank may charge a fee; we receive net only.",
-  },
-  gbp: {
-    currency: "gbp",
-    label: "GBP — British Pound",
-    symbol: "£",
-    beneficiary: "YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD",
-    companyAddress: "2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China",
-    bankName: "Agricultural Bank of China, Zhejiang Branch",
-    account: "19648014040108531",
-    swift: "ABOCCNBJ110",
-    bankAddress: "No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China",
-    notes: "GBP wires via SWIFT; please add PI number in the wire reference.",
-  },
-  cny: {
-    currency: "cny",
-    label: "CNY — Chinese Yuan (RMB)",
-    symbol: "¥",
-    beneficiary: "义乌市好梦家居用品制造有限公司",
-    companyAddress: "浙江省义乌市安商路11号二楼",
-    bankName: "中国农业银行浙江省分行",
-    account: "19648014040108531",
-    swift: "ABOCCNBJ110",
-    bankAddress: "浙江省金华市义乌市宾王路181号",
-    cnaps: "103338671188",
-    notes: "国内人民币电汇请使用CNAPS代码103338671188。",
-  },
-};
-
-export function getBankAccount(currency: string | null | undefined): BankAccount {
-  const key = (currency ?? "usd").toLowerCase() as SupportedCurrency;
-  return BANK_ACCOUNTS[key] ?? BANK_ACCOUNTS.usd;
-}
-
-export function bankAccountFromRow(
-  row: BankAccountRow | null | undefined,
-  currency: string,
-): BankAccount {
-  const fallback = BANK_ACCOUNTS[(currency ?? "usd").toLowerCase() as SupportedCurrency] ?? BANK_ACCOUNTS.usd;
-  if (!row) return fallback;
-  return {
-    currency: row.currency,
-    label: row.label,
-    symbol: row.symbol,
-    beneficiary: row.beneficiary,
-    companyAddress: row.company_address,
-    bankName: row.bank_name,
-    account: row.account,
-    swift: row.swift,
-    bankAddress: row.bank_address,
-    iban: row.iban ?? undefined,
-    bankCountry: row.bank_country ?? undefined,
-    routingNumber: row.routing_number ?? undefined,
-    cnaps: row.cnaps ?? undefined,
-    intermediaryBank: row.intermediary_bank ?? undefined,
-    notes: row.notes ?? undefined,
-  };
-}
+export { BANK_ACCOUNTS, SUPPORTED_CURRENCIES, getBankAccount, bankAccountFromRow } from "@/lib/bank-accounts";
+export type { BankAccountInfo, BankAccountRow, SupportedCurrency } from "@/lib/bank-accounts";
 
 // ─── Inline FxRates type (adapted from @/lib/fx-rates) ──────────────────────
 export interface FxRates {
@@ -421,7 +310,7 @@ export default function NewPIPage() {
   const [leadTimeText, setLeadTimeText] = useState("Within 30 days");
 
   const [currency, setCurrency] = useState<SupportedCurrency>("usd");
-  const [bankInfo, setBankInfo] = useState<BankAccount>(() => getBankAccount(currency));
+  const [bankInfo, setBankInfo] = useState<BankAccountInfo>(() => getBankAccount(currency));
   useEffect(() => {
     let cancelled = false;
     (async () => {

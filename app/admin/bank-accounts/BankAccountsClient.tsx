@@ -444,13 +444,13 @@ export default function BankAccountsClient() {
             account: dbRow.account,
             swift: dbRow.swift,
             bank_address: dbRow.bank_address,
-            iban: dbRow.iban,
-            bank_country: dbRow.bank_country,
-            routing_number: dbRow.routing_number,
-            cnaps: dbRow.cnaps,
-            intermediary_bank: dbRow.intermediary_bank,
-            notes: dbRow.notes,
-            updated_at: dbRow.updated_at,
+            iban: dbRow.iban ?? undefined,
+            bank_country: dbRow.bank_country ?? undefined,
+            routing_number: dbRow.routing_number ?? undefined,
+            cnaps: dbRow.cnaps ?? undefined,
+            intermediary_bank: dbRow.intermediary_bank ?? undefined,
+            notes: dbRow.notes ?? undefined,
+            updated_at: dbRow.updated_at ?? "",
           };
           next[c] = { row: formRow, dirty: false, saveState: "idle", errorMsg: null };
         } else {
@@ -483,7 +483,7 @@ export default function BankAccountsClient() {
       if (!res.ok) return;
       const data = (await res.json()) as { ok: boolean; accounts?: DbBankAccountRow[] };
       const rows = data.accounts ?? [];
-      const dbRow = rows.find((r) => r.currency === currency);
+      const dbRow = rows.find((r) => r.currency?.toLowerCase() === currency.toLowerCase());
       if (!dbRow) return;
       const fresh: FormBankAccountRow = {
         id: dbRow.id,
@@ -497,13 +497,13 @@ export default function BankAccountsClient() {
         account: dbRow.account,
         swift: dbRow.swift,
         bank_address: dbRow.bank_address,
-        iban: dbRow.iban,
-        bank_country: dbRow.bank_country,
-        routing_number: dbRow.routing_number,
-        cnaps: dbRow.cnaps,
-        intermediary_bank: dbRow.intermediary_bank,
-        notes: dbRow.notes,
-        updated_at: dbRow.updated_at,
+        iban: dbRow.iban ?? undefined,
+        bank_country: dbRow.bank_country ?? undefined,
+        routing_number: dbRow.routing_number ?? undefined,
+        cnaps: dbRow.cnaps ?? undefined,
+        intermediary_bank: dbRow.intermediary_bank ?? undefined,
+        notes: dbRow.notes ?? undefined,
+        updated_at: dbRow.updated_at ?? "",
       };
       setForms({
         ...forms,

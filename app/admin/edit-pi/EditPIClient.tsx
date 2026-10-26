@@ -5,84 +5,18 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Plus, Trash2, Save, ExternalLink, RefreshCw, Upload, X, Check, Copy, Eye, Ruler, AlertTriangle, Lock } from "lucide-react";
 
-// ─── Inline types (same as NewPIClient) ─────────────────────────────────────
-export const SUPPORTED_CURRENCIES = ["usd", "eur", "gbp", "cny"] as const;
-export type SupportedCurrency = (typeof SUPPORTED_CURRENCIES)[number];
+// ─── Bank accounts ───────────────────────────────────────────────────────────
+// Single source of truth lives in @/lib/bank-accounts (the real factory
+// accounts, copied from the shared BANK Supabase project).
+import {
+  getBankAccount,
+  SUPPORTED_CURRENCIES,
+  type BankAccountInfo,
+  type SupportedCurrency,
+} from "@/lib/bank-accounts";
 
-export interface BankAccount {
-  currency: string;
-  label: string;
-  symbol: string;
-  beneficiary: string;
-  companyAddress: string;
-  bankName: string;
-  account: string;
-  swift: string;
-  bankAddress: string;
-  iban?: string;
-  bankCountry?: string;
-  routingNumber?: string;
-  cnaps?: string;
-  intermediaryBank?: string;
-  notes?: string;
-}
-
-export const BANK_ACCOUNTS: Record<SupportedCurrency, BankAccount> = {
-  usd: {
-    currency: "usd",
-    label: "USD — US Dollar",
-    symbol: "$",
-    beneficiary: "YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD",
-    companyAddress: "2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China",
-    bankName: "Agricultural Bank of China, Zhejiang Branch",
-    account: "19648014040108531",
-    swift: "ABOCCNBJ110",
-    bankAddress: "No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China",
-    notes: "Add reference: PI number (e.g. CR202610020002).",
-  },
-  eur: {
-    currency: "eur",
-    label: "EUR — Euro",
-    symbol: "€",
-    beneficiary: "YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD",
-    companyAddress: "2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China",
-    bankName: "Agricultural Bank of China, Zhejiang Branch",
-    account: "19648014040108531",
-    swift: "ABOCCNBJ110",
-    bankAddress: "No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China",
-    notes: "EUR wires may route via intermediary bank. Sender's bank may charge a fee; we receive net only.",
-  },
-  gbp: {
-    currency: "gbp",
-    label: "GBP — British Pound",
-    symbol: "£",
-    beneficiary: "YIWU HOMEDORM COMMODITY MANUFACTURING CO.,LTD",
-    companyAddress: "2nd Floor, No.11 Anshang Road, Yiwu City, Jinhua, Zhejiang Province, China",
-    bankName: "Agricultural Bank of China, Zhejiang Branch",
-    account: "19648014040108531",
-    swift: "ABOCCNBJ110",
-    bankAddress: "No. 181 Binwang Road, Yiwu City, Jinhua, Zhejiang Province, China",
-    notes: "GBP wires via SWIFT; please add PI number in the wire reference.",
-  },
-  cny: {
-    currency: "cny",
-    label: "CNY — Chinese Yuan (RMB)",
-    symbol: "¥",
-    beneficiary: "义乌市好梦家居用品制造有限公司",
-    companyAddress: "浙江省义乌市安商路11号二楼",
-    bankName: "中国农业银行浙江省分行",
-    account: "19648014040108531",
-    swift: "ABOCCNBJ110",
-    bankAddress: "浙江省金华市义乌市宾王路181号",
-    cnaps: "103338671188",
-    notes: "国内人民币电汇请使用CNAPS代码103338671188。",
-  },
-};
-
-export function getBankAccount(currency: string | null | undefined): BankAccount {
-  const key = (currency ?? "usd").toLowerCase() as SupportedCurrency;
-  return BANK_ACCOUNTS[key] ?? BANK_ACCOUNTS.usd;
-}
+export { BANK_ACCOUNTS, SUPPORTED_CURRENCIES, getBankAccount } from "@/lib/bank-accounts";
+export type { BankAccountInfo, BankAccountRow, SupportedCurrency } from "@/lib/bank-accounts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type SizeRow = { label: string; qty: number };
@@ -264,7 +198,7 @@ export default function EditPIPage() {
   const [issueDate, setIssueDate] = useState("");
   const [leadTimeText, setLeadTimeText] = useState("Within 30 days");
   const [currency, setCurrency] = useState<SupportedCurrency>("usd");
-  const [bankInfo, setBankInfo] = useState<BankAccount>(() => getBankAccount("usd"));
+  const [bankInfo, setBankInfo] = useState<BankAccountInfo>(() => getBankAccount("usd"));
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerCompany, setCustomerCompany] = useState("");
