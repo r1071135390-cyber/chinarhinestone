@@ -21,21 +21,13 @@
 import { getSupabase, isPiStoreConfigured, piStoreEnvDiagnostic, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
-
-interface SizeRow {
-  label?: string;
-  qty?: number;
-}
-
-interface ItemRow {
-  description?: string;
-  fabric?: string;
-  quantity?: number;
-  unit?: string;
-  unitPrice?: number;
-  imageUrl?: string;
-  sizes?: SizeRow[];
-}
+import {
+  itemsSubtotalCents,
+  normalizeItems,
+  text,
+  toCents,
+  type ItemRow,
+} from "../../_lib/pi-items";
 
 interface CreatePiBody {
   piNumber?: string;
@@ -54,6 +46,7 @@ interface CreatePiBody {
   shippingLabel?: string;
   shippingMethod?: string;
   shippingQty?: number;
+  shippingTerm?: string;
   shippingCost?: number;
   currency?: string;
   notes?: string;
@@ -66,57 +59,12 @@ const OPTIONAL_COLUMNS = [
   "shipping_label",
   "shipping_method",
   "shipping_qty",
+  "shipping_term",
 ] as const;
-
-function text(v: unknown): string {
-  return typeof v === "string" ? v.trim() : "";
-}
 
 function num(v: unknown): number {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
-}
-
-function toCents(v: unknown): number {
-  return Math.round(num(v) * 100);
-}
-
-/**
- * Normalize one line item for storage.
- * `unit_price` / `total` stay in major units — line_items is a JSONB
- * document (not a money column) and the PI document renders it that way.
- * Inline `data:` artwork URLs are dropped — they are megabytes of base64 and
- * would bloat the row.
- */
-function buildLineItem(raw: ItemRow) {
-  const description = text(raw.description);
-  const quantity = num(raw.quantity);
-  const unitPrice = num(raw.unitPrice);
-  const sizes = (raw.sizes ?? [])
-    .map((s) => ({ label: text(s.label), qty: num(s.qty) }))
-    .filter((s) => s.label);
-
-  const row: Record<string, unknown> = {
-    description,
-    quantity,
-    unit_price: unitPrice,
-    total: Math.round(quantity * unitPrice * 100) / 100,
-  };
-
-  const fabric = text(raw.fabric);
-  if (fabric) row.fabric = fabric;
-  const unit = text(raw.unit);
-  if (unit) row.unit = unit;
-
-  const imageUrl = text(raw.imageUrl);
-  if (imageUrl && !imageUrl.startsWith("data:")) row.image_url = imageUrl;
-
-  if (sizes.length > 0) {
-    row.sizes = sizes;
-    row.size = sizes.map((s) => `${s.label}:${s.qty}`).join(" ");
-  }
-
-  return row;
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -139,15 +87,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   let body: CreatePiBody;
   try {
-    body = await context.request.json<CreatePiBody>();
+    body = (await context.request.json()) as CreatePiBody;
   } catch {
     return jsonResponse({ error: "Invalid JSON body" }, { status: 400, request: context.request, env });
   }
 
   const currency = text(body.currency).toUpperCase();
-  const items = (body.items ?? [])
-    .filter((it) => text(it.description))
-    .map(buildLineItem);
+  const items = normalizeItems(body.items);
 
   if (!currency) {
     return jsonResponse({ error: "Missing required field: currency" }, { status: 400, request: context.request, env });
@@ -172,10 +118,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   // ── Amounts (recomputed server-side) ─────────────────────────────────────
-  const itemsSubtotal = items.reduce((sum, it) => sum + num(it.total), 0);
   const shippingQty = Math.max(1, num(body.shippingQty) || 1);
   const shippingTotal = num(body.shippingCost) * shippingQty;
-  const subtotalCents = toCents(itemsSubtotal);
+  const subtotalCents = itemsSubtotalCents(items);
   const shippingCents = toCents(shippingTotal);
   const totalCents = subtotalCents + shippingCents;
 
@@ -210,6 +155,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     shipping_label: text(body.shippingLabel) || null,
     shipping_method: text(body.shippingMethod) || null,
     shipping_qty: shippingQty,
+    shipping_term: text(body.shippingTerm) || null,
   };
 
   const SELECT = "id, pi_number, status, created_at";

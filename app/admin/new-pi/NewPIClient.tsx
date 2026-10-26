@@ -654,6 +654,7 @@ export default function NewPIPage() {
           shippingLabel: shippingLabel.trim() || undefined,
           shippingMethod: shippingMethod.trim() || undefined,
           shippingQty: Number(shippingQty) || 1,
+          shippingTerm: shippingTerm.trim() || undefined,
           shippingCost: Number(shippingCost) || 0,
           currency: currency.toUpperCase(),
           notes: termsPaymentText || undefined,

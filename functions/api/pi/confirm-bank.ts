@@ -51,7 +51,7 @@ export const onRequestPost: PagesFunction<Env & { CONFIRM_TOKEN?: string }> = as
 
   let body: ConfirmBody;
   try {
-    body = await context.request.json<ConfirmBody>();
+    body = (await context.request.json()) as ConfirmBody;
   } catch {
     return jsonResponse({ error: "Invalid JSON body" }, { status: 400, request: context.request, env });
   }

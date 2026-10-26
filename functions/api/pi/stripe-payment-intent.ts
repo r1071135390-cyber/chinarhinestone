@@ -77,7 +77,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   let body: CreateIntentBody;
   try {
-    body = await context.request.json<CreateIntentBody>();
+    body = (await context.request.json()) as CreateIntentBody;
   } catch {
     return jsonResponse({ error: "Invalid JSON body" }, { status: 400, request: context.request, env });
   }

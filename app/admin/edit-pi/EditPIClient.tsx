@@ -301,7 +301,7 @@ export default function EditPIPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/pi/${encodeURIComponent(piNumberParam)}`, { cache: "no-store" });
+        const res = await fetch(`/api/admin/pi/${encodeURIComponent(piNumberParam)}`, { cache: "no-store" });
         if (!res.ok) {
           if (res.status === 404) {
             setNotFound(true);
@@ -330,9 +330,10 @@ export default function EditPIPage() {
           }>;
           shippingLabel?: string;
           shippingMethod?: string;
+          shippingQty?: number;
+          shippingTerm?: string;
           shippingCost?: number;
           paymentTermsText?: string;
-          shippingTerm?: string;
           currency?: string;
           status?: string;
         };
@@ -370,9 +371,10 @@ export default function EditPIPage() {
         }
         if (data.shippingLabel) setShippingLabel(data.shippingLabel);
         if (data.shippingMethod) setShippingMethod(data.shippingMethod);
+        if (typeof data.shippingQty === "number" && data.shippingQty > 0) setShippingQty(data.shippingQty);
+        if (data.shippingTerm) setShippingTerm(data.shippingTerm);
         if (typeof data.shippingCost === "number") setShippingCost(data.shippingCost);
         if (data.paymentTermsText) setTermsPaymentText(data.paymentTermsText);
-        if (data.shippingTerm) setShippingTerm(data.shippingTerm);
         if (data.currency) {
           const c = data.currency as SupportedCurrency;
           setCurrency(SUPPORTED_CURRENCIES.includes(c) ? c : "usd");
@@ -394,7 +396,7 @@ export default function EditPIPage() {
     () => items.reduce((sum, it) => sum + getItemQty(it) * it.unitPrice, 0),
     [items],
   );
-  const grandTotal = itemsSubtotal + shippingCost;
+  const grandTotal = itemsSubtotal + shippingCost * shippingQty;
 
   function addItem() {
     setItems([
@@ -470,6 +472,8 @@ export default function EditPIPage() {
             }),
           shippingLabel: shippingLabel.trim() || undefined,
           shippingMethod: shippingMethod.trim() || undefined,
+          shippingQty: shippingQty,
+          shippingTerm: shippingTerm,
           shippingCost: Number(shippingCost) || 0,
           currency,
           notes: termsPaymentText || undefined,
@@ -988,7 +992,7 @@ export function PIPreview(props: {
             Add item
           </button>
           <div className="text-neutral-500 text-xs">
-            Subtotal: {fmt(itemsSubtotal, bank.symbol)} + Shipping: {fmt(shippingCost, bank.symbol)} = <strong className="text-black dark:text-white">{fmt(grandTotal, bank.symbol)}</strong>
+            Subtotal: {fmt(itemsSubtotal, bank.symbol)} + Shipping: {fmt(shippingQty * shippingCost, bank.symbol)} = <strong className="text-black dark:text-white">{fmt(grandTotal, bank.symbol)}</strong>
           </div>
         </div>
       </div>
