@@ -29,13 +29,11 @@ export const onRequestPost: PagesFunction<Env & { CONFIRM_TOKEN?: string }> = as
   const env = context.env;
   const siteSlug = env.SITE_SLUG ?? "chinarhinestone";
 
-  // Optional soft-auth: only callers with the token can submit
-  if (env.CONFIRM_TOKEN) {
-    const supplied = context.request.headers.get("X-Confirm-Token") ?? "";
-    if (supplied !== env.CONFIRM_TOKEN) {
-      return jsonResponse({ error: "Forbidden" }, { status: 403, request: context.request, env });
-    }
-  }
+  // No token gate here. This endpoint is called by the customer's browser
+  // (the "I have wired the money" button on /pay), and a browser cannot
+  // hold a secret — any token it sent would be readable from the bundle.
+  // Requiring the header just made the customer flow fail with 403. Same
+  // reasoning as /api/pi/create.
 
   // Without this the lookup would throw and Cloudflare would answer with a
   // bare "error code: 1101" page instead of JSON.

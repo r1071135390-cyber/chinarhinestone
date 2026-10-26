@@ -89,7 +89,10 @@ export default function PayClient() {
       if (res.ok) {
         setBankTransferConfirmed(true);
         setPaymentMethod("bank");
+        return;
       }
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      setError(data.error || `Failed to confirm bank transfer (${res.status})`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to confirm bank transfer");
     }
