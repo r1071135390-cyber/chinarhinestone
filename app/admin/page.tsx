@@ -1,7 +1,20 @@
 import Link from "next/link";
-import { LayoutDashboard, Users, Building2 } from "lucide-react";
+import { LayoutDashboard, Users, Building2, FileText, Plus } from "lucide-react";
+import PiListModule from "@/components/admin/PiListModule";
 
 const ADMIN_LINKS = [
+  {
+    href: "/admin/summary/",
+    label: "PI Overview",
+    description: "Totals, monthly value and currency breakdown",
+    icon: FileText,
+  },
+  {
+    href: "/admin/new-pi/",
+    label: "New PI",
+    description: "Create a proforma invoice and send it to the customer",
+    icon: Plus,
+  },
   {
     href: "/admin/bank-accounts",
     label: "Bank Accounts",
@@ -60,6 +73,10 @@ export default function AdminPage() {
               <p className="text-sm text-[#6b6b6b]">{description}</p>
             </Link>
           ))}
+        </div>
+
+        <div className="mt-10">
+          <PiListModule />
         </div>
       </div>
     </main>
