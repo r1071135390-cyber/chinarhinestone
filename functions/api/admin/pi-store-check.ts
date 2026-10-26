@@ -231,9 +231,9 @@ async function probeMain(
   }
 
   // Is site_slug = 'chinarhinestone' accepted by the CHECK constraint?
-  // `.rollback()` sets `Prefer: tx=rollback`, so PostgREST runs the insert
-  // in a transaction that is rolled back — constraints, RLS and triggers
-  // all fire, but no row is ever persisted.
+  // The insert is the only way to see that through the REST API — but it
+  // really does write a row (the tx=rollback preference is not honoured by
+  // every PostgREST build), so the marker row is deleted again right after.
   if (slugColumn === "site_slug") {
     const marker = `__diag_${Date.now()}`;
     const row: Record<string, unknown> = {
@@ -243,16 +243,13 @@ async function probeMain(
       currency: "USD",
       line_items: [],
     };
-    const insert = await client
-      .from("proforma_invoices")
-      .insert(row)
-      .select("id")
-      .rollback();
+    const insert = await client.from("proforma_invoices").insert(row).select("id").maybeSingle();
     if (insert.error) {
       result.siteSlugProbe = "rejected";
       result.siteSlugError = insert.error.message;
     } else {
       result.siteSlugProbe = "allowed";
+      await client.from("proforma_invoices").delete().eq("pi_number", marker);
     }
   }
 
@@ -368,22 +365,27 @@ async function probeBankProforma(
     ].filter(Boolean);
   }
 
-  // Would a row for this site be accepted? Rolled back, so nothing is stored.
+  // Would a row for this site be accepted? The insert really writes a row,
+  // so the marker row is deleted again right after. Only columns that
+  // actually exist are sent — this table is a leaner one.
   const marker = `__diag_${Date.now()}`;
+  const probeRow: Record<string, unknown> = {
+    pi_number: marker,
+    [slugColumn]: "chinarhinestone",
+    status: "draft",
+    currency: "USD",
+  };
+  if (columns.present.includes("line_items")) probeRow.line_items = [];
+
   const insert = await client
     .from("proforma_invoices")
-    .insert({
-      pi_number: marker,
-      [slugColumn]: "chinarhinestone",
-      status: "draft",
-      currency: "USD",
-      line_items: [],
-    })
+    .insert(probeRow)
     .select("id")
-    .rollback();
+    .maybeSingle();
 
   if (!insert.error) {
     result.siteSlugProbe = "allowed";
+    await client.from("proforma_invoices").delete().eq("pi_number", marker);
     return result;
   }
   const message = insert.error.message ?? "";
