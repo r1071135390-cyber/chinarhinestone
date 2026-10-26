@@ -102,6 +102,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     .select("pi_number, amount_cents")
     .eq("site_slug", siteSlug);
 
+  // The ledger only exists after supabase/migrations/20261026_pi_payment_tracking.sql
+  // has run. Until then duplicate payments cannot be counted, so the admin
+  // list is told to say so instead of silently showing "no duplicates".
+  const paymentLedgerAvailable = !paymentsError;
+
   if (!paymentsError && paymentRows) {
     for (const row of paymentRows as { pi_number: string; amount_cents: number | null }[]) {
       const entry = paymentTotals.get(row.pi_number) ?? { count: 0, cents: 0 };
@@ -174,6 +179,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     shownCount: pis.length,
     monthCount,
     duplicatePaymentCount,
+    paymentLedgerAvailable,
     totalsByCurrency,
     monthTotalsByCurrency,
     totalValueUsdCents: totalUsdCents,

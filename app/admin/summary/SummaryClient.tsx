@@ -55,6 +55,7 @@ interface SummaryStats {
   shownCount: number;
   monthCount: number;
   duplicatePaymentCount?: number;
+  paymentLedgerAvailable?: boolean;
   totalsByCurrency: Record<string, CurrencyBucket>;
   monthTotalsByCurrency: Record<string, CurrencyBucket>;
   totalValueUsdCents: number;
@@ -322,6 +323,19 @@ export default function SummaryClient() {
               {stats.duplicatePaymentCount} invoice(s) received more than one payment.
               Check the rows flagged "Duplicate" below and refund the extra payment
               from the Stripe dashboard.
+            </div>
+          </div>
+        )}
+
+        {/* Payment ledger not installed yet — duplicate detection is inactive */}
+        {stats && stats.paymentLedgerAvailable === false && (
+          <div className="mb-6 flex items-start gap-3 border-2 border-amber-400 bg-amber-50 p-4 text-sm text-amber-900">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" strokeWidth={2.5} />
+            <div>
+              <span className="font-bold">Duplicate-payment tracking is not active yet.</span>{" "}
+              Run <code className="font-mono">supabase/migrations/20261026_pi_payment_tracking.sql</code>{" "}
+              in the Supabase SQL editor to install the payment ledger. Until then
+              repeated payments on the same invoice are not counted.
             </div>
           </div>
         )}
