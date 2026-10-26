@@ -14,7 +14,7 @@
  * Money: the DB stores cents; the PI document renders major units.
  */
 
-import { getSupabase, getBankSupabase, type Env } from "../../_lib/supabase";
+import { getSupabase, getBankSupabase, isPiStoreConfigured, piStoreEnvDiagnostic, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
 
@@ -79,22 +79,35 @@ async function fetchBankAccount(
   const supabase = getBankSupabase(env);
   // BANK DB rows live under site_slug='sublimapparel'; main DB has rows for
   // this site's slug. Try BANK first, fall back to MAIN.
-  const fromBank = await supabase
-    .from("bank_accounts")
-    .select("*")
-    .eq("site_slug", BANK_SOURCE_SITE)
-    .eq("currency", currency)
-    .maybeSingle<BankAccountRow>();
-  if (fromBank.data) return fromBank.data;
+  //
+  // Currency case is not consistent between the two databases: the BANK
+  // project stores lowercase ('usd'), the MAIN migration seeds uppercase
+  // ('USD'). The column is plain TEXT with no CHECK, so both spellings can
+  // coexist — match case-insensitively instead of guessing.
+  const variants = [currency, currency.toUpperCase(), currency.toLowerCase()];
+
+  for (const variant of variants) {
+    const fromBank = await supabase
+      .from("bank_accounts")
+      .select("*")
+      .eq("site_slug", BANK_SOURCE_SITE)
+      .eq("currency", variant)
+      .maybeSingle<BankAccountRow>();
+    if (fromBank.data) return fromBank.data;
+  }
 
   const fallback = getSupabase(env);
-  const fromMain = await fallback
-    .from("bank_accounts")
-    .select("*")
-    .eq("site_slug", siteSlug)
-    .eq("currency", currency)
-    .maybeSingle<BankAccountRow>();
-  return fromMain.data ?? null;
+  for (const variant of variants) {
+    const fromMain = await fallback
+      .from("bank_accounts")
+      .select("*")
+      .eq("site_slug", siteSlug)
+      .eq("currency", variant)
+      .maybeSingle<BankAccountRow>();
+    if (fromMain.data) return fromMain.data;
+  }
+
+  return null;
 }
 
 interface LineItem {
@@ -129,6 +142,18 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   if (!piNumber) {
     return jsonResponse({ error: "Missing pi_number" }, { status: 400, request: context.request, env });
+  }
+
+  // Without this the query would throw and Cloudflare would answer with a
+  // bare "error code: 1101" page instead of JSON.
+  if (!isPiStoreConfigured(env)) {
+    return jsonResponse(
+      {
+        error: "PI store is not configured on this deployment.",
+        diagnostic: piStoreEnvDiagnostic(env),
+      },
+      { status: 500, request: context.request, env }
+    );
   }
 
   const supabase = getSupabase(env);

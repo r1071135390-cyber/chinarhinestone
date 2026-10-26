@@ -248,6 +248,60 @@ function todayIsoDate() {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * Turn a failed save response into something an operator can act on.
+ *
+ * The API answers with JSON that carries the exact missing configuration
+ * (e.g. the Supabase env vars on the Cloudflare Pages project). Showing that
+ * raw blob in the UI tells the operator nothing — spell it out instead.
+ */
+function describeSaveFailure(status: number, body: string): string {
+  let parsed: {
+    error?: string;
+    diagnostic?: {
+      mainUrlSet?: boolean;
+      mainKeySet?: boolean;
+      siteSlug?: string | null;
+      expectedEnvVars?: Array<{ name: string; value: string }>;
+      note?: string;
+    };
+  } | null = null;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    parsed = null;
+  }
+
+  if (!parsed?.error) {
+    // Cloudflare's own error pages ("error code: 1101") are not JSON.
+    return `Save failed (${status}): ${body.slice(0, 300)}`;
+  }
+
+  const d = parsed.diagnostic;
+  if (d && d.mainUrlSet === false) {
+    return [
+      "保存失败：Cloudflare Pages 尚未配置本网站的 Supabase 环境变量，PI 无法入库。",
+      "",
+      `缺少：${[
+        !d.mainUrlSet ? "SUPABASE_URL" : null,
+        !d.mainKeySet ? "SUPABASE_SERVICE_ROLE_KEY" : null,
+        !d.siteSlug ? "SITE_SLUG" : null,
+      ]
+        .filter(Boolean)
+        .join("、")}`,
+      "",
+      "操作步骤：",
+      "1. 打开 Cloudflare Dashboard → Workers & Pages → chinarhinestone → Settings → Environment variables",
+      "2. 在 Production 和 Preview 两个标签页都添加以下变量",
+      ...(d.expectedEnvVars ?? []).map((v) => `   - ${v.name} = ${v.value}`),
+      "3. 保存后点击 Retry deployment（改环境变量不会自动重新部署）",
+      "4. 之后访问 /api/admin/pi-store-check 自检数据库结构",
+    ].join("\n");
+  }
+
+  return `保存失败 (${status}): ${parsed.error}`;
+}
+
 const fmt = (dollars: number, symbol = "$") =>
   `${symbol}${dollars.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -608,7 +662,7 @@ export default function NewPIPage() {
 
       if (!res.ok) {
         const txt = await res.text();
-        setError(`Save failed (${res.status}): ${txt}`);
+        setError(describeSaveFailure(res.status, txt));
         return;
       }
 

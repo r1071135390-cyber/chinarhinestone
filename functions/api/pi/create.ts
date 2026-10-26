@@ -18,7 +18,7 @@
  * the client's totals are never trusted.
  */
 
-import { getSupabase, type Env } from "../../_lib/supabase";
+import { getSupabase, isPiStoreConfigured, piStoreEnvDiagnostic, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
 
@@ -124,17 +124,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const siteSlug = env.SITE_SLUG ?? "chinarhinestone";
 
   // The PI store lives in this site's own Supabase project. Without these
-  // two vars nothing can be saved — say so plainly instead of throwing.
-  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+  // two vars nothing can be saved — say so plainly, with the exact setup
+  // steps, instead of throwing.
+  if (!isPiStoreConfigured(env)) {
     return jsonResponse(
       {
         error:
           "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are not set on this Cloudflare Pages project, so proforma invoices cannot be saved yet.",
-        diagnostic: {
-          mainUrlSet: Boolean(env.SUPABASE_URL),
-          mainKeySet: Boolean(env.SUPABASE_SERVICE_ROLE_KEY),
-          siteSlug: env.SITE_SLUG ?? null,
-        },
+        diagnostic: piStoreEnvDiagnostic(env),
       },
       { status: 500, request: context.request, env }
     );

@@ -7,7 +7,7 @@
  * Backed by the Postgres next_pi_number(prefix TEXT) RPC.
  */
 
-import { getSupabase, type Env } from "../../_lib/supabase";
+import { getSupabase, isPiStoreConfigured, piStoreEnvDiagnostic, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
 
@@ -18,6 +18,18 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   if (!prefix) {
     return jsonResponse({ error: "Missing prefix" }, { status: 400, request: context.request, env });
+  }
+
+  // Without this the RPC would throw and Cloudflare would answer with a bare
+  // "error code: 1101" page instead of JSON.
+  if (!isPiStoreConfigured(env)) {
+    return jsonResponse(
+      {
+        error: "PI store is not configured on this deployment.",
+        diagnostic: piStoreEnvDiagnostic(env),
+      },
+      { status: 500, request: context.request, env }
+    );
   }
 
   const supabase = getSupabase(env);

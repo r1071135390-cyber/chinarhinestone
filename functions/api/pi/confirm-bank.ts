@@ -15,7 +15,7 @@
  * marking PIs as awaiting without having seen the bank info.
  */
 
-import { getSupabase, type Env } from "../../_lib/supabase";
+import { getSupabase, isPiStoreConfigured, piStoreEnvDiagnostic, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
 
@@ -35,6 +35,18 @@ export const onRequestPost: PagesFunction<Env & { CONFIRM_TOKEN?: string }> = as
     if (supplied !== env.CONFIRM_TOKEN) {
       return jsonResponse({ error: "Forbidden" }, { status: 403, request: context.request, env });
     }
+  }
+
+  // Without this the lookup would throw and Cloudflare would answer with a
+  // bare "error code: 1101" page instead of JSON.
+  if (!isPiStoreConfigured(env)) {
+    return jsonResponse(
+      {
+        error: "PI store is not configured on this deployment.",
+        diagnostic: piStoreEnvDiagnostic(env),
+      },
+      { status: 500, request: context.request, env }
+    );
   }
 
   let body: ConfirmBody;

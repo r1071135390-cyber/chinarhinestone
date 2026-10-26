@@ -82,6 +82,45 @@ export function isBankSupabaseConfigured(env: Env): boolean {
   return Boolean(env.BANK_SUPABASE_URL && env.BANK_SUPABASE_SERVICE_ROLE_KEY);
 }
 
+/**
+ * True when this site's own Supabase project is not wired up.
+ *
+ * The PI store lives in MAIN (not BANK). Without these two vars nothing can
+ * be read or written, and the failure mode differs per endpoint: getSupabase()
+ * throws, and an uncaught throw inside a Pages Function makes Cloudflare
+ * answer with a bare "error code: 1101" HTML page instead of JSON. Endpoints
+ * check this first and return a JSON diagnostic instead.
+ */
+export function isPiStoreConfigured(env: Env): boolean {
+  return Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
+/**
+ * The payload every endpoint returns when the PI store is not configured.
+ *
+ * Contains booleans and setup instructions only — never a secret value.
+ */
+export function piStoreEnvDiagnostic(env: Env) {
+  return {
+    mainUrlSet: Boolean(env.SUPABASE_URL),
+    mainKeySet: Boolean(env.SUPABASE_SERVICE_ROLE_KEY),
+    siteSlug: env.SITE_SLUG ?? null,
+    setupLinks: {
+      envVars: "https://dash.cloudflare.com/?to=/:account/pages/view/chinarhinestone",
+    },
+    expectedEnvVars: [
+      { name: "SUPABASE_URL", value: "https://zxobbdaqzkbfaoyahggz.supabase.co" },
+      {
+        name: "SUPABASE_SERVICE_ROLE_KEY",
+        value: "<MAIN Supabase zxobbdaqzkbfaoyahggz → Settings → API → service_role>",
+      },
+      { name: "SITE_SLUG", value: "chinarhinestone" },
+    ],
+    note:
+      "CF Pages has two environment-variable tabs — Production and Preview. Both must be set. Changing values does NOT auto-redeploy; push a new commit (or click Retry deployment) for the new values to be picked up.",
+  };
+}
+
 export interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
@@ -93,5 +132,7 @@ export interface Env {
   // Optional: which site this Pages project serves.
   // Used to scope bank_accounts / proforma_invoices queries.
   SITE_SLUG?: string;
+  // Optional: comma-separated CORS origins (see _lib/cors.ts).
+  ALLOWED_ORIGINS?: string;
 }
 

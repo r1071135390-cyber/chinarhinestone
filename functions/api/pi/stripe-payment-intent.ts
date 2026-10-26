@@ -12,7 +12,8 @@
  * Stores the intent id back in proforma_invoices.stripe_payment_intent_id.
  */
 
-import { getSupabase, type Env } from "../../_lib/supabase";
+import type Stripe from "stripe";
+import { getSupabase, isPiStoreConfigured, piStoreEnvDiagnostic, type Env } from "../../_lib/supabase";
 import { getStripe } from "../../_lib/stripe";
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
@@ -23,6 +24,51 @@ interface CreateIntentBody {
   amount_cents?: number;
   customer_email?: string;
   customer_name?: string;
+}
+
+interface PiRow {
+  customer_name?: string | null;
+  customer_email?: string | null;
+  customer_address?: string | null;
+  customer_country?: string | null;
+}
+
+/**
+ * Build the Stripe `shipping` object for a PI.
+ *
+ * Stripe types `shipping.address` as required, so shipping can only be sent
+ * when we can produce a usable address. The PI stores the address as a single
+ * free-text blob, so the first line becomes `line1` and the remainder
+ * `line2`. `country` is only forwarded when it already looks like an ISO
+ * 3166-1 alpha-2 code — Stripe rejects other formats.
+ */
+function buildShipping(
+  pi: PiRow | null,
+  fallbackName: string
+): { name: string; address: Stripe.AddressParam } | undefined {
+  const name = (pi?.customer_name ?? fallbackName ?? "").trim();
+  if (!name) return undefined;
+
+  const parts = (pi?.customer_address ?? "")
+    .split(/[\r\n]+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (parts.length === 0) return undefined;
+
+  const line1 = parts[0];
+  const line2 = parts.slice(1).join(", ") || undefined;
+
+  const rawCountry = (pi?.customer_country ?? "").trim();
+  const country = /^[A-Za-z]{2}$/.test(rawCountry) ? rawCountry.toUpperCase() : undefined;
+
+  return {
+    name,
+    address: {
+      line1,
+      ...(line2 ? { line2 } : {}),
+      ...(country ? { country } : {}),
+    },
+  };
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -46,12 +92,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return jsonResponse({ error: "Missing pi_number" }, { status: 400, request: context.request, env });
   }
 
+  // Without this the lookup would throw and Cloudflare would answer with a
+  // bare "error code: 1101" page instead of JSON.
+  if (!isPiStoreConfigured(env)) {
+    return jsonResponse(
+      {
+        error: "PI store is not configured on this deployment.",
+        diagnostic: piStoreEnvDiagnostic(env),
+      },
+      { status: 500, request: context.request, env }
+    );
+  }
+
   const supabase = getSupabase(env);
 
   // 1. Look up the PI to confirm it exists and is payable
   const { data: pi, error: piError } = await supabase
     .from("proforma_invoices")
-    .select("pi_number, status, stripe_payment_intent_id, total_cents, currency")
+    .select("pi_number, status, stripe_payment_intent_id, total_cents, currency, customer_name, customer_email, customer_address, customer_country")
     .eq("pi_number", piNumber)
     .eq("site_slug", siteSlug)
     .maybeSingle();
@@ -104,6 +162,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   // 3. Create a new PaymentIntent
+  //
+  // Stripe's `shipping` object requires an `address` — a bare `{ name }` is
+  // rejected by the type (and would fail at runtime). The PI stores the
+  // address as one free-text blob, so split it into line1 / line2 and only
+  // attach shipping when we actually have a usable line1. Country is only
+  // sent when it is a real ISO 3166-1 alpha-2 code, because Stripe validates
+  // the format and rejects anything else.
+  const shipping = buildShipping(pi, customerName);
+
   const intent = await stripe.paymentIntents.create({
     amount: amountCents,
     currency,
@@ -113,8 +180,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       site_slug: siteSlug,
     },
     description: `Proforma Invoice ${piNumber}`,
-    receipt_email: customerEmail || undefined,
-    shipping: customerName ? { name: customerName } : undefined,
+    receipt_email: (pi.customer_email || customerEmail) || undefined,
+    shipping,
   });
 
   // 4. Persist the intent id on the PI for later webhook reconciliation
