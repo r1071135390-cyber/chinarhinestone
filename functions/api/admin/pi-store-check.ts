@@ -42,6 +42,21 @@ interface ProbeResult {
   siteSlugProbe?: string;
   siteSlugError?: string;
   rpc?: { ok: boolean; error?: string; value?: unknown };
+  /**
+   * Shape of `proforma_invoices` in the BANK project. That table is the
+   * fallback PI store — it is keyed by `payment_site` rather than
+   * `site_slug` — so it is probed separately from `bank_accounts`.
+   */
+  proforma?: {
+    tableExists: boolean;
+    columns?: string[];
+    missingColumns?: string[];
+    rowCount?: number;
+    siteSlugValues?: string[];
+    /** "allowed" | "rejected" | "unknown" — can this site store a row? */
+    siteSlugProbe?: string;
+    siteSlugError?: string;
+  };
 }
 
 const COLUMN_CANDIDATES = [
@@ -315,6 +330,70 @@ async function probeBank(
   return result;
 }
 
+/**
+ * The BANK project also holds a `proforma_invoices` table — the shared one
+ * that sublimapparel uses, keyed by `payment_site` instead of `site_slug`.
+ * It is the fallback PI store for this site, so report what it looks like:
+ * which columns it has, how many rows, which site values are in use, and
+ * whether this site's slug would pass its CHECK constraint.
+ */
+async function probeBankProforma(
+  client: SupabaseClient,
+): Promise<NonNullable<ProbeResult["proforma"]>> {
+  const result: NonNullable<ProbeResult["proforma"]> = { tableExists: false };
+
+  const columns = await probeColumns(client, "proforma_invoices", COLUMN_CANDIDATES);
+  if (columns.fatal && isRelationMissing(undefined, columns.fatal)) {
+    return result;
+  }
+
+  result.tableExists = true;
+  result.columns = columns.present;
+  result.missingColumns = columns.missing;
+
+  const count = await client.from("proforma_invoices").select("id", { count: "exact" }).limit(1);
+  if (!count.error) result.rowCount = count.count ?? 0;
+
+  const slugColumn = columns.present.includes("site_slug")
+    ? "site_slug"
+    : columns.present.includes("payment_site")
+      ? "payment_site"
+      : null;
+  if (!slugColumn) return result;
+
+  const slugs = await client.from("proforma_invoices").select(slugColumn).limit(200);
+  if (!slugs.error && Array.isArray(slugs.data)) {
+    result.siteSlugValues = [
+      ...new Set(slugs.data.map((r) => String((r as Record<string, unknown>)[slugColumn] ?? ""))),
+    ].filter(Boolean);
+  }
+
+  // Would a row for this site be accepted? Rolled back, so nothing is stored.
+  const marker = `__diag_${Date.now()}`;
+  const insert = await client
+    .from("proforma_invoices")
+    .insert({
+      pi_number: marker,
+      [slugColumn]: "chinarhinestone",
+      status: "draft",
+      currency: "USD",
+      line_items: [],
+    })
+    .select("id")
+    .rollback();
+
+  if (!insert.error) {
+    result.siteSlugProbe = "allowed";
+    return result;
+  }
+  const message = insert.error.message ?? "";
+  result.siteSlugError = message;
+  result.siteSlugProbe = /check|violat|invalid input value/i.test(message)
+    ? "rejected"
+    : "unknown";
+  return result;
+}
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const env = context.env;
   const mainConfigured = isPiStoreConfigured(env);
@@ -343,7 +422,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     try {
       const client = label === "main" ? getSupabase(env) : getBankSupabase(env);
-      projects.push(label === "main" ? await probeMain(client) : await probeBank(client));
+      if (label === "main") {
+        projects.push(await probeMain(client));
+      } else {
+        const bank = await probeBank(client);
+        bank.proforma = await probeBankProforma(client);
+        projects.push(bank);
+      }
     } catch (e) {
       projects.push({
         label,
