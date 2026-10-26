@@ -97,11 +97,13 @@ CREATE INDEX IF NOT EXISTS idx_pi_stripe_intent
 
 ALTER TABLE public.proforma_invoices ENABLE ROW LEVEL SECURITY;
 
--- Public (anon) can read SENT + PAID invoices only — needed for /pay?pi=... page
+-- Public (anon) can read SENT + AWAITING_PAYMENT + PAID invoices only —
+-- needed for /pay?pi=... page. 'awaiting_payment' is the state a PI enters
+-- after the customer confirms a wire transfer, so it must stay readable.
 DROP POLICY IF EXISTS "pi_public_read" ON public.proforma_invoices;
 CREATE POLICY "pi_public_read" ON public.proforma_invoices
   FOR SELECT TO anon
-  USING (site_slug = 'chinarhinestone' AND status IN ('sent', 'paid'));
+  USING (site_slug = 'chinarhinestone' AND status IN ('sent', 'awaiting_payment', 'paid'));
 
 -- Public (anon) cannot insert or update — all writes go through service_role.
 DROP POLICY IF EXISTS "pi_no_anon_write" ON public.proforma_invoices;

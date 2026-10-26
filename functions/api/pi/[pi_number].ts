@@ -164,7 +164,11 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     )
     .eq("pi_number", piNumber)
     .eq("site_slug", siteSlug)
-    .in("status", ["sent", "paid"])
+    // 'awaiting_payment' is the state /api/pi/confirm-bank moves a PI into.
+    // Leaving it out meant the customer reloading /pay after confirming a
+    // wire transfer got a 404 ("Proforma Invoice not found") on the very
+    // page that is supposed to confirm it.
+    .in("status", ["sent", "awaiting_payment", "paid"])
     .maybeSingle<PiRow>();
 
   if (error) {

@@ -72,6 +72,9 @@ function statusColor(status: string | null): {
       return { bg: "bg-[#0a0a0a]", text: "text-white", border: "border-[#0a0a0a]", label: "PAID" };
     case "sent":
       return { bg: "bg-[#00c2ff]", text: "text-[#0a0a0a]", border: "border-[#00c2ff]", label: "SENT" };
+    case "awaiting_payment":
+    case "bank_transfer_pending":
+      return { bg: "bg-[#ffd166]", text: "text-[#0a0a0a]", border: "border-[#ffd166]", label: "AWAITING PAYMENT" };
     case "cancelled":
     case "canceled":
       return { bg: "bg-white", text: "text-[#6b6b6b]", border: "border-[#6b6b6b]", label: "CANCELLED" };

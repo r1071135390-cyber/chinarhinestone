@@ -29,7 +29,7 @@ export interface ProformaInvoice {
   currency: string;
   notes?: string;
   bank_account_id?: string;
-  status: "draft" | "sent" | "paid" | "cancelled";
+  status: "draft" | "sent" | "awaiting_payment" | "paid" | "cancelled";
   created_at: string;
 }
 
