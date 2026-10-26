@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { ProformaInvoice } from "@/components/pi/PIDisplay";
 import type { BankAccount } from "@/lib/bank-accounts";
@@ -23,6 +23,20 @@ export default function PayClient() {
   const [paymentMethod, setPaymentMethod] = useState<"card" | "bank" | null>(null);
   const [bankTransferConfirmed, setBankTransferConfirmed] = useState(false);
   const [stripeUnavailable, setStripeUnavailable] = useState(false);
+  const [paymentInitPending, setPaymentInitPending] = useState(false);
+  const [bankTransferPending, setBankTransferPending] = useState(false);
+  const [alreadyPaid, setAlreadyPaid] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // Ref-level locks: React state is async, so two fast clicks can both
+  // start a request before the disabled state applies. These guards make
+  // the second click a no-op so the customer is never charged twice.
+  const cardLockRef = useRef(false);
+  const bankLockRef = useRef(false);
+
+  const piStatus = (pi?.status ?? "").toLowerCase();
+  const piPaid = piStatus === "paid" || alreadyPaid;
+  const piClosed = piStatus === "paid" || piStatus === "cancelled" || piStatus === "refunded";
 
   useEffect(() => {
     setPiNumber(searchParams.get("pi") ?? null);
@@ -56,6 +70,10 @@ export default function PayClient() {
 
   const handlePayByCard = async () => {
     if (!piNumber || !pi) return;
+    if (cardLockRef.current) return;
+    cardLockRef.current = true;
+    setPaymentInitPending(true);
+    setActionError(null);
 
     try {
       const res = await fetch(`/api/pi/stripe-payment-intent`, {
@@ -63,7 +81,26 @@ export default function PayClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pi_number: piNumber, amount: pi.total, currency: pi.currency }),
       });
-      const data = await res.json();
+      const data = (await res.json().catch(() => ({}))) as {
+        client_secret?: string;
+        unavailable?: boolean;
+        alreadyPaid?: boolean;
+        bankTransferPending?: boolean;
+        error?: string;
+      };
+
+      if (!res.ok) {
+        // 409 = the invoice is already paid / closed. The server refuses to
+        // mint a second payment intent, so the customer cannot pay twice.
+        if (res.status === 409) {
+          setAlreadyPaid(Boolean(data.alreadyPaid));
+          setActionError(data.error || "This invoice can no longer be paid online.");
+        } else {
+          setActionError(data.error || `Failed to initialize payment (${res.status})`);
+        }
+        return;
+      }
+
       if (data.unavailable) {
         setStripeUnavailable(true);
         return;
@@ -71,14 +108,21 @@ export default function PayClient() {
       if (data.client_secret) {
         setClientSecret(data.client_secret);
         setPaymentMethod("card");
+        setBankTransferPending(Boolean(data.bankTransferPending));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to initialize payment");
+      setActionError(err instanceof Error ? err.message : "Failed to initialize payment");
+    } finally {
+      cardLockRef.current = false;
+      setPaymentInitPending(false);
     }
   };
 
   const handleBankTransfer = async () => {
     if (!piNumber) return;
+    if (bankLockRef.current) return;
+    bankLockRef.current = true;
+    setActionError(null);
 
     try {
       const res = await fetch(`/api/pi/confirm-bank`, {
@@ -91,10 +135,15 @@ export default function PayClient() {
         setPaymentMethod("bank");
         return;
       }
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(data.error || `Failed to confirm bank transfer (${res.status})`);
+      const data = (await res.json().catch(() => ({}))) as { error?: string; alreadyPaid?: boolean };
+      if (res.status === 409) {
+        setAlreadyPaid(Boolean(data.alreadyPaid));
+      }
+      setActionError(data.error || `Failed to confirm bank transfer (${res.status})`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to confirm bank transfer");
+      setActionError(err instanceof Error ? err.message : "Failed to confirm bank transfer");
+    } finally {
+      bankLockRef.current = false;
     }
   };
 
@@ -189,9 +238,21 @@ export default function PayClient() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {pi.status === "paid" ? "Payment Successful!" : "Payment Submitted"}
+            </h1>
             <p className="text-gray-600 mb-6">
-              Thank you for your payment. PI #{pi.pi_number} has been confirmed.
+              {pi.status === "paid" ? (
+                <>
+                  Thank you for your payment. PI #{pi.pi_number} has been confirmed.
+                </>
+              ) : (
+                <>
+                  PI #{pi.pi_number} is being confirmed by our payment provider. You do
+                  <span className="font-semibold"> not </span>
+                  need to pay again — a receipt will be sent to your email.
+                </>
+              )}
             </p>
             <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
               <h2 className="font-semibold mb-2">Order Summary</h2>
@@ -250,7 +311,36 @@ export default function PayClient() {
           <PIDisplay pi={pi} bankAccount={bankAccount} />
         </div>
 
-        {bankTransferConfirmed ? (
+        {piClosed ? (
+          <div className="rounded-lg bg-white p-6 shadow-lg text-center">
+            <div
+              className={`rounded-full p-4 inline-block mb-4 ${
+                piPaid ? "bg-green-100" : "bg-gray-100"
+              }`}
+            >
+              <svg
+                className={`h-8 w-8 ${piPaid ? "text-green-500" : "text-gray-400"}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                {piPaid ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                )}
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold mb-2">
+              {piPaid ? "Payment Received" : "This Invoice Is Closed"}
+            </h2>
+            <p className="text-gray-600 mb-4">
+              {piPaid
+                ? "This invoice has already been paid, so no further payment is needed. Our system refuses a second payment for the same invoice automatically."
+                : `This invoice is ${piStatus} and can no longer be paid online. Please contact us if you still need to pay.`}
+            </p>
+          </div>
+        ) : bankTransferConfirmed ? (
           <div className="rounded-lg bg-green-50 border border-green-200 p-6 text-center">
             <div className="rounded-full bg-green-100 p-4 inline-block mb-4">
               <svg className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -265,6 +355,11 @@ export default function PayClient() {
         ) : (
           <div className="rounded-lg bg-white p-6 shadow-lg">
             <h2 className="text-lg font-bold mb-4">Select Payment Method</h2>
+            {actionError && (
+              <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                {actionError}
+              </div>
+            )}
             {stripeUnavailable && (
               <div className="mb-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
                 Card payments are temporarily unavailable. Please use Bank Transfer
@@ -275,17 +370,19 @@ export default function PayClient() {
               {!stripeUnavailable && (
                 <button
                   onClick={handlePayByCard}
-                  disabled={paymentMethod === "card"}
+                  disabled={paymentMethod === "card" || paymentInitPending}
                   className="rounded-lg border-2 border-[#ff4d00] p-4 text-center hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <div className="text-2xl mb-2">💳</div>
                   <div className="font-semibold text-[#ff4d00]">Pay by Card</div>
-                  <div className="text-sm text-gray-500">Credit / Debit Card</div>
+                  <div className="text-sm text-gray-500">
+                    {paymentInitPending ? "Preparing…" : "Credit / Debit Card"}
+                  </div>
                 </button>
               )}
               <button
                 onClick={handleBankTransfer}
-                disabled={paymentMethod === "bank"}
+                disabled={paymentMethod === "bank" || paymentInitPending}
                 className="rounded-lg border-2 border-gray-200 p-4 text-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="text-2xl mb-2">🏦</div>
@@ -296,6 +393,13 @@ export default function PayClient() {
 
             {paymentMethod === "card" && clientSecret && (
               <div className="mt-6">
+                {bankTransferPending && (
+                  <div className="mb-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+                    You previously confirmed a bank transfer for this invoice. If you
+                    have already sent the money, please do NOT pay by card — contact
+                    us instead so you are not charged twice.
+                  </div>
+                )}
                 <StripeProvider clientSecret={clientSecret}>
                   <PayWithStripeElements
                     clientSecret={clientSecret}

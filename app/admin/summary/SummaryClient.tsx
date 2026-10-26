@@ -40,6 +40,9 @@ interface PiListItem {
   totalDisplay: string;
   status: string | null;
   createdAt: string;
+  paymentCount?: number;
+  paidAmountCents?: number;
+  duplicatePayment?: boolean;
 }
 
 interface CurrencyBucket {
@@ -51,6 +54,7 @@ interface SummaryStats {
   totalCount: number;
   shownCount: number;
   monthCount: number;
+  duplicatePaymentCount?: number;
   totalsByCurrency: Record<string, CurrencyBucket>;
   monthTotalsByCurrency: Record<string, CurrencyBucket>;
   totalValueUsdCents: number;
@@ -310,6 +314,18 @@ export default function SummaryClient() {
           </div>
         )}
 
+        {/* Duplicate-payment warning */}
+        {stats && (stats.duplicatePaymentCount ?? 0) > 0 && (
+          <div className="mb-6 flex items-start gap-3 border-2 border-[#ff4d00] bg-[#fff4ef] p-4 text-sm font-bold text-[#ff4d00]">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" strokeWidth={2.5} />
+            <div>
+              {stats.duplicatePaymentCount} invoice(s) received more than one payment.
+              Check the rows flagged "Duplicate" below and refund the extra payment
+              from the Stripe dashboard.
+            </div>
+          </div>
+        )}
+
         {/* Stat cards */}
         <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
@@ -421,6 +437,16 @@ export default function SummaryClient() {
                           <span className={`inline-block border-2 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${sc.bg} ${sc.text} ${sc.border}`}>
                             {sc.label}
                           </span>
+                          {p.duplicatePayment && (
+                            <div className="mt-1">
+                              <span
+                                className="inline-block border-2 border-[#ff4d00] bg-[#ff4d00] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white"
+                                title={`${p.paymentCount ?? 0} payments received for this invoice — refund the extra one`}
+                              >
+                                Duplicate · {p.paymentCount}× paid
+                              </span>
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <Link

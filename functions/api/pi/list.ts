@@ -90,6 +90,27 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   const rows = (data ?? []) as PiRow[];
 
+  // ── Payment ledger ────────────────────────────────────────────────────────
+  // Every successful Stripe payment is written to pi_payments by the webhook.
+  // More than one ledger row for the same invoice means the customer paid
+  // twice — the admin list surfaces that so the extra payment can be
+  // refunded. If the table does not exist yet (migration not applied) the
+  // query fails and we simply report zero payments.
+  const paymentTotals = new Map<string, { count: number; cents: number }>();
+  const { data: paymentRows, error: paymentsError } = await supabase
+    .from("pi_payments")
+    .select("pi_number, amount_cents")
+    .eq("site_slug", siteSlug);
+
+  if (!paymentsError && paymentRows) {
+    for (const row of paymentRows as { pi_number: string; amount_cents: number | null }[]) {
+      const entry = paymentTotals.get(row.pi_number) ?? { count: 0, cents: 0 };
+      entry.count += 1;
+      entry.cents += row.amount_cents ?? 0;
+      paymentTotals.set(row.pi_number, entry);
+    }
+  }
+
   // Total count is separate — the list above is capped at ROW_LIMIT.
   const { count } = await supabase
     .from("proforma_invoices")
@@ -129,6 +150,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const pis = rows.map((row) => {
     const currency = (row.currency ?? "USD").toUpperCase();
     const cents = row.total_cents ?? 0;
+    const payments = paymentTotals.get(row.pi_number);
     return {
       id: row.id,
       piNumber: row.pi_number,
@@ -139,13 +161,19 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       totalDisplay: formatCents(cents, currency),
       status: row.status,
       createdAt: row.created_at,
+      paymentCount: payments?.count ?? 0,
+      paidAmountCents: payments?.cents ?? 0,
+      duplicatePayment: (payments?.count ?? 0) > 1,
     };
   });
+
+  const duplicatePaymentCount = [...paymentTotals.values()].filter((p) => p.count > 1).length;
 
   const summary = {
     totalCount: count ?? rows.length,
     shownCount: pis.length,
     monthCount,
+    duplicatePaymentCount,
     totalsByCurrency,
     monthTotalsByCurrency,
     totalValueUsdCents: totalUsdCents,
