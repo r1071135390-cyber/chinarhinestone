@@ -112,6 +112,9 @@ CREATE POLICY "pi_no_anon_update" ON public.proforma_invoices
   FOR UPDATE TO anon USING (false) WITH CHECK (false);
 
 -- 3. PI number generator RPC
+--
+-- Format: CR + YYYYMMDD + NNNN, no separators (e.g. CR202610260001) — the
+-- same shape the factory uses on its other sites (SA202610020002).
 CREATE OR REPLACE FUNCTION public.next_pi_number(prefix TEXT)
 RETURNS TEXT
 LANGUAGE plpgsql
@@ -122,14 +125,15 @@ DECLARE
   seq INT;
 BEGIN
   SELECT COALESCE(MAX(
-    CAST(split_part(pi_number, '-', 3) AS INT)
+    CAST(right(pi_number, 4) AS INT)
   ), 0) + 1
   INTO seq
   FROM public.proforma_invoices
-  WHERE pi_number LIKE prefix || '-' || today_str || '-%'
+  WHERE pi_number LIKE prefix || today_str || '%'
+    AND pi_number ~ ('^' || prefix || today_str || '[0-9]{4}$')
     AND site_slug = 'chinarhinestone';
 
-  RETURN prefix || '-' || today_str || '-' || lpad(seq::text, 4, '0');
+  RETURN prefix || today_str || lpad(seq::text, 4, '0');
 END;
 $$;
 

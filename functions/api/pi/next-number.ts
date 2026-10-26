@@ -1,9 +1,9 @@
 /**
  * functions/api/pi/next-number.ts
  *
- * GET /api/pi/next-number?prefix=CH
+ * GET /api/pi/next-number?prefix=CR
  *
- * Returns the next available PI number for today, e.g. "CH-20261014-0001".
+ * Returns the next available PI number for today, e.g. "CR202610260001".
  * Backed by the Postgres next_pi_number(prefix TEXT) RPC.
  */
 
@@ -14,7 +14,7 @@ import { PagesFunction } from "../../_lib/pages-function";
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const env = context.env;
   const url = new URL(context.request.url);
-  const prefix = (url.searchParams.get("prefix") ?? "CH").trim().toUpperCase().slice(0, 8);
+  const prefix = (url.searchParams.get("prefix") ?? "CR").trim().toUpperCase().slice(0, 8);
 
   if (!prefix) {
     return jsonResponse({ error: "Missing prefix" }, { status: 400, request: context.request, env });

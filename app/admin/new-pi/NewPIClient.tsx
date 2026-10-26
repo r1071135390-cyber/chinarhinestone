@@ -101,9 +101,9 @@ function todayPiNumber() {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
-  // Same shape the next_pi_number RPC produces (CH-YYYYMMDD-NNNN) so a
+  // Same shape the next_pi_number RPC produces (CRYYYYMMDDNNNN) so a
   // second PI on the same day never collides on UNIQUE(site_slug, pi_number).
-  return `CH-${yyyy}${mm}${dd}-0001`;
+  return `CR${yyyy}${mm}${dd}0001`;
 }
 
 // ---------------------------------------------------------------------------
@@ -799,7 +799,7 @@ export function PIPreview(props: {
               <RedInput
                 value={piNumber}
                 onChange={(e) => onPiNumberChange(e.target.value)}
-                placeholder="CH-20261025-0001"
+                placeholder="CR202610250001"
                 disabled={piNumberLocked}
                 className={piNumberLocked ? "opacity-70 cursor-not-allowed" : ""}
               />

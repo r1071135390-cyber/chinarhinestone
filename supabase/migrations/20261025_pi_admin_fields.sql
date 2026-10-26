@@ -21,9 +21,9 @@ ALTER TABLE public.proforma_invoices
   ADD COLUMN IF NOT EXISTS shipping_method TEXT,
   ADD COLUMN IF NOT EXISTS shipping_qty     NUMERIC;
 
--- 2. PI number generator — widen the sequence scan so it only looks at
---    numbers in the CH-YYYYMMDD-NNNN shape. Older rows used CRYYYYMMDDNNNN,
---    whose 3rd dash-segment is not numeric and would break the CAST.
+-- 2. PI number generator — CR + YYYYMMDD + NNNN, no separators
+--    (e.g. CR202610260001). The sequence scan only looks at numbers in that
+--    exact shape, so rows from other formats can never break the CAST.
 CREATE OR REPLACE FUNCTION public.next_pi_number(prefix TEXT)
 RETURNS TEXT
 LANGUAGE plpgsql
@@ -34,14 +34,14 @@ DECLARE
   seq INT;
 BEGIN
   SELECT COALESCE(MAX(
-    CAST(split_part(pi_number, '-', 3) AS INT)
+    CAST(right(pi_number, 4) AS INT)
   ), 0) + 1
   INTO seq
   FROM public.proforma_invoices
-  WHERE pi_number LIKE prefix || '-' || today_str || '-%'
-    AND pi_number ~ ('^' || prefix || '-' || today_str || '-[0-9]+$')
+  WHERE pi_number LIKE prefix || today_str || '%'
+    AND pi_number ~ ('^' || prefix || today_str || '[0-9]{4}$')
     AND site_slug = 'chinarhinestone';
 
-  RETURN prefix || '-' || today_str || '-' || lpad(seq::text, 4, '0');
+  RETURN prefix || today_str || lpad(seq::text, 4, '0');
 END;
 $$;

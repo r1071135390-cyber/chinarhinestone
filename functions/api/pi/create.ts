@@ -107,7 +107,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   // ── PI number ────────────────────────────────────────────────────────────
   let piNumber = text(body.piNumber);
   if (!piNumber) {
-    const { data: generated, error: rpcErr } = await supabase.rpc("next_pi_number", { prefix: "CH" });
+    const { data: generated, error: rpcErr } = await supabase.rpc("next_pi_number", { prefix: "CR" });
     if (rpcErr || !generated) {
       return jsonResponse(
         { error: rpcErr?.message ?? "Failed to generate pi_number" },

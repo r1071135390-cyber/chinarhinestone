@@ -244,7 +244,7 @@ async function probeMain(
   for (const argName of ["prefix", "p_prefix"]) {
     const rpc = await client.rpc(
       "next_pi_number",
-      { [argName]: "CH" } as Record<string, string>,
+      { [argName]: "CR" } as Record<string, string>,
     );
     if (!rpc.error) {
       result.rpc = { ok: true, value: rpc.data };
