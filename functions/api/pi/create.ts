@@ -28,7 +28,7 @@ import {
   toCents,
   type ItemRow,
 } from "../../_lib/pi-items";
-import { formatPiNumber, PI_NUMBER_PREFIX } from "../../_lib/pi-number";
+import { formatPiNumber, nextFreePiNumber, PI_NUMBER_PREFIX } from "../../_lib/pi-number";
 
 interface CreatePiBody {
   piNumber?: string;
@@ -106,7 +106,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const supabase = getSupabase(env);
 
   // ── PI number ────────────────────────────────────────────────────────────
-  let piNumber = text(body.piNumber);
+  const manualPiNumber = text(body.piNumber);
+  let piNumber = manualPiNumber;
   if (!piNumber) {
     const { data: generated, error: rpcErr } = await supabase.rpc("next_pi_number", { prefix: PI_NUMBER_PREFIX });
     if (rpcErr || !generated) {
@@ -164,7 +165,22 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   let row: { id: number; pi_number: string; status: string; created_at: string } | null = null;
   let warning: string | undefined;
 
-  const first = await supabase.from("proforma_invoices").insert(extendedRow).select(SELECT).single();
+  let first = await supabase.from("proforma_invoices").insert(extendedRow).select(SELECT).single();
+
+  // A database that still carries the older next_pi_number definition scans
+  // the old CH-YYYYMMDD-NNNN shape and hands out the same number twice in
+  // one day. Take the next free sequence instead of failing the save.
+  if (first.error?.code === "23505" && !manualPiNumber) {
+    const next = await nextFreePiNumber(supabase, PI_NUMBER_PREFIX, siteSlug);
+    if (next && next !== piNumber) {
+      piNumber = next;
+      first = await supabase
+        .from("proforma_invoices")
+        .insert({ ...extendedRow, pi_number: piNumber })
+        .select(SELECT)
+        .single();
+    }
+  }
 
   if (first.error) {
     const code = first.error.code ?? "";

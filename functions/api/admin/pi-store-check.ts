@@ -41,7 +41,7 @@ interface ProbeResult {
   /** Result of the CHECK-constraint probe: "allowed" | "rejected" | "unknown". */
   siteSlugProbe?: string;
   siteSlugError?: string;
-  rpc?: { ok: boolean; error?: string; value?: unknown };
+  rpc?: { ok: boolean; error?: string; value?: unknown; raw?: unknown };
   /**
    * Shape of `proforma_invoices` in the BANK project. That table is the
    * fallback PI store — it is keyed by `payment_site` rather than
@@ -263,7 +263,7 @@ async function probeMain(
       { [argName]: "CR" } as Record<string, string>,
     );
     if (!rpc.error) {
-      result.rpc = { ok: true, value: formatPiNumber(String(rpc.data)) };
+      result.rpc = { ok: true, value: formatPiNumber(String(rpc.data)), raw: rpc.data };
       break;
     }
     result.rpc = { ok: false, error: rpc.error.message };
