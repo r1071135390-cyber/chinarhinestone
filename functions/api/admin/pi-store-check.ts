@@ -35,6 +35,8 @@ interface ProbeResult {
   rowCount?: number;
   /** Distinct site_slug / payment_site values already stored. */
   siteSlugValues?: string[];
+  /** Distinct currency values stored in bank_accounts (bank project only). */
+  currencies?: string[];
   /** Result of the CHECK-constraint probe: "allowed" | "rejected" | "unknown". */
   siteSlugProbe?: string;
   siteSlugError?: string;
@@ -77,9 +79,42 @@ const COLUMN_CANDIDATES = [
   "shipping_qty",
 ];
 
+/** Columns of the shared bank_accounts table (BANK project). */
+const BANK_COLUMN_CANDIDATES = [
+  "id",
+  "site_slug",
+  "payment_site",
+  "currency",
+  "label",
+  "symbol",
+  "beneficiary",
+  "company_address",
+  "bank_name",
+  "account",
+  "swift",
+  "bank_address",
+  "iban",
+  "bank_country",
+  "routing_number",
+  "cnaps",
+  "intermediary_bank",
+  "notes",
+  "created_at",
+  "updated_at",
+];
+
+/**
+ * True when the *relation* is missing — not merely a column.
+ *
+ * PostgREST says `relation "public.proforma_invoices" does not exist` for a
+ * missing table but `column proforma_invoices.site_slug does not exist` for a
+ * missing column. Both contain "does not exist", so the match has to look at
+ * the noun in front of it.
+ */
 function isRelationMissing(code?: string, message?: string): boolean {
   if (code === "42P01") return true;
-  return /does not exist|not found in the schema cache/i.test(message ?? "");
+  if (code === "42703" || code === "PGRST204") return false;
+  return /relation\b.*does not exist|not found in the schema cache/i.test(message ?? "");
 }
 
 /** Pull the offending column name out of a PostgREST "column not found" error. */
@@ -87,9 +122,12 @@ function missingColumnName(message?: string): string | null {
   if (!message) return null;
   const match =
     message.match(/Could not find the '([^']+)' column/i) ??
-    message.match(/column\s+"?([a-zA-Z0-9_]+)"?\s+of relation/i) ??
-    message.match(/column\s+([a-zA-Z0-9_]+)\s+does not exist/i);
-  return match ? match[1] : null;
+    message.match(/column\s+"?[a-zA-Z0-9_.]+"?\."?([a-zA-Z0-9_]+)"?\s+does not exist/i) ??
+    message.match(/column\s+"?([a-zA-Z0-9_.]+?)"?\s+does not exist/i) ??
+    message.match(/column\s+([a-zA-Z0-9_]+)\s+of relation/i);
+  if (!match) return null;
+  // "proforma_invoices.site_slug" → "site_slug"
+  return match[1].split(".").pop() ?? match[1];
 }
 
 /**
@@ -100,13 +138,15 @@ function missingColumnName(message?: string): string | null {
  */
 async function probeColumns(
   client: SupabaseClient,
+  table: string,
+  candidates: string[],
 ): Promise<{ present: string[]; missing: string[]; fatal?: string }> {
-  let wanted = [...COLUMN_CANDIDATES];
+  let wanted = [...candidates];
   const missing: string[] = [];
 
-  for (let guard = 0; guard < COLUMN_CANDIDATES.length + 1; guard++) {
+  for (let guard = 0; guard < candidates.length + 1; guard++) {
     const { data, error } = await client
-      .from("proforma_invoices")
+      .from(table)
       .select(wanted.join(","))
       .limit(1);
 
@@ -135,14 +175,12 @@ async function probeColumns(
   return { present: wanted, missing };
 }
 
-async function probeProject(
-  label: string,
+async function probeMain(
   client: SupabaseClient,
-  envConfigured: boolean,
 ): Promise<ProbeResult> {
-  const result: ProbeResult = { label, envConfigured, reachable: false };
+  const result: ProbeResult = { label: "main", envConfigured: true, reachable: false };
 
-  const columns = await probeColumns(client);
+  const columns = await probeColumns(client, "proforma_invoices", COLUMN_CANDIDATES);
   if (columns.fatal && isRelationMissing(undefined, columns.fatal)) {
     result.tableExists = false;
     result.error = { message: columns.fatal };
@@ -218,6 +256,64 @@ async function probeProject(
   return result;
 }
 
+/**
+ * The BANK project holds bank accounts, not invoices. It is shared with
+ * sublimapparel and uses that site's schema — so `proforma_invoices` there
+ * has `payment_site` instead of `site_slug` and says nothing about this
+ * site's PI store. Probe `bank_accounts` instead.
+ */
+async function probeBank(
+  client: SupabaseClient,
+): Promise<ProbeResult> {
+  const result: ProbeResult = { label: "bank", envConfigured: true, reachable: false };
+
+  const columns = await probeColumns(client, "bank_accounts", BANK_COLUMN_CANDIDATES);
+  if (columns.fatal && isRelationMissing(undefined, columns.fatal)) {
+    result.tableExists = false;
+    result.error = { message: columns.fatal };
+    return result;
+  }
+  if (columns.fatal) {
+    result.error = { message: columns.fatal };
+  }
+
+  result.reachable = true;
+  result.tableExists = true;
+  result.columns = columns.present;
+  result.missingColumns = columns.missing;
+
+  const count = await client.from("bank_accounts").select("id", { count: "exact" }).limit(1);
+  if (!count.error) result.rowCount = count.count ?? 0;
+
+  // Which currencies are actually stored? The column is plain TEXT with no
+  // CHECK constraint, so the casing is not guaranteed — surface what is
+  // really there instead of guessing.
+  const slugColumn = columns.present.includes("site_slug")
+    ? "site_slug"
+    : columns.present.includes("payment_site")
+      ? "payment_site"
+      : null;
+  if (slugColumn) {
+    const slugs = await client.from("bank_accounts").select(slugColumn).limit(200);
+    if (!slugs.error && Array.isArray(slugs.data)) {
+      result.siteSlugValues = [
+        ...new Set(slugs.data.map((r) => String((r as Record<string, unknown>)[slugColumn] ?? ""))),
+      ].filter(Boolean);
+    }
+  }
+
+  if (columns.present.includes("currency")) {
+    const currencies = await client.from("bank_accounts").select("currency").limit(200);
+    if (!currencies.error && Array.isArray(currencies.data)) {
+      result.currencies = [
+        ...new Set(currencies.data.map((r) => String((r as Record<string, unknown>).currency ?? ""))),
+      ].filter(Boolean);
+    }
+  }
+
+  return result;
+}
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const env = context.env;
   const mainConfigured = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
@@ -246,7 +342,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     try {
       const client = label === "main" ? getSupabase(env) : getBankSupabase(env);
-      projects.push(await probeProject(label, client, true));
+      projects.push(label === "main" ? await probeMain(client) : await probeBank(client));
     } catch (e) {
       projects.push({
         label,
