@@ -18,6 +18,7 @@
  */
 
 import { getSupabase, getBankSupabase, isBankSupabaseConfigured, isPiStoreConfigured, DEFAULT_SITE_SLUG, type Env } from "../../_lib/supabase";
+import { formatPiNumber } from "../../_lib/pi-number";
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -247,7 +248,7 @@ async function probeMain(
       { [argName]: "CR" } as Record<string, string>,
     );
     if (!rpc.error) {
-      result.rpc = { ok: true, value: rpc.data };
+      result.rpc = { ok: true, value: formatPiNumber(String(rpc.data)) };
       break;
     }
     result.rpc = { ok: false, error: rpc.error.message };

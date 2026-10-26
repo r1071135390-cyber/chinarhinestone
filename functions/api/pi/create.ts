@@ -28,6 +28,7 @@ import {
   toCents,
   type ItemRow,
 } from "../../_lib/pi-items";
+import { formatPiNumber, PI_NUMBER_PREFIX } from "../../_lib/pi-number";
 
 interface CreatePiBody {
   piNumber?: string;
@@ -107,14 +108,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   // ── PI number ────────────────────────────────────────────────────────────
   let piNumber = text(body.piNumber);
   if (!piNumber) {
-    const { data: generated, error: rpcErr } = await supabase.rpc("next_pi_number", { prefix: "CR" });
+    const { data: generated, error: rpcErr } = await supabase.rpc("next_pi_number", { prefix: PI_NUMBER_PREFIX });
     if (rpcErr || !generated) {
       return jsonResponse(
         { error: rpcErr?.message ?? "Failed to generate pi_number" },
         { status: 500, request: context.request, env }
       );
     }
-    piNumber = String(generated);
+    piNumber = formatPiNumber(String(generated));
   }
 
   // ── Amounts (recomputed server-side) ─────────────────────────────────────

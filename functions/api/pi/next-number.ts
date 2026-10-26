@@ -10,11 +10,12 @@
 import { getSupabase, isPiStoreConfigured, piStoreEnvDiagnostic, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
+import { formatPiNumber, PI_NUMBER_PREFIX } from "../../_lib/pi-number";
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const env = context.env;
   const url = new URL(context.request.url);
-  const prefix = (url.searchParams.get("prefix") ?? "CR").trim().toUpperCase().slice(0, 8);
+  const prefix = (url.searchParams.get("prefix") ?? PI_NUMBER_PREFIX).trim().toUpperCase().slice(0, 8);
 
   if (!prefix) {
     return jsonResponse({ error: "Missing prefix" }, { status: 400, request: context.request, env });
@@ -39,5 +40,5 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     return jsonResponse({ error: error.message }, { status: 500, request: context.request, env });
   }
 
-  return jsonResponse({ pi_number: data }, { status: 200, request: context.request, env });
+  return jsonResponse({ pi_number: formatPiNumber(String(data)) }, { status: 200, request: context.request, env });
 };
