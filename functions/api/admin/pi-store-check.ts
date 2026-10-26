@@ -17,7 +17,7 @@
  * identical to a missing table from the outside.
  */
 
-import { getSupabase, getBankSupabase, isBankSupabaseConfigured, type Env } from "../../_lib/supabase";
+import { getSupabase, getBankSupabase, isBankSupabaseConfigured, isPiStoreConfigured, DEFAULT_SITE_SLUG, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -316,7 +316,7 @@ async function probeBank(
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const env = context.env;
-  const mainConfigured = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
+  const mainConfigured = isPiStoreConfigured(env);
   const bankConfigured = isBankSupabaseConfigured(env);
 
   const projects: ProbeResult[] = [];
@@ -333,7 +333,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         error: {
           message:
             label === "main"
-              ? "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are not set on this Cloudflare Pages project."
+              ? "SUPABASE_SERVICE_ROLE_KEY is not set on this Cloudflare Pages project (SUPABASE_URL and SITE_SLUG have built-in defaults)."
               : "BANK_SUPABASE_URL / BANK_SUPABASE_SERVICE_ROLE_KEY are not set.",
         },
       });
@@ -356,7 +356,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   return jsonResponse(
     {
       ok: true,
-      siteSlug: env.SITE_SLUG ?? null,
+      siteSlug: env.SITE_SLUG ?? DEFAULT_SITE_SLUG,
       projects,
       setupLinks: {
         envVars: "https://dash.cloudflare.com/?to=/:account/pages/view/chinarhinestone",

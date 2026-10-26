@@ -71,14 +71,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const env = context.env;
   const siteSlug = env.SITE_SLUG ?? "chinarhinestone";
 
-  // The PI store lives in this site's own Supabase project. Without these
-  // two vars nothing can be saved — say so plainly, with the exact setup
-  // steps, instead of throwing.
+  // The PI store lives in this site's own Supabase project. Without the
+  // service_role key nothing can be saved — say so plainly, with the exact
+  // setup steps, instead of throwing.
   if (!isPiStoreConfigured(env)) {
     return jsonResponse(
       {
         error:
-          "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are not set on this Cloudflare Pages project, so proforma invoices cannot be saved yet.",
+          "SUPABASE_SERVICE_ROLE_KEY is not set on this Cloudflare Pages project, so proforma invoices cannot be saved yet.",
         diagnostic: piStoreEnvDiagnostic(env),
       },
       { status: 500, request: context.request, env }

@@ -10,7 +10,7 @@
  * factory has a single source of truth across all sites.
  */
 
-import { getBankSupabase, getSupabase, isBankSupabaseConfigured, type Env } from "../../_lib/supabase";
+import { getBankSupabase, getSupabase, isBankSupabaseConfigured, DEFAULT_MAIN_SUPABASE_URL, DEFAULT_SITE_SLUG, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
 
@@ -54,9 +54,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const diag = {
     bankUrlSet: Boolean(env.BANK_SUPABASE_URL),
     bankKeySet: Boolean(env.BANK_SUPABASE_SERVICE_ROLE_KEY),
-    mainUrlSet: Boolean(env.SUPABASE_URL),
+    mainUrlSet: true,
+    mainUrl: env.SUPABASE_URL || DEFAULT_MAIN_SUPABASE_URL,
     mainKeySet: Boolean(env.SUPABASE_SERVICE_ROLE_KEY),
-    siteSlug: env.SITE_SLUG ?? null,
+    siteSlug: env.SITE_SLUG ?? DEFAULT_SITE_SLUG,
     setupLinks: {
       // CF Pages dashboard → Environment variables. /view/:project redirects
       // to whichever project the deploy came from. We hardcode
@@ -65,8 +66,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       envVars: "https://dash.cloudflare.com/?to=/:account/pages/view/chinarhinestone",
     },
     expectedEnvVars: [
-      { name: "SUPABASE_URL", value: "https://zxobbdaqzkbfaoyahggz.supabase.co" },
-      { name: "SUPABASE_SERVICE_ROLE_KEY", value: "<from MAIN Supabase: zxobbdaqzkbfaoyahggz → Settings → API → service_role>" },
+      { name: "SUPABASE_SERVICE_ROLE_KEY", value: "<from MAIN Supabase: zxobbdaqzkbfaoyahggz → Settings → API → service_role>", note: "SUPABASE_URL and SITE_SLUG have built-in defaults — this is the only required variable." },
       { name: "BANK_SUPABASE_URL", value: "https://viyqjlfdguhycbvqbrny.supabase.co" },
       { name: "BANK_SUPABASE_SERVICE_ROLE_KEY", value: "<from sublimapparel BANK Supabase: viyqjlfdguhycbvqbrny → Settings → API → service_role>" },
     ],

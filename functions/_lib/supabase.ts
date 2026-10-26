@@ -4,10 +4,10 @@
  * Server-side Supabase clients (Pages Function context).
  * Uses service_role key — bypasses RLS, so NEVER expose to the browser.
  *
- * Env vars (set in CF Pages Dashboard → Settings → Functions):
+ * Env vars (set in CF Pages Dashboard → Settings → Environment variables):
  *   MAIN Supabase (PI data for this site):
- *     SUPABASE_URL
- *     SUPABASE_SERVICE_ROLE_KEY
+ *     SUPABASE_SERVICE_ROLE_KEY  ← the only one that must be set
+ *     SUPABASE_URL               ← optional, defaults to DEFAULT_MAIN_SUPABASE_URL
  *   BANK Supabase (authoritative bank accounts — shared with sublimapparel):
  *     BANK_SUPABASE_URL
  *     BANK_SUPABASE_SERVICE_ROLE_KEY
@@ -19,13 +19,26 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+/**
+ * This site's own Supabase project. The URL is a public identifier (it is
+ * already baked into the diagnostic payload below), so it is hardcoded as a
+ * fallback — the only thing that genuinely has to be configured in the
+ * Cloudflare Pages dashboard is SUPABASE_SERVICE_ROLE_KEY.
+ *
+ * Override it with the SUPABASE_URL env var if the project ever moves.
+ */
+export const DEFAULT_MAIN_SUPABASE_URL = "https://zxobbdaqzkbfaoyahggz.supabase.co";
+
+/** The site_slug stored on every row of this site's PI store. */
+export const DEFAULT_SITE_SLUG = "chinarhinestone";
+
 export function getSupabase(env: Env): SupabaseClient {
-  const url = env.SUPABASE_URL;
+  const url = env.SUPABASE_URL || DEFAULT_MAIN_SUPABASE_URL;
   const key = env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!url || !key) {
+  if (!key) {
     throw new Error(
-      "Missing Supabase env vars. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Cloudflare Pages → Settings → Functions."
+      "Missing SUPABASE_SERVICE_ROLE_KEY. Set it in Cloudflare Pages → Settings → Environment variables (Production tab)."
     );
   }
 
@@ -55,7 +68,7 @@ export function getSupabase(env: Env): SupabaseClient {
  * the shared BANK project.
  */
 export function getBankSupabase(env: Env): SupabaseClient {
-  const url = env.BANK_SUPABASE_URL || env.SUPABASE_URL;
+  const url = env.BANK_SUPABASE_URL || env.SUPABASE_URL || DEFAULT_MAIN_SUPABASE_URL;
   const key = env.BANK_SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !key) {
@@ -92,7 +105,7 @@ export function isBankSupabaseConfigured(env: Env): boolean {
  * check this first and return a JSON diagnostic instead.
  */
 export function isPiStoreConfigured(env: Env): boolean {
-  return Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
+  return Boolean(env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
 /**
@@ -102,19 +115,19 @@ export function isPiStoreConfigured(env: Env): boolean {
  */
 export function piStoreEnvDiagnostic(env: Env) {
   return {
-    mainUrlSet: Boolean(env.SUPABASE_URL),
+    mainUrlSet: true,
+    mainUrl: env.SUPABASE_URL || DEFAULT_MAIN_SUPABASE_URL,
     mainKeySet: Boolean(env.SUPABASE_SERVICE_ROLE_KEY),
-    siteSlug: env.SITE_SLUG ?? null,
+    siteSlug: env.SITE_SLUG ?? DEFAULT_SITE_SLUG,
     setupLinks: {
       envVars: "https://dash.cloudflare.com/?to=/:account/pages/view/chinarhinestone",
     },
     expectedEnvVars: [
-      { name: "SUPABASE_URL", value: "https://zxobbdaqzkbfaoyahggz.supabase.co" },
       {
         name: "SUPABASE_SERVICE_ROLE_KEY",
         value: "<MAIN Supabase zxobbdaqzkbfaoyahggz → Settings → API → service_role>",
+        note: "This is the only variable that must be added — SUPABASE_URL and SITE_SLUG have built-in defaults.",
       },
-      { name: "SITE_SLUG", value: "chinarhinestone" },
     ],
     note:
       "CF Pages has two environment-variable tabs — Production and Preview. Both must be set. Changing values does NOT auto-redeploy; push a new commit (or click Retry deployment) for the new values to be picked up.",
@@ -122,13 +135,15 @@ export function piStoreEnvDiagnostic(env: Env) {
 }
 
 export interface Env {
-  SUPABASE_URL: string;
-  SUPABASE_SERVICE_ROLE_KEY: string;
+  /** Optional — defaults to DEFAULT_MAIN_SUPABASE_URL. */
+  SUPABASE_URL?: string;
+  /** Required. The only env var without a built-in default. */
+  SUPABASE_SERVICE_ROLE_KEY?: string;
   /** Shared bank-accounts Supabase (sublimapparel-owned). */
   BANK_SUPABASE_URL?: string;
   BANK_SUPABASE_SERVICE_ROLE_KEY?: string;
-  STRIPE_SECRET_KEY: string;
-  STRIPE_WEBHOOK_SECRET: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
   // Optional: which site this Pages project serves.
   // Used to scope bank_accounts / proforma_invoices queries.
   SITE_SLUG?: string;

@@ -10,7 +10,7 @@
  * Response: { ok: true, customers: CustomerGroup[], warning?: string }
  */
 
-import { getSupabase, type Env } from "../../../_lib/supabase";
+import { getSupabase, isPiStoreConfigured, type Env } from "../../../_lib/supabase";
 import { jsonResponse } from "../../../_lib/cors";
 import { PagesFunction } from "../../../_lib/pages-function";
 import { groupCustomers, matchesSearch, type PiCustomerRow } from "../../../_lib/customers";
@@ -30,13 +30,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   // The PI store is not connected yet — an empty list is the correct answer
   // here, not an error. The warning explains why it is empty.
-  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (!isPiStoreConfigured(env)) {
     return jsonResponse(
       {
         ok: true,
         customers: [],
         warning:
-          "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are not set, so the proforma invoice store is not connected yet — no customers can be listed.",
+          "SUPABASE_SERVICE_ROLE_KEY is not set, so the proforma invoice store is not connected yet — no customers can be listed.",
       },
       { status: 200, request: context.request, env }
     );

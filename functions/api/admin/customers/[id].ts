@@ -10,7 +10,7 @@
  * Response: { ok: true, customer: CustomerDetail | null }
  */
 
-import { getSupabase, type Env } from "../../../_lib/supabase";
+import { getSupabase, isPiStoreConfigured, type Env } from "../../../_lib/supabase";
 import { jsonResponse } from "../../../_lib/cors";
 import { PagesFunction } from "../../../_lib/pages-function";
 import { customerKey, decodeCustomerId, groupCustomers, type PiCustomerRow } from "../../../_lib/customers";
@@ -32,7 +32,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     );
   }
 
-  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (!isPiStoreConfigured(env)) {
     return jsonResponse(
       { ok: true, customer: null },
       { status: 200, request: context.request, env }
