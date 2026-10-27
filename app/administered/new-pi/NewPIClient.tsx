@@ -27,7 +27,7 @@ import PIDocument, {
   getItemQty,
   type LineItem,
 } from "@/components/pi/PIDocument";
-import { fileToPiImageDataUrl } from "@/lib/pi-image";
+import { fileToPiImageDataUrl, isStorableImage } from "@/lib/pi-image";
 
 // ─── Inline FxRates type (adapted from @/lib/fx-rates) ──────────────────────
 export interface FxRates {
@@ -183,6 +183,8 @@ export default function NewPIPage() {
   const [savedLink, setSavedLink] = useState<string | null>(null);
   const [savedPiNumber, setSavedPiNumber] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [saveWarning, setSaveWarning] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const [piNumberReady, setPiNumberReady] = useState(false);
@@ -300,12 +302,29 @@ export default function NewPIPage() {
   }
 
   async function onItemImageFile(idx: number, file: File) {
-    const url = await fileToPiImageDataUrl(file);
-    if (url) updateItem(idx, { imageUrl: url });
+    setImageError(null);
+    try {
+      const url = await fileToPiImageDataUrl(file);
+      if (!isStorableImage(url)) {
+        setImageError(
+          "This picture is too large to store. Please upload a smaller image (under 1 MB).",
+        );
+        return;
+      }
+      updateItem(idx, { imageUrl: url });
+    } catch (e) {
+      setImageError(
+        e instanceof Error
+          ? e.message
+          : "This picture could not be processed. Please try another file.",
+      );
+    }
   }
 
   async function onSave() {
     setError(null);
+    setImageError(null);
+    setSaveWarning(null);
     setSavedLink(null);
     setSavedPiNumber(null);
 
@@ -381,6 +400,7 @@ export default function NewPIPage() {
       const data = (await res.json()) as {
         success?: boolean;
         error?: string;
+        warning?: string;
         id?: number;
         piNumber?: string;
         total?: number;
@@ -394,6 +414,10 @@ export default function NewPIPage() {
         setError(data.error || "Save failed");
         return;
       }
+
+      // The server reports rows whose picture did not fit into storage. The PI
+      // is saved, but the admin has to know the artwork is missing.
+      if (data.warning) setSaveWarning(data.warning);
 
       const publicPiLink = data.paymentUrl || `/pay/?pi=${encodeURIComponent(piNumber.trim())}`;
       setSavedLink(publicPiLink);
@@ -480,6 +504,18 @@ export default function NewPIPage() {
         {error && (
           <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-300 dark:border-red-800 rounded text-red-700 dark:text-red-300 text-sm">
             {error}
+          </div>
+        )}
+
+        {imageError && (
+          <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 rounded text-amber-800 dark:text-amber-200 text-sm">
+            {imageError}
+          </div>
+        )}
+
+        {saveWarning && (
+          <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 rounded text-amber-800 dark:text-amber-200 text-sm">
+            {saveWarning}
           </div>
         )}
 

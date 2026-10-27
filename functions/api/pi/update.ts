@@ -22,6 +22,7 @@ import { getSupabase, isPiStoreConfigured, piStoreEnvDiagnostic, type Env } from
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
 import {
+  droppedImagesWarning,
   itemsSubtotalCents,
   normalizeItems,
   num,
@@ -98,7 +99,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return jsonResponse({ error: "Missing required field: currency" }, { status: 400, request: context.request, env });
   }
 
-  const items = normalizeItems(body.items);
+  const { items, droppedImages } = normalizeItems(body.items);
+  const imageWarning = droppedImagesWarning(droppedImages);
   if (items.length === 0) {
     return jsonResponse({ error: "Missing required field: items" }, { status: 400, request: context.request, env });
   }
@@ -165,7 +167,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     shipping_term: text(body.shippingTerm) || null,
   };
 
-  let warning: string | undefined;
+  const warnings: string[] = imageWarning ? [imageWarning] : [];
 
   const first = await supabase
     .from("proforma_invoices")
@@ -186,7 +188,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       if (retry.error) {
         return jsonResponse({ error: retry.error.message }, { status: 500, request: context.request, env });
       }
-      warning = `Saved without ISSUE DATE / LEAD TIME / SHIPPING details — run supabase/migrations/20261025_pi_admin_fields.sql in the Supabase SQL editor to store them. (missing column: ${OPTIONAL_COLUMNS.join(", ")})`;
+      warnings.push(`Saved without ISSUE DATE / LEAD TIME / SHIPPING details — run supabase/migrations/20261025_pi_admin_fields.sql in the Supabase SQL editor to store them. (missing column: ${OPTIONAL_COLUMNS.join(", ")})`);
     } else {
       return jsonResponse({ error: first.error.message }, { status: 500, request: context.request, env });
     }
@@ -203,7 +205,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       currency,
       status: existing.status,
       paymentUrl: `/pay/?pi=${encodeURIComponent(piNumber)}`,
-      ...(warning ? { warning } : {}),
+      ...(warnings.length > 0 ? { warning: warnings.join(" ") } : {}),
     },
     { status: 200, request: context.request, env }
   );

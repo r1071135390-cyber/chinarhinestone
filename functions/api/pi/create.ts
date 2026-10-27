@@ -22,6 +22,7 @@ import { getSupabase, isPiStoreConfigured, piStoreEnvDiagnostic, type Env } from
 import { jsonResponse } from "../../_lib/cors";
 import { PagesFunction } from "../../_lib/pages-function";
 import {
+  droppedImagesWarning,
   itemsSubtotalCents,
   normalizeItems,
   text,
@@ -94,7 +95,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   const currency = text(body.currency).toUpperCase();
-  const items = normalizeItems(body.items);
+  const { items, droppedImages } = normalizeItems(body.items);
+  const imageWarning = droppedImagesWarning(droppedImages);
 
   if (!currency) {
     return jsonResponse({ error: "Missing required field: currency" }, { status: 400, request: context.request, env });
@@ -163,7 +165,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const SELECT = "id, pi_number, status, created_at";
 
   let row: { id: number; pi_number: string; status: string; created_at: string } | null = null;
-  let warning: string | undefined;
+  const warnings: string[] = imageWarning ? [imageWarning] : [];
 
   let first = await supabase.from("proforma_invoices").insert(extendedRow).select(SELECT).single();
 
@@ -201,7 +203,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         return jsonResponse({ error: retry.error.message }, { status: 500, request: context.request, env });
       }
       row = retry.data;
-      warning = `Saved without ISSUE DATE / LEAD TIME / SHIPPING details — run supabase/migrations/20261025_pi_admin_fields.sql in the Supabase SQL editor to store them. (missing column: ${OPTIONAL_COLUMNS.join(", ")})`;
+      warnings.push(`Saved without ISSUE DATE / LEAD TIME / SHIPPING details — run supabase/migrations/20261025_pi_admin_fields.sql in the Supabase SQL editor to store them. (missing column: ${OPTIONAL_COLUMNS.join(", ")})`);
     } else if (code === "23505") {
       return jsonResponse(
         { error: `PI number "${piNumber}" already exists. Change the invoice number and save again.` },
@@ -228,7 +230,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       currency,
       status: row?.status ?? "sent",
       paymentUrl: `/pay/?pi=${encodeURIComponent(piNumber)}`,
-      ...(warning ? { warning } : {}),
+      ...(warnings.length > 0 ? { warning: warnings.join(" ") } : {}),
     },
     { status: 201, request: context.request, env }
   );

@@ -114,9 +114,37 @@ export function buildLineItem(raw: ItemRow): Record<string, unknown> {
   return row;
 }
 
+export interface NormalizedItems {
+  items: Record<string, unknown>[];
+  /**
+   * Descriptions of the rows whose artwork did not fit into the storage
+   * limit and was therefore left out. The caller reports them to the admin -
+   * a silently missing product picture is the one bug a PI cannot have.
+   */
+  droppedImages: string[];
+}
+
 /** Drop blank rows and normalize the rest. */
-export function normalizeItems(items: ItemRow[] | undefined): Record<string, unknown>[] {
-  return (items ?? []).filter((it) => text(it.description)).map(buildLineItem);
+export function normalizeItems(items: ItemRow[] | undefined): NormalizedItems {
+  const droppedImages: string[] = [];
+  const rows = (items ?? [])
+    .filter((it) => text(it.description))
+    .map((raw) => {
+      const row = buildLineItem(raw);
+      // A picture that came in but is not on the row was too large to keep.
+      if (text(raw.imageUrl) && row.image_url === undefined) {
+        droppedImages.push(text(raw.description));
+      }
+      return row;
+    });
+  return { items: rows, droppedImages };
+}
+
+/** Warning text for rows whose artwork did not fit into the storage limit. */
+export function droppedImagesWarning(droppedImages: string[]): string {
+  if (droppedImages.length === 0) return "";
+  const list = droppedImages.map((d) => `"${d}"`).join(", ");
+  return `The product picture for ${list} was too large to store and was not saved. Please upload a smaller image.`;
 }
 
 /** Subtotal of the normalized items, in cents. */
