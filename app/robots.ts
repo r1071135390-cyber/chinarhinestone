@@ -8,6 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
+        disallow: "/administered",
       },
     ],
     sitemap: "https://chinarhinestone.com/sitemap.xml",

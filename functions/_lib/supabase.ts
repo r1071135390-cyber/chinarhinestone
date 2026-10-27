@@ -87,7 +87,7 @@ export function getBankSupabase(env: Env): SupabaseClient {
 
 /**
  * Returns true when BANK env vars are configured.
- * Functions use this to decide whether the /admin/bank-accounts page can be
+ * Functions use this to decide whether the /administered/bank-accounts page can be
  * edited (NO when BANK is configured — single source of truth lives there)
  * or read-only.
  */

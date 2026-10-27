@@ -127,13 +127,13 @@ export default function PiListModule() {
             Refresh
           </button>
           <Link
-            href="/admin/summary/"
+            href="/administered/summary/"
             className="border border-white/40 px-2 py-1 text-[10px] font-black uppercase tracking-wider hover:border-[#ff4d00] hover:text-[#ff4d00]"
           >
             Full Overview
           </Link>
           <Link
-            href="/admin/new-pi/"
+            href="/administered/new-pi/"
             className="bg-[#ff4d00] px-2 py-1 text-[10px] font-black uppercase tracking-wider text-black hover:bg-[#e64500]"
           >
             + New PI
@@ -201,7 +201,7 @@ export default function PiListModule() {
           </div>
           {pis.length === 0 && (
             <Link
-              href="/admin/new-pi/"
+              href="/administered/new-pi/"
               className="inline-block bg-[#ff4d00] px-3 py-1.5 text-xs font-black uppercase tracking-wider text-black hover:bg-[#e64500]"
             >
               + Create a PI
@@ -270,7 +270,7 @@ export default function PiListModule() {
                         </Link>
                         {editable ? (
                           <Link
-                            href={`/admin/edit-pi/?pi=${encodeURIComponent(p.piNumber)}`}
+                            href={`/administered/edit-pi/?pi=${encodeURIComponent(p.piNumber)}`}
                             className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-black hover:text-[#ff4d00]"
                             title={`Edit PI ${p.piNumber}`}
                           >

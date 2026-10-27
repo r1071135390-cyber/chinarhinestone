@@ -3,7 +3,7 @@
  *
  * POST /api/pi/update
  *
- * Saves changes to an existing PI (the /admin/edit-pi page).
+ * Saves changes to an existing PI (the /administered/edit-pi page).
  *
  * Body: { piNumber, issueDate?, leadTimeText?, paymentTermsText?,
  *         customer: { name, phone, email?, company?, address? },

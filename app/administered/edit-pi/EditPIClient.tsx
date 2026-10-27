@@ -461,7 +461,7 @@ export default function EditPIPage() {
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
             Only PIs with status <strong>draft</strong> or <strong>sent</strong> can be edited.
           </p>
-          <Link href="/admin/summary/" className="text-sm font-bold text-[#ff4d00] hover:underline">
+          <Link href="/administered/summary/" className="text-sm font-bold text-[#ff4d00] hover:underline">
             ← Back to PI Summary
           </Link>
         </div>
@@ -480,7 +480,7 @@ export default function EditPIPage() {
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
             No PI with number <code className="bg-neutral-100 dark:bg-neutral-800 px-1 rounded">{piNumberParam}</code> was found.
           </p>
-          <Link href="/admin/summary/" className="text-sm font-bold text-[#ff4d00] hover:underline">
+          <Link href="/administered/summary/" className="text-sm font-bold text-[#ff4d00] hover:underline">
             ← Back to PI Summary
           </Link>
         </div>
@@ -569,7 +569,7 @@ export default function EditPIPage() {
         {!savedLink && (
           <div className="mt-6 flex items-center justify-end gap-3 sticky bottom-4 bg-white dark:bg-neutral-900 p-4 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-800">
             <Link
-              href="/admin/summary/"
+              href="/administered/summary/"
               className="px-4 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded hover:bg-neutral-50 dark:hover:bg-neutral-800"
             >
               Cancel
@@ -1114,7 +1114,7 @@ function SuccessPanel({
             <ExternalLink className="w-4 h-4" />
             Open in new tab
           </a>
-          <Link href="/admin/summary/" className="px-4 py-2 border border-neutral-300 dark:border-neutral-700 rounded text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800">
+          <Link href="/administered/summary/" className="px-4 py-2 border border-neutral-300 dark:border-neutral-700 rounded text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800">
             Back to Summary
           </Link>
         </div>

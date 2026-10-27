@@ -3,7 +3,7 @@
  *
  * GET /api/pi/list
  *
- * Admin overview of every PI for this site: the rows the /admin/summary
+ * Admin overview of every PI for this site: the rows the /administered/summary
  * table renders plus the summary numbers behind its stat cards.
  *
  * Response: { summary: SummaryStats, pis: PiListItem[] }

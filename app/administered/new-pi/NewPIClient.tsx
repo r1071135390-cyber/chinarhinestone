@@ -376,7 +376,7 @@ export default function NewPIPage() {
         const json = decodeURIComponent(escape(atob(decodeURIComponent(encoded))));
         const payload = JSON.parse(json) as PrefillPayload;
         applyPrefill(payload);
-        window.history.replaceState({}, "", "/admin/new-pi/");
+        window.history.replaceState({}, "", "/administered/new-pi/");
       } catch (e) {
         console.error("Prefill parse failed:", e);
       }

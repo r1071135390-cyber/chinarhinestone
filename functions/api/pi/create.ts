@@ -4,7 +4,7 @@
  * POST /api/pi/create
  *
  * Accepts the admin "New PI" payload (camelCase, as produced by
- * app/admin/new-pi/NewPIClient.tsx) and inserts one row into
+ * app/administered/new-pi/NewPIClient.tsx) and inserts one row into
  * proforma_invoices.
  *
  * Auth: none. The browser cannot hold a secret — any token the client sends

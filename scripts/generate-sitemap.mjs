@@ -22,6 +22,16 @@ const TODAY = new Date().toISOString();
 // Paths we never want indexed.
 const EXCLUDE = new Set(["/404", "/404.html", "/500", "/500.html"]);
 
+// Route prefixes we never want indexed (internal portals).
+const EXCLUDE_PREFIXES = ["/administered"];
+
+function isExcluded(route) {
+  if (EXCLUDE.has(route)) return true;
+  return EXCLUDE_PREFIXES.some(
+    (p) => route === p || route.startsWith(p + "/")
+  );
+}
+
 function htmlPathToRoute(absPath) {
   const rel = relative(OUT_DIR, absPath).split(sep);
   // out/heat-transfers/index.html -> /heat-transfers
@@ -88,7 +98,7 @@ async function main() {
   for (const f of files) {
     const route = htmlPathToRoute(f);
     if (!route) continue;
-    if (EXCLUDE.has(route)) continue;
+    if (isExcluded(route)) continue;
     const { priority, changefreq } = classify(route);
     routes.push({ loc: route, priority, changefreq, lastmod: TODAY });
   }
@@ -139,6 +149,7 @@ async function main() {
   const robots =
     `User-agent: *\n` +
     `Allow: /\n` +
+    `Disallow: /administered\n` +
     `\n` +
     `Sitemap: ${SITE_URL}/sitemap-index.xml\n` +
     `Sitemap: ${SITE_URL}/sitemap.xml\n` +

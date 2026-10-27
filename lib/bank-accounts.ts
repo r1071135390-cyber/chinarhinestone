@@ -17,7 +17,7 @@
  *   - BankAccount     snake_case, the PI-document display contract
  *                     (components/pi/PIDisplay.tsx + GET /api/pi/:pi_number)
  *   - BankAccountInfo camelCase, the admin editor contract
- *                     (app/admin/new-pi, app/admin/edit-pi)
+ *                     (app/administered/new-pi, app/administered/edit-pi)
  */
 
 export type SupportedCurrency = "usd" | "eur" | "gbp" | "cny";

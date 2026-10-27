@@ -119,7 +119,7 @@ export default function CustomersClient() {
             {customers.map((c) => (
               <button
                 key={c.id}
-                onClick={() => router.push(`/admin/customers?id=${c.id}`)}
+                onClick={() => router.push(`/administered/customers?id=${c.id}`)}
                 className="group border-2 border-black bg-white p-5 text-left transition-all hover:border-[#ff4d00] hover:shadow-[4px_4px_0_0_#ff4d00]"
               >
                 <div className="mb-3 flex items-start justify-between gap-2">

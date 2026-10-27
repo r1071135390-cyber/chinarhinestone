@@ -4,25 +4,25 @@ import PiListModule from "@/components/admin/PiListModule";
 
 const ADMIN_LINKS = [
   {
-    href: "/admin/summary/",
+    href: "/administered/summary/",
     label: "PI Overview",
     description: "Totals, monthly value and currency breakdown",
     icon: FileText,
   },
   {
-    href: "/admin/new-pi/",
+    href: "/administered/new-pi/",
     label: "New PI",
     description: "Create a proforma invoice and send it to the customer",
     icon: Plus,
   },
   {
-    href: "/admin/bank-accounts",
+    href: "/administered/bank-accounts",
     label: "Bank Accounts",
     description: "Manage USD / EUR / GBP / CNY receiving accounts",
     icon: Building2,
   },
   {
-    href: "/admin/customers",
+    href: "/administered/customers",
     label: "Customers",
     description: "View customer list and their PI history",
     icon: Users,

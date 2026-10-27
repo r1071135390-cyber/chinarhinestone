@@ -3,7 +3,7 @@
  *
  * GET /api/admin/pi/:pi_number
  *
- * Admin view of one PI, shaped for the /admin/edit-pi form (flat camelCase
+ * Admin view of one PI, shaped for the /administered/edit-pi form (flat camelCase
  * — the same shape the create endpoint accepts).
  *
  * Unlike the public /api/pi/:pi_number endpoint this one returns every

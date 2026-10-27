@@ -5,7 +5,7 @@
  *
  * Body: { piNumber: string }
  *
- * Permanently removes one PI (the /admin/summary delete button).
+ * Permanently removes one PI (the /administered/summary delete button).
  *
  * Auth: none — see /api/pi/create for why a shared-secret header is not
  * real protection here. The admin UI is password-gated and asks the owner

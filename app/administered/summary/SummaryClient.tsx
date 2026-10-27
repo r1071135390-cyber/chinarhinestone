@@ -26,10 +26,6 @@ export interface FxRates {
   source: string;
 }
 
-// Owner-only access
-const OWNER_PASSWORD = "HOMEdorm521$$$";
-const SESSION_KEY = "cr_pi_summary_unlocked";
-
 interface PiListItem {
   id: number | string;
   piNumber: string;
@@ -99,46 +95,14 @@ function formatDate(iso: string): string {
 }
 
 export default function SummaryClient() {
-  const [unlocked, setUnlocked] = useState<boolean>(false);
-  const [ready, setReady] = useState<boolean>(false);
-
   const [stats, setStats] = useState<SummaryStats | null>(null);
   const [pis, setPis] = useState<PiListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [pwInput, setPwInput] = useState("");
-  const [pwError, setPwError] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      if (sessionStorage.getItem(SESSION_KEY) === "1") {
-        setUnlocked(true);
-      }
-    } catch {
-      // sessionStorage may be unavailable
-    }
-    setReady(true);
-  }, []);
-
   const [confirmTarget, setConfirmTarget] = useState<PiListItem | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  function tryUnlock(e: React.FormEvent) {
-    e.preventDefault();
-    if (pwInput === OWNER_PASSWORD) {
-      try {
-        sessionStorage.setItem(SESSION_KEY, "1");
-      } catch {
-        // ignore
-      }
-      setUnlocked(true);
-      setPwError(null);
-    } else {
-      setPwError("Wrong password.");
-    }
-  }
 
   async function fetchData() {
     setLoading(true);
@@ -164,10 +128,8 @@ export default function SummaryClient() {
   }
 
   useEffect(() => {
-    if (unlocked) {
-      void fetchData();
-    }
-  }, [unlocked]);
+    void fetchData();
+  }, []);
 
   function requestDelete(p: PiListItem) {
     setDeleteError(null);
@@ -211,56 +173,6 @@ export default function SummaryClient() {
     }
   }
 
-  // ---------- Locked view ----------
-
-  if (ready && !unlocked) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-[#faf9f6] px-4 py-12">
-        <div className="w-full max-w-md border-2 border-black bg-white p-8 shadow-[6px_6px_0_0_rgba(10,10,10,1)]">
-          <div className="mb-5 flex h-12 w-12 items-center justify-center border-2 border-black bg-[#0a0a0a] text-white">
-            <Lock className="h-6 w-6" strokeWidth={2.5} />
-          </div>
-          <h1 className="mb-1 text-2xl font-black uppercase leading-tight tracking-tight">
-            PI Summary
-          </h1>
-          <p className="mb-5 text-sm text-[#6b6b6b]">
-            Owner-only. Enter the password to view sales overview.
-          </p>
-          <form onSubmit={tryUnlock}>
-            <input
-              type="password"
-              autoFocus
-              autoComplete="off"
-              value={pwInput}
-              onChange={(e) => {
-                setPwInput(e.target.value);
-                setPwError(null);
-              }}
-              placeholder="Password"
-              className="mb-2 w-full border-2 border-black bg-white px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#ff4d00]/40"
-            />
-            {pwError && (
-              <div className="mb-2 text-xs font-bold text-[#ff4d00]">
-                {pwError}
-              </div>
-            )}
-            <button
-              type="submit"
-              className="w-full bg-[#0a0a0a] px-4 py-2 text-sm font-black uppercase tracking-wider text-white transition-colors hover:bg-[#ff4d00]"
-            >
-              Unlock
-            </button>
-          </form>
-          <div className="mt-5 border-t border-[#e5e5e5] pt-4 text-xs text-[#6b6b6b]">
-            <Link href="/admin/" className="font-bold uppercase tracking-wider text-black hover:text-[#ff4d00]">
-              ← Back to admin
-            </Link>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   // ---------- Main summary view ----------
 
   return (
@@ -289,7 +201,7 @@ export default function SummaryClient() {
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
               Refresh
             </button>
-            <Link href="/admin/" className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wider text-black hover:text-[#ff4d00]">
+            <Link href="/administered/" className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wider text-black hover:text-[#ff4d00]">
               <ArrowLeft className="h-4 w-4" strokeWidth={2.5} />
               Back to admin
             </Link>
@@ -388,7 +300,7 @@ export default function SummaryClient() {
               </h2>
             </div>
             <Link
-              href="/admin/new-pi/"
+              href="/administered/new-pi/"
               className="bg-[#ff4d00] px-3 py-1.5 text-xs font-black uppercase tracking-wider text-black hover:bg-[#e64500]"
             >
               + New PI
@@ -409,7 +321,7 @@ export default function SummaryClient() {
                 Create your first proforma invoice to see it here.
               </div>
               <Link
-                href="/admin/new-pi/"
+                href="/administered/new-pi/"
                 className="inline-block bg-[#ff4d00] px-4 py-2 text-sm font-black uppercase tracking-wider text-black hover:bg-[#e64500]"
               >
                 + Create a PI
@@ -477,7 +389,7 @@ export default function SummaryClient() {
                         <td className="px-4 py-3 text-right">
                           {sc.label === "DRAFT" || sc.label === "SENT" ? (
                             <Link
-                              href={`/admin/edit-pi/?pi=${encodeURIComponent(p.piNumber)}`}
+                              href={`/administered/edit-pi/?pi=${encodeURIComponent(p.piNumber)}`}
                               className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-black hover:text-[#ff4d00]"
                               title={`Edit PI ${p.piNumber}`}
                             >
