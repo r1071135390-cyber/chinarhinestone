@@ -17,7 +17,7 @@ import {
   type BankAccountInfo,
   type SupportedCurrency,
 } from "@/lib/bank-accounts";
-import { getItemQty, type LineItem } from "@/lib/pi-item";
+import { getItemQty, normalizePiText, type LineItem } from "@/lib/pi-item";
 import { DEFAULT_TERMS_PAYMENT } from "@/lib/pi-meta";
 import type { ProformaInvoice } from "@/lib/pi-types";
 
@@ -69,8 +69,8 @@ export function toDocumentData(
     : getBankAccount(currency);
 
   const items: LineItem[] = (pi.line_items ?? []).map((it) => ({
-    description: it.description ?? "",
-    fabric: it.fabric ?? "",
+    description: normalizePiText(it.description ?? ""),
+    fabric: normalizePiText(it.fabric ?? ""),
     qty: Number(it.quantity ?? 0) || 0,
     unit: it.unit || "set",
     unitPrice: Number(it.unit_price ?? 0) || 0,

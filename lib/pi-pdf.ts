@@ -84,9 +84,24 @@ const CJK_REPLACEMENTS: Array<[RegExp, string]> = [
 ];
 
 /**
+ * Unicode code points outside Latin-1 that the WinAnsi-encoded standard
+ * fonts can still draw. jsPDF ships a built-in Unicode → WinAnsi table and
+ * applies it automatically, so these characters must be handed over
+ * untouched (the browser shows them, so the PDF has to show them too).
+ */
+const WIN_ANSI_EXTRA = new Set([
+  402, 8211, 8212, 8216, 8217, 8218, 8220, 8221, 8222, 8224, 8225, 8226, 8230, 8364, 8240, 8249,
+  8250, 710, 8482, 338, 339, 732, 352, 353, 376, 381, 382,
+]);
+
+/**
  * Make a string safe for the WinAnsi-encoded standard fonts.
- * Known Chinese bank strings are replaced with their English equivalents,
- * anything else outside Latin-1 is dropped.
+ *
+ * Known Chinese bank strings are replaced with their English equivalents.
+ * Everything the standard fonts can encode is kept as-is — including the
+ * punctuation the page shows (•, –, ’, “, ”, …) — so the PDF reads exactly
+ * like the document on screen. Only characters with no glyph at all are
+ * dropped.
  */
 export function sanitizeText(input: string): string {
   if (!input) return "";
@@ -94,16 +109,16 @@ export function sanitizeText(input: string): string {
   for (const [re, replacement] of CJK_REPLACEMENTS) {
     out = out.replace(re, replacement);
   }
-  // Drop characters the standard fonts cannot encode.
   return out
-    .replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/[–—]/g, "-")
-    .replace(/…/g, "...")
+    .replace(/\r\n?/g, "\n")
+    .replace(/\t/g, " ")
     .split("")
     .filter((ch) => {
       const code = ch.codePointAt(0) ?? 0;
-      return code >= 32 && code <= 255;
+      if (code === 10) return true; // line break
+      if (code < 32) return false; // other control characters
+      if (code <= 255) return true; // Latin-1
+      return WIN_ANSI_EXTRA.has(code);
     })
     .join("");
 }

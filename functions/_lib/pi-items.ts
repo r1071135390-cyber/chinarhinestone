@@ -30,6 +30,27 @@ export function text(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";
 }
 
+/**
+ * Normalize a multi-line text field (description, fabric).
+ *
+ * Mirrors normalizePiText() in lib/pi-item.ts: Windows line endings become
+ * Unix ones, tabs become a single space and trailing spaces are dropped.
+ * The line breaks themselves are kept — the admin types a bullet list into
+ * the fabric field and both the screen and the PDF have to show it as a
+ * list. The function lives here as well because the Cloudflare Functions
+ * bundle cannot import from the app's lib/ directory.
+ */
+export function multiText(v: unknown): string {
+  if (typeof v !== "string") return "";
+  return v
+    .replace(/\r\n?/g, "\n")
+    .replace(/\t/g, " ")
+    .split("\n")
+    .map((line) => line.replace(/[ ]+$/, ""))
+    .join("\n")
+    .trim();
+}
+
 export function num(v: unknown): number {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
@@ -58,7 +79,7 @@ export const MAX_INLINE_IMAGE_LENGTH = 150_000;
  * never grow into megabytes of base64.
  */
 export function buildLineItem(raw: ItemRow): Record<string, unknown> {
-  const description = text(raw.description);
+  const description = multiText(raw.description);
   const quantity = num(raw.quantity);
   const unitPrice = num(raw.unitPrice);
   const sizes = (raw.sizes ?? [])
@@ -72,7 +93,7 @@ export function buildLineItem(raw: ItemRow): Record<string, unknown> {
     total: Math.round(quantity * unitPrice * 100) / 100,
   };
 
-  const fabric = text(raw.fabric);
+  const fabric = multiText(raw.fabric);
   if (fabric) row.fabric = fabric;
   const unit = text(raw.unit);
   if (unit) row.unit = unit;

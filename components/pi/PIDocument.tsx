@@ -271,13 +271,21 @@ export interface PIDocumentProps {
   onShippingTermChange?: (v: string) => void;
 }
 
-/** Plain-text rendering of a field value (read-only mode). */
+/**
+ * Plain-text rendering of a field value (read-only mode).
+ *
+ * Line breaks are preserved (`whitespace-pre-wrap`) so a multi-line field
+ * such as FABRIC CONTENT looks exactly like the textarea it was typed in,
+ * and like the PDF.
+ */
 function ReadValue({ value, placeholder }: { value: string; placeholder?: string }) {
   const text = (value ?? "").trim();
   if (!text) {
     return <span className="text-sm text-neutral-400">{placeholder ?? "—"}</span>;
   }
-  return <span className="text-sm text-black dark:text-white break-words">{text}</span>;
+  return (
+    <span className="text-sm text-black dark:text-white break-words whitespace-pre-wrap">{text}</span>
+  );
 }
 
 export default function PIDocument(props: PIDocumentProps) {

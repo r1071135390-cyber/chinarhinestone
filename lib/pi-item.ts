@@ -28,3 +28,21 @@ export function getItemQty(it: LineItem): number {
   if (!it.hasSizeBreakdown) return it.qty;
   return it.sizes.reduce((sum, s) => sum + (Number(s.qty) || 0), 0);
 }
+
+/**
+ * Normalize the whitespace of a multi-line text field.
+ *
+ * Line breaks are kept (the admin types a bullet list into the fabric
+ * field), tabs become a single space and Windows line endings become Unix
+ * ones. The screen and the PDF both render the normalized text, so they
+ * always show the same characters.
+ */
+export function normalizePiText(value: string): string {
+  return (value ?? "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/\t/g, " ")
+    .split("\n")
+    .map((line) => line.replace(/[ ]+$/, ""))
+    .join("\n")
+    .trim();
+}
