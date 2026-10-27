@@ -40,9 +40,22 @@ export function toCents(v: unknown): number {
 }
 
 /**
+ * Largest inline `data:` artwork URL that is kept in the row.
+ *
+ * The browser downscales the picked photo to a ~600px JPEG before upload
+ * (lib/pi-image.ts), so a stored picture is a few tens of kilobytes. Keeping
+ * it means the customer-facing PI and the downloaded PDF show the very same
+ * product picture the admin saw in "New PI" — a bigger upload is dropped
+ * rather than bloating the row.
+ */
+export const MAX_INLINE_IMAGE_LENGTH = 150_000;
+
+/**
  * Normalize one line item for storage.
- * Inline `data:` artwork URLs are dropped — they are megabytes of base64 and
- * would bloat the row.
+ *
+ * Inline `data:` artwork URLs are kept when they are small enough (the
+ * browser downsizes them first); oversized ones are dropped so a row can
+ * never grow into megabytes of base64.
  */
 export function buildLineItem(raw: ItemRow): Record<string, unknown> {
   const description = text(raw.description);
@@ -65,7 +78,12 @@ export function buildLineItem(raw: ItemRow): Record<string, unknown> {
   if (unit) row.unit = unit;
 
   const imageUrl = text(raw.imageUrl);
-  if (imageUrl && !imageUrl.startsWith("data:")) row.image_url = imageUrl;
+  if (imageUrl) {
+    const isInline = imageUrl.startsWith("data:image/");
+    if (!isInline || imageUrl.length <= MAX_INLINE_IMAGE_LENGTH) {
+      row.image_url = imageUrl;
+    }
+  }
 
   if (sizes.length > 0) {
     row.sizes = sizes;

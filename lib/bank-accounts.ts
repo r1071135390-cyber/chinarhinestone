@@ -32,13 +32,21 @@ export const SUPPORTED_CURRENCIES: SupportedCurrency[] = ["usd", "eur", "gbp", "
 export interface BankAccount {
   id: string;
   currency: string;
+  label?: string;
+  symbol?: string;
   beneficiary_name: string;
+  company_address?: string;
   bank_name: string;
   bank_address: string;
   account_number: string;
   swift_code: string;
+  cnaps?: string;
+  iban?: string;
+  bank_country?: string;
+  routing_number?: string;
   intermediary_bank?: string;
   intermediary_swift?: string;
+  notes?: string;
   is_active: boolean;
 }
 
@@ -169,5 +177,36 @@ export function bankAccountFromRow(
     cnaps: row.cnaps ?? undefined,
     intermediaryBank: row.intermediary_bank ?? undefined,
     notes: row.notes ?? undefined,
+  };
+}
+
+/**
+ * Convert the public API's snake_case bank payload → the camelCase shape
+ * the PI document renders. Missing optional fields fall back to the
+ * hardcoded table so the document is never half-empty.
+ */
+export function bankAccountInfoFromDisplay(
+  row: BankAccount | null | undefined,
+  currency?: string,
+): BankAccountInfo {
+  const cur = (row?.currency ?? currency ?? "usd").toLowerCase();
+  const fallback = getBankAccount(cur);
+  if (!row) return fallback;
+  return {
+    currency: row.currency || fallback.currency,
+    label: row.label || fallback.label,
+    symbol: row.symbol || fallback.symbol,
+    beneficiary: row.beneficiary_name || fallback.beneficiary,
+    companyAddress: row.company_address || fallback.companyAddress,
+    bankName: row.bank_name || fallback.bankName,
+    account: row.account_number || fallback.account,
+    swift: row.swift_code || fallback.swift,
+    bankAddress: row.bank_address || fallback.bankAddress,
+    iban: row.iban ?? fallback.iban,
+    bankCountry: row.bank_country ?? fallback.bankCountry,
+    routingNumber: row.routing_number ?? fallback.routingNumber,
+    cnaps: row.cnaps ?? fallback.cnaps,
+    intermediaryBank: row.intermediary_bank ?? fallback.intermediaryBank,
+    notes: row.notes ?? fallback.notes,
   };
 }

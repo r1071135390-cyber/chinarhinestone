@@ -7,8 +7,8 @@ import type { BankAccount } from "@/lib/bank-accounts";
 import PIDisplay from "@/components/pi/PIDisplay";
 import StripeProvider from "@/components/stripe/StripeProvider";
 import PayWithStripeElements from "@/components/stripe/PayWithStripeElements";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
+import { toDocumentData } from "@/lib/pi-document-data";
+import { buildPiPdf, loadPiImages } from "@/lib/pi-pdf";
 
 export default function PayClient() {
   const router = useRouter();
@@ -27,6 +27,8 @@ export default function PayClient() {
   const [bankTransferPending, setBankTransferPending] = useState(false);
   const [alreadyPaid, setAlreadyPaid] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [pdfPending, setPdfPending] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   // Ref-level locks: React state is async, so two fast clicks can both
   // start a request before the disabled state applies. These guards make
@@ -147,45 +149,31 @@ export default function PayClient() {
     }
   };
 
+  /**
+   * Download the PI as a real-text PDF.
+   *
+   * The PDF is drawn from the same document data the page renders
+   * (lib/pi-document-data), so the file matches the on-screen invoice:
+   * same wording, same table, same logo.
+   */
   const handleDownloadPDF = async () => {
-    const element = document.getElementById("pi-document");
-    if (!element) return;
+    if (!pi || pdfPending) return;
+    setPdfPending(true);
+    setPdfError(null);
 
     try {
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pageWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      pdf.save(`PI-${piNumber}.pdf`);
+      const data = toDocumentData(pi, bankAccount);
+      const options = await loadPiImages(data);
+      const doc = buildPiPdf(data, options);
+      doc.save(`PI-${data.piNumber || piNumber || "invoice"}.pdf`);
     } catch (err) {
-      console.error("PDF generation failed:", err);
+      setPdfError(
+        err instanceof Error
+          ? `Could not create the PDF: ${err.message}`
+          : "Could not create the PDF. Please try again.",
+      );
+    } finally {
+      setPdfPending(false);
     }
   };
 
@@ -226,13 +214,13 @@ export default function PayClient() {
   if (paymentSuccess && pi) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="bg-[#0a0a0a] text-white py-4 px-6">
+        <header className="bg-[#0a0a0a] text-white py-4 px-6 no-print">
           <div className="mx-auto max-w-4xl">
             <h1 className="text-lg font-bold">ChinaRhinestone</h1>
           </div>
         </header>
         <main className="mx-auto max-w-4xl p-6">
-          <div className="rounded-lg bg-white p-8 shadow-lg text-center">
+          <div className="rounded-lg bg-white p-8 shadow-lg text-center no-print">
             <div className="rounded-full bg-green-100 p-4 inline-block mb-4">
               <svg className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -266,12 +254,27 @@ export default function PayClient() {
                 <span className="font-medium">Paid Via:</span> Card
               </p>
             </div>
-            <button onClick={handleDownloadPDF} className="rounded bg-[#ff4d00] px-6 py-2 font-semibold text-white hover:bg-[#e64500] mr-4">
-              Download Receipt
-            </button>
-            <button onClick={() => router.push("/")} className="rounded border border-gray-300 px-6 py-2 font-semibold text-gray-700 hover:bg-gray-50">
-              Return to Home
-            </button>
+            {pdfError && (
+              <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                {pdfError}
+              </div>
+            )}
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={handleDownloadPDF}
+                disabled={pdfPending}
+                className="rounded bg-[#ff4d00] px-6 py-2 font-semibold text-white hover:bg-[#e64500] disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {pdfPending ? "Preparing PDF…" : "Download PI (PDF)"}
+              </button>
+              <button onClick={() => router.push("/")} className="rounded border border-gray-300 px-6 py-2 font-semibold text-gray-700 hover:bg-gray-50">
+                Return to Home
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <PIDisplay pi={pi} bankAccount={bankAccount} />
           </div>
         </main>
       </div>
@@ -282,21 +285,22 @@ export default function PayClient() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-[#0a0a0a] text-white py-4 px-6">
+      <header className="bg-[#0a0a0a] text-white py-4 px-6 no-print">
         <div className="mx-auto max-w-4xl">
           <h1 className="text-lg font-bold">ChinaRhinestone</h1>
         </div>
       </header>
 
       <main className="mx-auto max-w-4xl p-6">
-        <div className="mb-6 flex justify-between items-center">
+        <div className="mb-6 flex justify-between items-center no-print">
           <h1 className="text-xl font-bold">Proforma Invoice #{pi.pi_number}</h1>
           <div className="flex gap-3">
             <button
               onClick={handleDownloadPDF}
-              className="rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              disabled={pdfPending}
+              className="rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Download PDF
+              {pdfPending ? "Preparing PDF…" : "Download PDF"}
             </button>
             <button
               onClick={handlePrint}
@@ -307,12 +311,18 @@ export default function PayClient() {
           </div>
         </div>
 
+        {pdfError && (
+          <div className="mb-6 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600 no-print">
+            {pdfError}
+          </div>
+        )}
+
         <div className="rounded-lg bg-white p-6 shadow-lg mb-6">
           <PIDisplay pi={pi} bankAccount={bankAccount} />
         </div>
 
         {piClosed ? (
-          <div className="rounded-lg bg-white p-6 shadow-lg text-center">
+          <div className="rounded-lg bg-white p-6 shadow-lg text-center no-print">
             <div
               className={`rounded-full p-4 inline-block mb-4 ${
                 piPaid ? "bg-green-100" : "bg-gray-100"
@@ -341,7 +351,7 @@ export default function PayClient() {
             </p>
           </div>
         ) : bankTransferConfirmed ? (
-          <div className="rounded-lg bg-green-50 border border-green-200 p-6 text-center">
+          <div className="rounded-lg bg-green-50 border border-green-200 p-6 text-center no-print">
             <div className="rounded-full bg-green-100 p-4 inline-block mb-4">
               <svg className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -353,7 +363,7 @@ export default function PayClient() {
             </p>
           </div>
         ) : (
-          <div className="rounded-lg bg-white p-6 shadow-lg">
+          <div className="rounded-lg bg-white p-6 shadow-lg no-print">
             <h2 className="text-lg font-bold mb-4">Select Payment Method</h2>
             {actionError && (
               <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600">

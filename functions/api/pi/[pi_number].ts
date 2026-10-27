@@ -11,6 +11,11 @@
  * components/pi/PIDisplay.tsx and lib/bank-accounts.ts, so the /pay page
  * can hand them straight to <PIDisplay />.
  *
+ * The payload carries every field the PI document needs (customer details,
+ * issue date, lead time, shipping, fabric / picture per line item and the
+ * full bank account), because the customer-facing document is rendered with
+ * exactly the same layout as the admin "New PI" form.
+ *
  * Money: the DB stores cents; the PI document renders major units.
  */
 
@@ -38,6 +43,12 @@ interface PiRow {
   valid_until: string | null;
   payment_method: string | null;
   bank_account_currency: string | null;
+  issue_date: string | null;
+  lead_time_text: string | null;
+  shipping_label: string | null;
+  shipping_method: string | null;
+  shipping_qty: number | null;
+  shipping_term: string | null;
 }
 
 interface BankAccountRow {
@@ -70,6 +81,20 @@ const SELLER = {
   phone: "+86 137 6459 3988",
   email: "info@chinarhinestone.com",
 };
+
+const BASE_SELECT =
+  "id, pi_number, customer_name, customer_email, customer_phone, customer_company, " +
+  "customer_address, customer_country, currency, line_items, subtotal_cents, shipping_cents, " +
+  "total_cents, status, notes, created_at, valid_until, payment_method, bank_account_currency";
+
+const EXT_SELECT =
+  BASE_SELECT +
+  ", issue_date, lead_time_text, shipping_label, shipping_method, shipping_qty, shipping_term";
+
+function isMissingColumn(code?: string, message?: string): boolean {
+  if (code === "42703" || code === "PGRST204") return true;
+  return /column\s+"?[a-zA-Z0-9_.]+"?\s+does not exist/i.test(message ?? "");
+}
 
 async function fetchBankAccount(
   env: Env,
@@ -112,10 +137,13 @@ async function fetchBankAccount(
 
 interface LineItem {
   description: string;
-  size?: string;
+  fabric?: string;
+  unit?: string;
   quantity: number;
   unit_price: number;
   total: number;
+  image_url?: string;
+  sizes?: { label: string; qty: number }[];
 }
 
 function toLineItems(raw: unknown): LineItem[] {
@@ -130,7 +158,18 @@ function toLineItems(raw: unknown): LineItem[] {
       unit_price: unitPrice,
       total: Number(row.total ?? quantity * unitPrice) || 0,
     };
-    if (row.size) item.size = String(row.size);
+    if (row.fabric) item.fabric = String(row.fabric);
+    if (row.unit) item.unit = String(row.unit);
+    if (row.image_url) item.image_url = String(row.image_url);
+    if (Array.isArray(row.sizes)) {
+      const sizes = (row.sizes as unknown[])
+        .map((s) => {
+          const sr = (s ?? {}) as Record<string, unknown>;
+          return { label: String(sr.label ?? ""), qty: Number(sr.qty ?? 0) || 0 };
+        })
+        .filter((s) => s.label);
+      if (sizes.length) item.sizes = sizes;
+    }
     return item;
   });
 }
@@ -157,11 +196,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   }
 
   const supabase = getSupabase(env);
-  const { data, error } = await supabase
+
+  let data: PiRow | null = null;
+  let warning: string | undefined;
+
+  const first = await supabase
     .from("proforma_invoices")
-    .select(
-      "id, pi_number, customer_name, customer_email, customer_phone, customer_company, customer_address, customer_country, currency, line_items, subtotal_cents, shipping_cents, total_cents, status, notes, created_at, valid_until, payment_method, bank_account_currency"
-    )
+    .select(EXT_SELECT)
     .eq("pi_number", piNumber)
     .eq("site_slug", siteSlug)
     // 'awaiting_payment' is the state /api/pi/confirm-bank moves a PI into.
@@ -171,9 +212,29 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     .in("status", ["sent", "awaiting_payment", "paid"])
     .maybeSingle<PiRow>();
 
-  if (error) {
-    return jsonResponse({ error: error.message }, { status: 500, request: context.request, env });
+  if (first.error) {
+    if (isMissingColumn(first.error.code, first.error.message)) {
+      // The extra columns are not there yet — read the core fields only.
+      const retry = await supabase
+        .from("proforma_invoices")
+        .select(BASE_SELECT)
+        .eq("pi_number", piNumber)
+        .eq("site_slug", siteSlug)
+        .in("status", ["sent", "awaiting_payment", "paid"])
+        .maybeSingle<PiRow>();
+      if (retry.error) {
+        return jsonResponse({ error: retry.error.message }, { status: 500, request: context.request, env });
+      }
+      data = retry.data;
+      warning =
+        "ISSUE DATE / LEAD TIME / SHIPPING details are empty — run supabase/migrations/20261025_pi_admin_fields.sql in the Supabase SQL editor to store them.";
+    } else {
+      return jsonResponse({ error: first.error.message }, { status: 500, request: context.request, env });
+    }
+  } else {
+    data = first.data;
   }
+
   if (!data) {
     return jsonResponse({ error: "PI not found" }, { status: 404, request: context.request, env });
   }
@@ -186,13 +247,21 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     ? {
         id: String(bankRow.id),
         currency: bankRow.currency,
+        label: bankRow.label,
+        symbol: bankRow.symbol,
         beneficiary_name: bankRow.beneficiary,
+        company_address: bankRow.company_address,
         bank_name: bankRow.bank_name,
         bank_address: bankRow.bank_address,
         account_number: bankRow.account,
         swift_code: bankRow.swift,
+        cnaps: bankRow.cnaps ?? undefined,
+        iban: bankRow.iban ?? undefined,
+        bank_country: bankRow.bank_country ?? undefined,
+        routing_number: bankRow.routing_number ?? undefined,
         intermediary_bank: bankRow.intermediary_bank ?? undefined,
         intermediary_swift: bankRow.intermediary_swift ?? undefined,
+        notes: bankRow.notes ?? undefined,
         is_active: true,
       }
     : null;
@@ -200,11 +269,18 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const subtotal = (data.subtotal_cents ?? 0) / 100;
   const shipping = (data.shipping_cents ?? 0) / 100;
   const total = (data.total_cents ?? 0) / 100;
+  const shippingQty = Number(data.shipping_qty) || 1;
 
   const pi = {
     id: String(data.id),
     pi_number: data.pi_number,
     date: data.created_at,
+    issue_date: data.issue_date ?? "",
+    lead_time_text: data.lead_time_text ?? "",
+    customer_name: data.customer_name ?? "",
+    customer_email: data.customer_email ?? "",
+    customer_phone: data.customer_phone ?? "",
+    customer_company: data.customer_company ?? "",
     from_company: SELLER.company,
     from_address: SELLER.address,
     from_phone: SELLER.phone,
@@ -215,6 +291,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     line_items: toLineItems(data.line_items),
     subtotal,
     shipping,
+    shipping_qty: shippingQty,
+    shipping_label: data.shipping_label ?? "",
+    shipping_method: data.shipping_method ?? "",
+    shipping_term: data.shipping_term ?? "DDP",
     total,
     currency: (data.currency ?? "USD").toUpperCase(),
     notes: data.notes ?? undefined,
@@ -223,7 +303,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   };
 
   return jsonResponse(
-    { pi, bankAccount },
+    { pi, bankAccount, ...(warning ? { warning } : {}) },
     { status: 200, request: context.request, env }
   );
 };
