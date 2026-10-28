@@ -17,6 +17,7 @@ import {
   Coins,
   Pencil,
 } from "lucide-react";
+import MarkPaidControl from "@/components/admin/MarkPaidControl";
 
 // ─── Inline FxRates type (adapted from @/lib/fx-rates) ──────────────────────
 export interface FxRates {
@@ -36,6 +37,8 @@ interface PiListItem {
   totalDisplay: string;
   status: string | null;
   createdAt: string;
+  paidAt?: string | null;
+  paymentMethod?: string | null;
   paymentCount?: number;
   paidAmountCents?: number;
   duplicatePayment?: boolean;
@@ -92,6 +95,21 @@ function formatDate(iso: string): string {
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
   const day = String(d.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+/** Human label for the stored payment_method value. */
+function paymentMethodLabel(method: string | null | undefined): string | null {
+  if (!method) return null;
+  switch (method.toLowerCase()) {
+    case "bank_transfer":
+      return "Bank transfer";
+    case "stripe":
+      return "Stripe";
+    case "manual":
+      return "Manual";
+    default:
+      return method;
+  }
 }
 
 export default function SummaryClient() {
@@ -337,6 +355,7 @@ export default function SummaryClient() {
                     <th className="px-4 py-3">Date</th>
                     <th className="px-4 py-3 text-right">Total</th>
                     <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Payment</th>
                     <th className="px-4 py-3 text-right">View</th>
                     <th className="px-4 py-3 text-right">Edit</th>
                     <th className="px-4 py-3 text-right">Delete</th>
@@ -363,6 +382,19 @@ export default function SummaryClient() {
                           <span className={`inline-block border-2 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${sc.bg} ${sc.text} ${sc.border}`}>
                             {sc.label}
                           </span>
+                          {sc.label === "PAID" && (p.paidAt || p.paymentMethod) && (
+                            <div className="mt-1 text-[10px] leading-tight text-[#6b6b6b]">
+                              {p.paymentMethod ? (
+                                <span className="font-bold uppercase">{paymentMethodLabel(p.paymentMethod)}</span>
+                              ) : null}
+                              {p.paidAt ? (
+                                <span>
+                                  {p.paymentMethod ? " · " : ""}
+                                  {formatDate(p.paidAt)}
+                                </span>
+                              ) : null}
+                            </div>
+                          )}
                           {p.duplicatePayment && (
                             <div className="mt-1">
                               <span
@@ -373,6 +405,15 @@ export default function SummaryClient() {
                               </span>
                             </div>
                           )}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <MarkPaidControl
+                            piNumber={p.piNumber}
+                            status={p.status}
+                            customerName={p.customerName}
+                            totalDisplay={p.totalDisplay}
+                            onDone={() => void fetchData()}
+                          />
                         </td>
                         <td className="px-4 py-3 text-right">
                           <Link

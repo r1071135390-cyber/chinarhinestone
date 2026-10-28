@@ -36,6 +36,8 @@ interface PiRow {
   currency: string | null;
   status: string | null;
   created_at: string;
+  paid_at: string | null;
+  payment_method: string | null;
 }
 
 function formatCents(cents: number, currency: string): string {
@@ -61,6 +63,11 @@ function isSameUtcMonth(iso: string, now: Date): boolean {
   );
 }
 
+function isMissingColumn(code?: string, message?: string): boolean {
+  if (code === "42703" || code === "PGRST204") return true;
+  return /column\s+"?[a-zA-Z0-9_.]+"?\s+does not exist/i.test(message ?? "");
+}
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const env = context.env;
   const siteSlug = env.SITE_SLUG ?? "chinarhinestone";
@@ -77,18 +84,38 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   const supabase = getSupabase(env);
 
-  const { data, error } = await supabase
+  // paid_at / payment_method tell the admin list when a PI was paid and how.
+  // They are read in the same query as the rest of the row; if the deployment
+  // predates those columns the whole select fails, so the query is retried
+  // with the older column set instead of breaking the list.
+  let rows: PiRow[] = [];
+
+  const first = await supabase
     .from("proforma_invoices")
-    .select("id, pi_number, customer_name, customer_company, total_cents, currency, status, created_at")
+    .select("id, pi_number, customer_name, customer_company, total_cents, currency, status, created_at, paid_at, payment_method")
     .eq("site_slug", siteSlug)
     .order("created_at", { ascending: false })
     .limit(ROW_LIMIT);
 
-  if (error) {
-    return jsonResponse({ error: error.message }, { status: 500, request: context.request, env });
-  }
+  if (first.error) {
+    if (isMissingColumn(first.error.code, first.error.message)) {
+      const retry = await supabase
+        .from("proforma_invoices")
+        .select("id, pi_number, customer_name, customer_company, total_cents, currency, status, created_at")
+        .eq("site_slug", siteSlug)
+        .order("created_at", { ascending: false })
+        .limit(ROW_LIMIT);
 
-  const rows = (data ?? []) as PiRow[];
+      if (retry.error) {
+        return jsonResponse({ error: retry.error.message }, { status: 500, request: context.request, env });
+      }
+      rows = (retry.data ?? []) as PiRow[];
+    } else {
+      return jsonResponse({ error: first.error.message }, { status: 500, request: context.request, env });
+    }
+  } else {
+    rows = (first.data ?? []) as PiRow[];
+  }
 
   // ── Payment ledger ────────────────────────────────────────────────────────
   // Every successful Stripe payment is written to pi_payments by the webhook.
@@ -166,6 +193,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       totalDisplay: formatCents(cents, currency),
       status: row.status,
       createdAt: row.created_at,
+      paidAt: row.paid_at ?? null,
+      paymentMethod: row.payment_method ?? null,
       paymentCount: payments?.count ?? 0,
       paidAmountCents: payments?.cents ?? 0,
       duplicatePayment: (payments?.count ?? 0) > 1,

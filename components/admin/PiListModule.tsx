@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Eye, Pencil, Lock, RefreshCw, Search, FileText, AlertTriangle } from "lucide-react";
+import MarkPaidControl from "@/components/admin/MarkPaidControl";
 
 interface PiListItem {
   id: number | string;
@@ -12,6 +13,8 @@ interface PiListItem {
   totalDisplay: string;
   status: string | null;
   createdAt: string;
+  paidAt?: string | null;
+  paymentMethod?: string | null;
   paymentCount?: number;
   duplicatePayment?: boolean;
 }
@@ -245,6 +248,15 @@ export default function PiListModule() {
                       >
                         {sc.label}
                       </span>
+                      {sc.label === "PAID" && p.paidAt && (
+                        <div className="mt-0.5 text-[9px] leading-tight text-[#6b6b6b]">
+                          {p.paymentMethod ? (
+                            <span className="font-bold uppercase">{p.paymentMethod}</span>
+                          ) : null}
+                          {p.paymentMethod ? " · " : ""}
+                          {formatDate(p.paidAt)}
+                        </div>
+                      )}
                       {p.duplicatePayment && (
                         <div className="mt-1">
                           <span
@@ -286,6 +298,14 @@ export default function PiListModule() {
                             Locked
                           </span>
                         )}
+                        <MarkPaidControl
+                          piNumber={p.piNumber}
+                          status={p.status}
+                          customerName={p.customerName}
+                          totalDisplay={p.totalDisplay}
+                          size="sm"
+                          onDone={() => void load()}
+                        />
                       </div>
                     </td>
                   </tr>
