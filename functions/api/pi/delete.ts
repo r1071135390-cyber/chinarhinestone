@@ -11,13 +11,18 @@
  * drafts, duplicates, invoices the customer walked away from, cancelled or
  * refunded ones.
  *
- * Two guards keep real money safe:
+ * Three guards keep real money safe:
  *   1. A "paid" invoice is refused. The money has to be refunded first,
  *      which flips the status to "refunded".
  *   2. An invoice with a row in the Stripe payment ledger is refused unless
  *      it was refunded. Without this a missed webhook could let a paid
  *      invoice be deleted and the payment would disappear from the books.
  *      The invoice's ledger rows are removed together with the invoice.
+ *   3. When the invoice row carries a Stripe PaymentIntent id, Stripe is
+ *      asked directly whether that intent succeeded. This catches the case
+ *      the other two guards cannot see: the customer paid, but the webhook
+ *      never arrived, so the invoice still says "sent" and the ledger is
+ *      empty. Stripe is the source of truth for its own payments.
  *
  * Auth: none — see /api/pi/create for why a shared-secret header is not
  * real protection here. The admin UI is password-gated and asks the owner
@@ -26,10 +31,23 @@
 
 import { getSupabase, isPiStoreConfigured, piStoreEnvDiagnostic, type Env } from "../../_lib/supabase";
 import { jsonResponse } from "../../_lib/cors";
+import { getStripe } from "../../_lib/stripe";
 import { PagesFunction } from "../../_lib/pages-function";
 
 interface DeleteBody {
   piNumber?: string;
+}
+
+interface ExistingPi {
+  id: number;
+  status: string;
+  stripe_payment_intent_id: string | null;
+}
+
+/** The deployment predates a column the query asked for. */
+function isMissingColumn(code?: string, message?: string): boolean {
+  if (code === "42703" || code === "PGRST204") return true;
+  return /column\s+"?[a-zA-Z0-9_.]+"?\s+does not exist/i.test(message ?? "");
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -60,15 +78,35 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const supabase = getSupabase(env);
 
-  const { data: existing, error: lookupErr } = await supabase
+  let existing: ExistingPi | null = null;
+
+  const lookup = await supabase
     .from("proforma_invoices")
-    .select("id, status")
+    .select("id, status, stripe_payment_intent_id")
     .eq("pi_number", piNumber)
     .eq("site_slug", siteSlug)
-    .maybeSingle<{ id: number; status: string }>();
+    .maybeSingle<ExistingPi>();
 
-  if (lookupErr) {
-    return jsonResponse({ error: lookupErr.message }, { status: 500, request: context.request, env });
+  if (lookup.error) {
+    if (!isMissingColumn(lookup.error.code, lookup.error.message)) {
+      return jsonResponse({ error: lookup.error.message }, { status: 500, request: context.request, env });
+    }
+
+    // Older deployment without the Stripe column — retry without it. The
+    // Stripe cross-check below is then skipped, the other guards still run.
+    const retry = await supabase
+      .from("proforma_invoices")
+      .select("id, status")
+      .eq("pi_number", piNumber)
+      .eq("site_slug", siteSlug)
+      .maybeSingle<{ id: number; status: string }>();
+
+    if (retry.error) {
+      return jsonResponse({ error: retry.error.message }, { status: 500, request: context.request, env });
+    }
+    existing = retry.data ? { ...retry.data, stripe_payment_intent_id: null } : null;
+  } else {
+    existing = lookup.data;
   }
   if (!existing) {
     return jsonResponse(
@@ -112,6 +150,50 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       },
       { status: 409, request: context.request, env }
     );
+  }
+
+  // ── Stripe cross-check ───────────────────────────────────────────────────
+  // The ledger is written by the webhook, so a payment whose webhook never
+  // arrived leaves no trace there — the invoice still says "sent". Stripe
+  // knows whether its own PaymentIntent succeeded, so ask it directly
+  // before removing an invoice that already has a PaymentIntent id.
+  //
+  // This also repairs the invoice row when the webhook was missed, so the
+  // admin list stops showing a paid invoice as unpaid.
+  if (
+    existing.status !== "refunded" &&
+    existing.stripe_payment_intent_id &&
+    env.STRIPE_SECRET_KEY
+  ) {
+    try {
+      const stripe = getStripe(env.STRIPE_SECRET_KEY);
+      const intent = await stripe.paymentIntents.retrieve(existing.stripe_payment_intent_id);
+
+      if (intent.status === "succeeded") {
+        // The customer paid but the webhook never landed — flip the row so
+        // the books agree with Stripe, then refuse the delete.
+        await supabase
+          .from("proforma_invoices")
+          .update({
+            status: "paid",
+            paid_at: new Date().toISOString(),
+            payment_method: "stripe",
+          })
+          .eq("pi_number", piNumber)
+          .eq("site_slug", siteSlug);
+
+        return jsonResponse(
+          {
+            error: `PI "${piNumber}" was paid via Stripe and cannot be deleted.`,
+            hint: "Refund it from the Stripe Dashboard first, then delete it.",
+          },
+          { status: 409, request: context.request, env }
+        );
+      }
+    } catch {
+      // Stripe is unreachable or the intent is gone — do not block the
+      // cleanup on an API hiccup. The other guards still apply.
+    }
   }
 
   const { error: deleteErr } = await supabase
