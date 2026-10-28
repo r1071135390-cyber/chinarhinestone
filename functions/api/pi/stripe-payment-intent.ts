@@ -144,7 +144,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   // 1. Look up the PI to confirm it exists and is payable
   const { data: pi, error: piError } = await supabase
     .from("proforma_invoices")
-    .select("pi_number, status, paid_at, stripe_payment_intent_id, total_cents, currency, customer_name, customer_email, customer_address, customer_country")
+    .select("id, pi_number, status, paid_at, stripe_payment_intent_id, total_cents, currency, customer_name, customer_email, customer_address, customer_country")
     .eq("pi_number", piNumber)
     .eq("site_slug", siteSlug)
     .maybeSingle();
@@ -287,12 +287,33 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   // Idempotency key: stable for identical requests (so retries collapse into
   // one intent) and different when the invoice changes (so Stripe does not
   // reject the request for key reuse with different parameters).
-  const keyBase = `cr-pi-${piNumber}-${amountCents}-${stableHash(JSON.stringify(params))}`;
+  //
+  // The PI row id is part of the key on purpose. A deleted invoice that is
+  // recreated with the same number, amount and customer details would
+  // otherwise produce the very same key, and Stripe replays the cached
+  // response of the old intent — which was cancelled during the delete — so
+  // the customer would receive a dead client_secret and could not pay.
+  //
+  // The previously stored intent id is part of the key for the same reason:
+  // when the invoice already pointed at a cancelled intent, the key of the
+  // original creation must not be reused or Stripe replays that dead intent.
+  const previousIntentId = pi.stripe_payment_intent_id ?? "none";
+  const keyBase = `cr-pi-${piNumber}-${pi.id}-${previousIntentId}-${amountCents}-${stableHash(JSON.stringify(params))}`;
 
   let intent: Stripe.PaymentIntent | null = null;
   for (let attempt = 0; attempt < 5; attempt++) {
     const idempotencyKey = attempt === 0 ? keyBase : `${keyBase}-${attempt + 1}`;
-    intent = await stripe.paymentIntents.create(params, { idempotencyKey });
+    const created = await stripe.paymentIntents.create(params, { idempotencyKey });
+
+    // Stripe replays the cached response for a repeated key, and that
+    // snapshot can still show the intent as payable even though it has been
+    // cancelled since. Ask Stripe for the live state before handing the
+    // client_secret to the customer.
+    try {
+      intent = await stripe.paymentIntents.retrieve(created.id);
+    } catch {
+      intent = created;
+    }
 
     // A cached idempotent response can hand back an intent that was
     // cancelled in the meantime. Retry with the next key to get a fresh one.
@@ -301,6 +322,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   if (!intent) {
     return jsonResponse({ error: "Failed to create payment intent" }, { status: 500, request: context.request, env });
+  }
+
+  if (intent.status === "canceled") {
+    // Every attempt came back cancelled — refuse instead of handing the
+    // customer a client_secret that can never be paid.
+    return jsonResponse(
+      { error: "Could not start the payment. Please try again in a moment." },
+      { status: 503, request: context.request, env }
+    );
   }
 
   // 4. Persist the intent id on the PI for later webhook reconciliation
@@ -319,15 +349,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         payment_intent_id: intent.id,
       },
       { status: 409, request: context.request, env }
-    );
-  }
-
-  if (intent.status === "canceled") {
-    // Every attempt came back cancelled — refuse instead of handing the
-    // customer a client_secret that can never be paid.
-    return jsonResponse(
-      { error: "Could not start the payment. Please try again in a moment." },
-      { status: 503, request: context.request, env }
     );
   }
 
