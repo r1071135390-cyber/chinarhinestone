@@ -11,13 +11,12 @@ import {
   TrendingUp,
   Eye,
   Lock,
-  Trash2,
   AlertTriangle,
-  X,
   Coins,
   Pencil,
 } from "lucide-react";
 import MarkPaidControl from "@/components/admin/MarkPaidControl";
+import DeleteControl from "@/components/admin/DeleteControl";
 
 // ─── Inline FxRates type (adapted from @/lib/fx-rates) ──────────────────────
 export interface FxRates {
@@ -118,10 +117,6 @@ export default function SummaryClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [confirmTarget, setConfirmTarget] = useState<PiListItem | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
   async function fetchData() {
     setLoading(true);
     setError(null);
@@ -148,48 +143,6 @@ export default function SummaryClient() {
   useEffect(() => {
     void fetchData();
   }, []);
-
-  function requestDelete(p: PiListItem) {
-    setDeleteError(null);
-    setConfirmTarget(p);
-  }
-
-  function cancelDelete() {
-    if (deleting) return;
-    setConfirmTarget(null);
-    setDeleteError(null);
-  }
-
-  async function confirmDelete() {
-    if (!confirmTarget || deleting) return;
-    setDeleting(true);
-    setDeleteError(null);
-    try {
-      const res = await fetch("/api/pi/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ piNumber: confirmTarget.piNumber }),
-      });
-      const data = (await res.json().catch(() => ({}))) as {
-        success?: boolean;
-        error?: string;
-        hint?: string;
-      };
-      if (!res.ok || !data.success) {
-        const msg = data.hint
-          ? `${data.error || "Delete failed"} — ${data.hint}`
-          : data.error || `Delete failed (${res.status})`;
-        setDeleteError(msg);
-        return;
-      }
-      setConfirmTarget(null);
-      await fetchData();
-    } catch (e) {
-      setDeleteError(e instanceof Error ? e.message : "Network error");
-    } finally {
-      setDeleting(false);
-    }
-  }
 
   // ---------- Main summary view ----------
 
@@ -445,22 +398,13 @@ export default function SummaryClient() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          {sc.label === "PAID" ? (
-                            <span className="inline-flex cursor-not-allowed items-center gap-1 text-xs font-black uppercase tracking-wider text-[#c0c0c0]" title="Paid PIs cannot be deleted. Refund via Stripe Dashboard first.">
-                              <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />
-                              Locked
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => requestDelete(p)}
-                              className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-[#6b6b6b] hover:text-[#ff4d00]"
-                              title={`Delete PI ${p.piNumber}`}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />
-                              Delete
-                            </button>
-                          )}
+                          <DeleteControl
+                            piNumber={p.piNumber}
+                            status={p.status}
+                            customerName={p.customerName}
+                            totalDisplay={p.totalDisplay}
+                            onDone={() => void fetchData()}
+                          />
                         </td>
                       </tr>
                     );
@@ -489,16 +433,6 @@ export default function SummaryClient() {
           )}
         </div>
       </div>
-
-      {confirmTarget && (
-        <DeleteConfirmModal
-          target={confirmTarget}
-          deleting={deleting}
-          error={deleteError}
-          onCancel={cancelDelete}
-          onConfirm={confirmDelete}
-        />
-      )}
     </main>
   );
 }
@@ -524,135 +458,6 @@ function StatCard({
       </div>
       <div className="text-2xl font-black tracking-tight text-black md:text-3xl">{value}</div>
       <div className="mt-1 text-xs text-[#6b6b6b]">{sub}</div>
-    </div>
-  );
-}
-
-// ─── Delete confirm modal ────────────────────────────────────────────────
-function DeleteConfirmModal({
-  target,
-  deleting,
-  error,
-  onCancel,
-  onConfirm,
-}: {
-  target: PiListItem;
-  deleting: boolean;
-  error: string | null;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  const [typed, setTyped] = useState("");
-  useEffect(() => {
-    setTyped("");
-  }, [target.piNumber]);
-
-  const matches = typed.trim() === target.piNumber;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="delete-modal-title"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !deleting) onCancel();
-      }}
-    >
-      <div className="w-full max-w-md border-2 border-black bg-white shadow-[8px_8px_0_0_rgba(255,77,0,1)]">
-        <div className="flex items-start justify-between border-b-2 border-black bg-[#ff4d00] px-5 py-3 text-black">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" strokeWidth={2.5} />
-            <h2 id="delete-modal-title" className="text-base font-black uppercase tracking-tight">
-              Delete this PI?
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={deleting}
-            className="text-black hover:opacity-70 disabled:opacity-30"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" strokeWidth={2.5} />
-          </button>
-        </div>
-
-        <div className="px-5 py-5">
-          <p className="mb-4 text-sm text-[#0a0a0a]">
-            You are about to permanently delete this proforma invoice. This cannot be undone.
-          </p>
-
-          <dl className="mb-5 space-y-1 border-l-2 border-[#ff4d00] bg-[#fff7f3] px-3 py-2 text-xs">
-            <div className="flex justify-between gap-3">
-              <dt className="font-black uppercase tracking-wider text-[#6b6b6b]">PI Number</dt>
-              <dd className="font-bold">{target.piNumber}</dd>
-            </div>
-            <div className="flex justify-between gap-3">
-              <dt className="font-black uppercase tracking-wider text-[#6b6b6b]">Customer</dt>
-              <dd className="font-bold">{target.customerName || "—"}</dd>
-            </div>
-            <div className="flex justify-between gap-3">
-              <dt className="font-black uppercase tracking-wider text-[#6b6b6b]">Total</dt>
-              <dd className="font-bold">{target.totalDisplay}</dd>
-            </div>
-            <div className="flex justify-between gap-3">
-              <dt className="font-black uppercase tracking-wider text-[#6b6b6b]">Status</dt>
-              <dd className="font-bold uppercase">{target.status || "draft"}</dd>
-            </div>
-          </dl>
-
-          <label className="mb-2 block text-xs font-black uppercase tracking-wider text-[#6b6b6b]">
-            Type <code className="rounded bg-[#0a0a0a] px-1.5 py-0.5 text-[10px] text-white">{target.piNumber}</code> to confirm
-          </label>
-          <input
-            type="text"
-            value={typed}
-            onChange={(e) => setTyped(e.target.value)}
-            disabled={deleting}
-            autoFocus
-            autoComplete="off"
-            spellCheck={false}
-            placeholder={target.piNumber}
-            className="mb-2 w-full border-2 border-black bg-white px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#ff4d00]/40 disabled:opacity-50"
-          />
-
-          {error && (
-            <div className="mb-3 border-2 border-[#ff4d00] bg-white px-3 py-2 text-xs font-bold text-[#ff4d00]">
-              {error}
-            </div>
-          )}
-
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={deleting}
-              className="border-2 border-black bg-white px-4 py-2 text-xs font-black uppercase tracking-wider text-black hover:bg-neutral-100 disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={onConfirm}
-              disabled={!matches || deleting}
-              className="inline-flex items-center gap-1.5 bg-[#ff4d00] px-4 py-2 text-xs font-black uppercase tracking-wider text-black hover:bg-[#e64500] disabled:opacity-40"
-            >
-              {deleting ? (
-                <>
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin" strokeWidth={2.5} />
-                  Deleting…
-                </>
-              ) : (
-                <>
-                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />
-                  Delete permanently
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

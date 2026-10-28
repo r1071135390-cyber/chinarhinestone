@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Eye, Pencil, Lock, RefreshCw, Search, FileText, AlertTriangle } from "lucide-react";
 import MarkPaidControl from "@/components/admin/MarkPaidControl";
+import DeleteControl from "@/components/admin/DeleteControl";
 
 interface PiListItem {
   id: number | string;
@@ -299,6 +300,14 @@ export default function PiListModule() {
                           </span>
                         )}
                         <MarkPaidControl
+                          piNumber={p.piNumber}
+                          status={p.status}
+                          customerName={p.customerName}
+                          totalDisplay={p.totalDisplay}
+                          size="sm"
+                          onDone={() => void load()}
+                        />
+                        <DeleteControl
                           piNumber={p.piNumber}
                           status={p.status}
                           customerName={p.customerName}
