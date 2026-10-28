@@ -85,7 +85,7 @@ export const SIZE_PRESETS: Record<string, SizeRow[]> = {
 // Module-level UI helpers
 // ---------------------------------------------------------------------------
 export function BlackCell({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`px-2 py-1 text-sm ${className}`}>{children}</div>;
+  return <div className={`px-2 py-1 text-sm break-words ${className}`}>{children}</div>;
 }
 
 export const RedInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
@@ -96,7 +96,7 @@ export const RedInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => 
 );
 
 export function BlueText({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <span className={`text-[#0a6cff] font-medium ${className}`}>{children}</span>;
+  return <span className={`text-[#0a6cff] font-medium break-words ${className}`}>{children}</span>;
 }
 
 export function RedReminder({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -324,8 +324,8 @@ export default function PIDocument(props: PIDocumentProps) {
       className={`bg-white dark:bg-neutral-900 shadow-lg rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 ${className}`}
     >
       {/* ── HEADER ── */}
-      <div className="px-6 py-6 border-b-2 border-black dark:border-white">
-        <div className="flex items-center gap-6">
+      <div className="px-4 py-5 border-b-2 border-black dark:border-white sm:px-6 sm:py-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
@@ -334,16 +334,16 @@ export default function PIDocument(props: PIDocumentProps) {
             height={88}
             loading="eager"
             decoding="async"
-            className="h-[58px] w-auto shrink-0 ml-[20px] hover:scale-[1.01] transition-transform"
+            className="h-[42px] w-auto shrink-0 sm:h-[58px] sm:ml-[20px] hover:scale-[1.01] transition-transform"
           />
-          <div className="flex-1 pl-[30px]">
-            <div className="text-lg font-bold tracking-wide whitespace-nowrap">
+          <div className="min-w-0 flex-1 sm:pl-[30px]">
+            <div className="text-sm font-bold tracking-wide break-words sm:text-lg">
               {SELLER_COMPANY}
             </div>
-            <div className="text-sm text-neutral-700 dark:text-neutral-300 mt-1">
+            <div className="text-xs text-neutral-700 dark:text-neutral-300 mt-1 break-words sm:text-sm">
               ADD: {SELLER_ADDRESS}
             </div>
-            <div className="text-3xl font-extrabold tracking-widest mt-4">
+            <div className="text-xl font-extrabold tracking-widest mt-3 sm:mt-4 sm:text-3xl">
               PROFORMA INVOICE
             </div>
           </div>
@@ -351,7 +351,7 @@ export default function PIDocument(props: PIDocumentProps) {
       </div>
 
       {/* ── FM + INVOICE INFO ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 p-6 border-b border-neutral-200 dark:border-neutral-800">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 p-4 sm:p-6 border-b border-neutral-200 dark:border-neutral-800">
         <div className="space-y-1">
           <div className="flex gap-2">
             <BlackCell>FM:</BlackCell>
@@ -363,7 +363,7 @@ export default function PIDocument(props: PIDocumentProps) {
         </div>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <BlackCell className="w-32 shrink-0">INVOICE NO.:</BlackCell>
+            <BlackCell className="w-28 shrink-0 sm:w-32">INVOICE NO.:</BlackCell>
             {ro || !onPiNumberChange ? (
               <div className="flex-1 px-1">
                 <ReadValue value={piNumber} placeholder="—" />
@@ -391,7 +391,7 @@ export default function PIDocument(props: PIDocumentProps) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <BlackCell className="w-32 shrink-0">ISSUE DATE:</BlackCell>
+            <BlackCell className="w-28 shrink-0 sm:w-32">ISSUE DATE:</BlackCell>
             {ro || !onIssueDateChange ? (
               <div className="flex-1 px-1">
                 <ReadValue value={issueDate} placeholder="—" />
@@ -405,7 +405,7 @@ export default function PIDocument(props: PIDocumentProps) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <BlackCell className="w-32 shrink-0">LEAD TIME:</BlackCell>
+            <BlackCell className="w-28 shrink-0 sm:w-32">LEAD TIME:</BlackCell>
             {ro || !onLeadTimeChange ? (
               <div className="flex-1 px-1">
                 <ReadValue value={leadTimeText} placeholder="—" />
@@ -419,7 +419,7 @@ export default function PIDocument(props: PIDocumentProps) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <BlackCell className="w-32 shrink-0">CURRENCY:</BlackCell>
+            <BlackCell className="w-28 shrink-0 sm:w-32">CURRENCY:</BlackCell>
             {ro || !onCurrencyChange ? (
               <div className="flex-1 px-1">
                 <ReadValue value={currencyUpper} placeholder="—" />
@@ -442,9 +442,9 @@ export default function PIDocument(props: PIDocumentProps) {
       </div>
 
       {/* ── TO: block ── */}
-      <div className="p-6 border-b border-neutral-200 dark:border-neutral-800">
+      <div className="p-4 sm:p-6 border-b border-neutral-200 dark:border-neutral-800">
         <div className="flex gap-2 items-start">
-          <BlackCell className="w-16 shrink-0 pt-1">TO:</BlackCell>
+          <BlackCell className="w-14 shrink-0 pt-1 sm:w-16">TO:</BlackCell>
           <div className="flex-1 space-y-1.5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
@@ -516,17 +516,17 @@ export default function PIDocument(props: PIDocumentProps) {
       </div>
 
       {/* ── Items table ── */}
-      <div className="p-6 border-b border-neutral-200 dark:border-neutral-800">
-        <div className="overflow-x-auto">
-          <table className="w-full border-2 border-black dark:border-white text-sm">
+      <div className="p-4 sm:p-6 border-b border-neutral-200 dark:border-neutral-800">
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 print:mx-0 print:px-0">
+          <table className="w-full border-2 border-black dark:border-white text-sm break-words">
             <thead>
               <tr className="bg-neutral-100 dark:bg-neutral-800">
-                <th className="border border-black dark:border-white p-2 w-32 text-left">PRODUCT PICTURE</th>
+                <th className="border border-black dark:border-white p-2 w-28 sm:w-32 text-left">PRODUCT PICTURE</th>
                 <th className="border border-black dark:border-white p-2 text-left">DESCRIPTION</th>
                 <th className="border border-black dark:border-white p-2 text-left">FABRIC CONTENT</th>
-                <th className="border border-black dark:border-white p-2 w-28 text-left">QTY / UNIT</th>
-                <th className="border border-black dark:border-white p-2 w-24 text-left">PRICE ({bank.symbol})</th>
-                <th className="border border-black dark:border-white p-2 w-28 text-left">TOTAL {currencyUpper}</th>
+                <th className="border border-black dark:border-white p-2 w-20 sm:w-28 text-left">QTY / UNIT</th>
+                <th className="border border-black dark:border-white p-2 w-20 sm:w-24 text-left">PRICE ({bank.symbol})</th>
+                <th className="border border-black dark:border-white p-2 w-20 sm:w-28 text-left">TOTAL {currencyUpper}</th>
                 {canEditItems && <th className="border border-black dark:border-white p-2 w-8"></th>}
               </tr>
             </thead>
@@ -806,7 +806,7 @@ export default function PIDocument(props: PIDocumentProps) {
           </table>
         </div>
 
-        <div className="mt-3 flex justify-between items-center text-sm">
+        <div className="mt-3 flex flex-wrap justify-between items-center gap-2 text-sm">
           {canEditItems ? (
             <button
               onClick={onAddItem}
@@ -825,7 +825,7 @@ export default function PIDocument(props: PIDocumentProps) {
       </div>
 
       {/* ── Terms ── */}
-      <div className="p-6 space-y-1 border-b border-neutral-200 dark:border-neutral-800 text-sm">
+      <div className="p-4 sm:p-6 space-y-1 border-b border-neutral-200 dark:border-neutral-800 text-sm break-words">
         <div><strong>(1) Port of Loading:</strong> {TERMS_PORT_OF_LOADING}</div>
         <div><strong>(2) Port of Destination:</strong> {TERMS_PORT_OF_DESTINATION}</div>
         <div><strong>(3) Shipping Term:</strong>{" "}
@@ -866,7 +866,7 @@ export default function PIDocument(props: PIDocumentProps) {
       </div>
 
       {/* ── Bank Info ── */}
-      <div className="p-6 space-y-2 border-b border-neutral-200 dark:border-neutral-800 text-sm">
+      <div className="p-4 sm:p-6 space-y-2 border-b border-neutral-200 dark:border-neutral-800 text-sm">
         <div className="font-bold">BANK INFO:</div>
         <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-1 items-start">
           <BlackCell>{BANK_LABEL_BENEFICIARY}</BlackCell>
@@ -910,7 +910,7 @@ export default function PIDocument(props: PIDocumentProps) {
       </div>
 
       {/* ── Clauses (5)-(7) ── */}
-      <div className="p-6 space-y-2 border-b border-neutral-200 dark:border-neutral-800 text-sm leading-relaxed">
+      <div className="p-4 sm:p-6 space-y-2 border-b border-neutral-200 dark:border-neutral-800 text-sm leading-relaxed break-words">
         <div>
           <strong>(5) Production Time:</strong> {CLAUSE_PRODUCTION_TIME}
         </div>
@@ -933,7 +933,7 @@ export default function PIDocument(props: PIDocumentProps) {
       </div>
 
       {/* ── Footer contract note + signatures ── */}
-      <div className="p-6 space-y-4 text-sm">
+      <div className="p-4 sm:p-6 space-y-4 text-sm break-words">
         <div>
           {CONTRACT_NOTE}
         </div>

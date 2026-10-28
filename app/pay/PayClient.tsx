@@ -214,13 +214,13 @@ export default function PayClient() {
   if (paymentSuccess && pi) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="bg-[#0a0a0a] text-white py-4 px-6 no-print">
+        <header className="bg-[#0a0a0a] text-white py-4 px-4 sm:px-6 no-print">
           <div className="mx-auto max-w-4xl">
             <h1 className="text-lg font-bold">ChinaRhinestone</h1>
           </div>
         </header>
-        <main className="mx-auto max-w-4xl p-6">
-          <div className="rounded-lg bg-white p-8 shadow-lg text-center no-print">
+        <main className="mx-auto max-w-4xl p-3 sm:p-6">
+          <div className="rounded-lg bg-white p-5 sm:p-8 shadow-lg text-center no-print">
             <div className="rounded-full bg-green-100 p-4 inline-block mb-4">
               <svg className="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -259,7 +259,7 @@ export default function PayClient() {
                 {pdfError}
               </div>
             )}
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-col justify-center gap-4 sm:flex-row">
               <button
                 onClick={handleDownloadPDF}
                 disabled={pdfPending}
@@ -285,16 +285,16 @@ export default function PayClient() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-[#0a0a0a] text-white py-4 px-6 no-print">
+      <header className="bg-[#0a0a0a] text-white py-4 px-4 sm:px-6 no-print">
         <div className="mx-auto max-w-4xl">
           <h1 className="text-lg font-bold">ChinaRhinestone</h1>
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl p-6">
-        <div className="mb-6 flex justify-between items-center no-print">
-          <h1 className="text-xl font-bold">Proforma Invoice #{pi.pi_number}</h1>
-          <div className="flex gap-3">
+      <main className="mx-auto max-w-4xl p-3 sm:p-6">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between no-print">
+          <h1 className="text-xl font-bold break-words">Proforma Invoice #{pi.pi_number}</h1>
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={handleDownloadPDF}
               disabled={pdfPending}
@@ -317,7 +317,7 @@ export default function PayClient() {
           </div>
         )}
 
-        <div className="rounded-lg bg-white p-6 shadow-lg mb-6">
+        <div className="rounded-lg bg-white p-3 sm:p-6 shadow-lg mb-6">
           <PIDisplay pi={pi} bankAccount={bankAccount} />
         </div>
 
@@ -376,7 +376,7 @@ export default function PayClient() {
                 below, or contact us to arrange another method.
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {!stripeUnavailable && (
                 <button
                   onClick={handlePayByCard}
