@@ -403,6 +403,7 @@ export default function SummaryClient() {
                             status={p.status}
                             customerName={p.customerName}
                             totalDisplay={p.totalDisplay}
+                            paymentCount={p.paymentCount}
                             onDone={() => void fetchData()}
                           />
                         </td>

@@ -312,6 +312,7 @@ export default function PiListModule() {
                           status={p.status}
                           customerName={p.customerName}
                           totalDisplay={p.totalDisplay}
+                          paymentCount={p.paymentCount}
                           size="sm"
                           onDone={() => void load()}
                         />

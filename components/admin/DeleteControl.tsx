@@ -18,6 +18,8 @@ interface DeleteControlProps {
   status: string | null;
   customerName?: string | null;
   totalDisplay?: string;
+  /** Number of recorded Stripe payments — a paid invoice cannot be deleted. */
+  paymentCount?: number;
   /** "sm" for the compact dashboard module, "md" for the overview table. */
   size?: "sm" | "md";
   /** Called after a successful delete so the list can refresh. */
@@ -29,6 +31,7 @@ export default function DeleteControl({
   status,
   customerName,
   totalDisplay,
+  paymentCount,
   size = "md",
   onDone,
 }: DeleteControlProps) {
@@ -37,7 +40,12 @@ export default function DeleteControl({
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isPaid = (status || "").toLowerCase() === "paid";
+  const normalizedStatus = (status || "").toLowerCase();
+  const isPaid = normalizedStatus === "paid";
+  // A recorded payment means the money moved, even if the status was never
+  // flipped to "paid". The API refuses those too, so the button is locked.
+  const hasPayment = (paymentCount ?? 0) > 0;
+  const locked = isPaid || (hasPayment && normalizedStatus !== "refunded");
 
   useEffect(() => {
     if (open) {
@@ -84,11 +92,15 @@ export default function DeleteControl({
     : "inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider";
   const iconClass = sm ? "h-3 w-3" : "h-3.5 w-3.5";
 
-  if (isPaid) {
+  if (locked) {
     return (
       <span
         className={`${buttonClass} cursor-not-allowed text-[#c0c0c0]`}
-        title="Paid PIs cannot be deleted. Refund via Stripe Dashboard first."
+        title={
+          isPaid
+            ? "Paid PIs cannot be deleted. Refund via Stripe Dashboard first."
+            : "This PI has a recorded payment that has not been refunded. Refund it first."
+        }
       >
         <Lock className={iconClass} strokeWidth={2.5} />
         Locked
