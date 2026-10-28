@@ -190,6 +190,17 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           { status: 409, request: context.request, env }
         );
       }
+
+      // The intent was never paid. Cancel it so a customer who still has the
+      // payment page open in another tab cannot pay an invoice that no
+      // longer exists — the money would arrive for a row that is gone.
+      if (intent.status !== "canceled") {
+        try {
+          await stripe.paymentIntents.cancel(existing.stripe_payment_intent_id);
+        } catch {
+          // Already cancelled or not cancellable — the delete can proceed.
+        }
+      }
     } catch {
       // Stripe is unreachable or the intent is gone — do not block the
       // cleanup on an API hiccup. The other guards still apply.
