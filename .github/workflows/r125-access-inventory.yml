@@ -1,0 +1,30 @@
+name: R125-F diagnose - dump the Cloudflare Access configuration
+
+on:
+  push:
+    branches:
+      - "r125/access-pagesdev"
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Dump Access config (structure only, no secret values)
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PAGES_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SCRIPT_B64: ${{ vars.ACCESS_INVENTORY_B64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SCRIPT_B64:-}" ]; then
+            echo "SCRIPT_B64 is empty - falling back to inline script"
+            exit 1
+          fi
+          printf '%s' "$SCRIPT_B64" | base64 -d > /tmp/inventory.mjs
+          CF_TOKEN="$CF_TOKEN" PAGES_ACCOUNT_ID="$PAGES_ACCOUNT_ID" node /tmp/inventory.mjs
