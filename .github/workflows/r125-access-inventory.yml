@@ -19,12 +19,6 @@ jobs:
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           PAGES_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          SCRIPT_B64: ${{ vars.ACCESS_INVENTORY_B64 }}
         run: |
           set -euo pipefail
-          if [ -z "${SCRIPT_B64:-}" ]; then
-            echo "SCRIPT_B64 is empty - falling back to inline script"
-            exit 1
-          fi
-          printf '%s' "$SCRIPT_B64" | base64 -d > /tmp/inventory.mjs
-          CF_TOKEN="$CF_TOKEN" PAGES_ACCOUNT_ID="$PAGES_ACCOUNT_ID" node /tmp/inventory.mjs
+          node r125/access/inventory.mjs
