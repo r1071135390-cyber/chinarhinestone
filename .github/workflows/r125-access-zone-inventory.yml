@@ -1,0 +1,23 @@
+name: R125-F2 diagnose - dump the zone-level Cloudflare Access configuration
+
+on:
+  push:
+    branches:
+      - "r125/access-zone-inventory"
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Dump zone-level Access config (structure only, no secret values)
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PAGES_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          node r125/access/inventory-zone.mjs
