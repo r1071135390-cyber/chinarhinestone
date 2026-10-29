@@ -2,8 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, FileText } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AlertCircle, FileText, Pencil } from "lucide-react";
 import { OWNER_PASSWORD } from "@/lib/admin-auth";
+import CustomerEditDialog, {
+  type CustomerEditable,
+} from "@/components/admin/CustomerEditDialog";
 
 interface PIHistory {
   id: string;
@@ -18,13 +22,17 @@ interface CustomerDetail {
   customer_name: string;
   company: string | null;
   email: string | null;
+  phone: string | null;
+  address: string | null;
   pi_history: PIHistory[];
 }
 
 export default function CustomerDetailClient({ customerId }: { customerId: string }) {
+  const router = useRouter();
   const [data, setData] = useState<CustomerDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<CustomerEditable | null>(null);
 
   const fetchDetail = useCallback(async () => {
     setLoading(true);
@@ -77,14 +85,33 @@ export default function CustomerDetailClient({ customerId }: { customerId: strin
                   {data.company && (
                     <p className="mb-2 text-base text-black/50">{data.company}</p>
                   )}
-                  {data.email && (
-                    <p className="text-sm text-black/50">{data.email}</p>
-                  )}
+                  <div className="space-y-0.5 text-sm text-black/50">
+                    {data.email && <p>{data.email}</p>}
+                    {data.phone && <p>{data.phone}</p>}
+                    {data.address && <p className="max-w-xl">{data.address}</p>}
+                  </div>
                 </div>
-                <div className="text-right">
+                <div className="flex shrink-0 flex-col items-end gap-3">
                   <div className="text-xs font-black uppercase tracking-widest text-black/50">
                     {data.pi_history.length} PI{data.pi_history.length !== 1 ? "s" : ""}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEditing({
+                        id: customerId,
+                        customer_name: data.customer_name,
+                        company: data.company,
+                        email: data.email,
+                        phone: data.phone,
+                        address: data.address,
+                      })
+                    }
+                    className="inline-flex items-center gap-1.5 border-2 border-black bg-white px-4 py-2 text-xs font-black uppercase tracking-wider text-black hover:bg-[#ff4d00] hover:text-white"
+                  >
+                    <Pencil className="h-3.5 w-3.5" strokeWidth={2.5} />
+                    Edit Customer
+                  </button>
                 </div>
               </div>
             </div>
@@ -172,6 +199,23 @@ export default function CustomerDetailClient({ customerId }: { customerId: strin
           <div className="border-2 border-black bg-white p-10 text-center text-base font-bold uppercase tracking-widest text-black/50">
             Customer not found.
           </div>
+        )}
+
+        {editing && (
+          <CustomerEditDialog
+            customer={editing}
+            onClose={() => setEditing(null)}
+            onDone={async (newId) => {
+              setEditing(null);
+              // Editing the email moves the customer to a new grouping key,
+              // so the id in the URL has to follow it.
+              if (newId && newId !== customerId) {
+                router.replace(`/administered/customers?id=${encodeURIComponent(newId)}`);
+                return;
+              }
+              await fetchDetail();
+            }}
+          />
         )}
       </div>
     </main>

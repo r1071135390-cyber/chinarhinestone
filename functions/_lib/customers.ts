@@ -20,11 +20,22 @@ export interface PiCustomerRow {
   customer_email: string | null;
   customer_company: string | null;
   customer_phone: string | null;
+  customer_address: string | null;
   total_cents: number | null;
   currency: string | null;
   status: string | null;
   created_at: string;
 }
+
+/**
+ * The PI columns the customer screens need. Kept in one place so the list,
+ * the detail view and the update endpoint cannot drift apart.
+ *
+ * `as const` keeps the literal type, which is what lets the Supabase client
+ * infer the row shape from `.select(PI_CUSTOMER_FIELDS)`.
+ */
+export const PI_CUSTOMER_FIELDS =
+  "id, pi_number, customer_name, customer_email, customer_company, customer_phone, customer_address, total_cents, currency, status, created_at" as const;
 
 export interface CustomerGroup {
   /** Raw grouping key — never sent to the browser. */
@@ -34,6 +45,8 @@ export interface CustomerGroup {
   customer_name: string;
   company: string | null;
   email: string | null;
+  phone: string | null;
+  address: string | null;
   pi_count: number;
   last_pi_date: string | null;
 }
@@ -80,6 +93,8 @@ export function groupCustomers(rows: PiCustomerRow[]): CustomerGroup[] {
     const named = bucket.find((row) => (row.customer_name ?? "").trim()) ?? latest;
     const withCompany = bucket.find((row) => (row.customer_company ?? "").trim()) ?? latest;
     const withEmail = bucket.find((row) => (row.customer_email ?? "").trim()) ?? latest;
+    const withPhone = bucket.find((row) => (row.customer_phone ?? "").trim()) ?? latest;
+    const withAddress = bucket.find((row) => (row.customer_address ?? "").trim()) ?? latest;
 
     groups.push({
       key,
@@ -87,6 +102,8 @@ export function groupCustomers(rows: PiCustomerRow[]): CustomerGroup[] {
       customer_name: (named.customer_name ?? "").trim() || "Unnamed customer",
       company: (withCompany.customer_company ?? "").trim() || null,
       email: (withEmail.customer_email ?? "").trim() || null,
+      phone: (withPhone.customer_phone ?? "").trim() || null,
+      address: (withAddress.customer_address ?? "").trim() || null,
       pi_count: bucket.length,
       last_pi_date: latest.created_at ?? null,
     });
@@ -96,7 +113,7 @@ export function groupCustomers(rows: PiCustomerRow[]): CustomerGroup[] {
 
 export function matchesSearch(group: CustomerGroup, needle: string): boolean {
   if (!needle) return true;
-  return [group.customer_name, group.company, group.email].some((value) =>
+  return [group.customer_name, group.company, group.email, group.phone].some((value) =>
     (value ?? "").toLowerCase().includes(needle)
   );
 }

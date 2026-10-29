@@ -13,10 +13,12 @@
 import { getSupabase, isPiStoreConfigured, type Env } from "../../../_lib/supabase";
 import { jsonResponse } from "../../../_lib/cors";
 import { PagesFunction } from "../../../_lib/pages-function";
-import { groupCustomers, matchesSearch, type PiCustomerRow } from "../../../_lib/customers";
-
-const PI_FIELDS =
-  "id, pi_number, customer_name, customer_email, customer_company, customer_phone, total_cents, currency, status, created_at";
+import {
+  PI_CUSTOMER_FIELDS,
+  groupCustomers,
+  matchesSearch,
+  type PiCustomerRow,
+} from "../../../_lib/customers";
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const env = context.env;
@@ -45,7 +47,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const supabase = getSupabase(env);
   const { data, error } = await supabase
     .from("proforma_invoices")
-    .select(PI_FIELDS)
+    .select(PI_CUSTOMER_FIELDS)
     .eq("site_slug", siteSlug)
     .order("created_at", { ascending: false });
 

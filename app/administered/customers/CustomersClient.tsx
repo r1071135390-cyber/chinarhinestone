@@ -2,13 +2,19 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Search, FileText } from "lucide-react";
+import { Users, Search, FileText, Pencil, Eye, RefreshCw } from "lucide-react";
 import { OWNER_PASSWORD } from "@/lib/admin-auth";
+import CustomerEditDialog, {
+  type CustomerEditable,
+} from "@/components/admin/CustomerEditDialog";
 
 interface CustomerSummary {
   id: string;
   customer_name: string;
   company: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
   pi_count: number;
   last_pi_date: string | null;
 }
@@ -18,6 +24,7 @@ export default function CustomersClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [editing, setEditing] = useState<CustomerEditable | null>(null);
   const router = useRouter();
 
   const fetchCustomers = useCallback(async () => {
@@ -44,11 +51,21 @@ export default function CustomersClient() {
     void fetchCustomers();
   }, [fetchCustomers]);
 
+  function formatDate(iso: string | null): string {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "—";
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(d.getUTCDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
   return (
     <main className="min-h-screen bg-[#faf9f6]">
       {/* Header */}
       <header className="border-b-2 border-black bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center bg-[#0a0a0a]">
               <Users className="h-5 w-5 text-white" />
@@ -60,17 +77,26 @@ export default function CustomersClient() {
               <div className="text-lg font-black leading-none">Customer Management</div>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => void fetchCustomers()}
+            disabled={loading}
+            className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wider text-black hover:text-[#ff4d00] disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} strokeWidth={2.5} />
+            Refresh
+          </button>
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl px-6 py-10">
+      <div className="mx-auto max-w-6xl px-6 py-10">
         <div className="mb-8">
           <h1 className="mb-3 text-4xl font-black uppercase leading-tight tracking-tight md:text-5xl">
             Customers
           </h1>
           <p className="text-base text-[#6b6b6b]">
-            View all customers and their PI history. Click any customer card to
-            see their pro forma invoices.
+            All customers and their PI history in one list. Edit a customer to
+            update the contact details on every one of their invoices.
           </p>
         </div>
 
@@ -88,7 +114,7 @@ export default function CustomersClient() {
                   void fetchCustomers();
                 }
               }}
-              placeholder="Search by name or company…"
+              placeholder="Search by name, company, email or phone…"
               className="w-full border-2 border-black/20 bg-white py-3 pl-10 pr-4 text-base text-black outline-none focus:border-[#ff4d00]"
             />
           </div>
@@ -115,41 +141,117 @@ export default function CustomersClient() {
             No customers found
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {customers.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => router.push(`/administered/customers?id=${c.id}`)}
-                className="group border-2 border-black bg-white p-5 text-left transition-all hover:border-[#ff4d00] hover:shadow-[4px_4px_0_0_#ff4d00]"
-              >
-                <div className="mb-3 flex items-start justify-between gap-2">
-                  <div className="flex h-10 w-10 items-center justify-center bg-[#0a0a0a] group-hover:bg-[#ff4d00]">
-                    <FileText className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs font-bold uppercase tracking-widest text-black/50">
-                      {c.pi_count} PI{c.pi_count !== 1 ? "s" : ""}
-                    </div>
-                  </div>
-                </div>
-                <h2 className="mb-1 text-base font-black leading-tight">{c.customer_name}</h2>
-                {c.company && (
-                  <p className="mb-2 text-sm text-black/50">{c.company}</p>
-                )}
-                {c.last_pi_date && (
-                  <p className="text-xs text-black/30">
-                    Last PI: {new Date(c.last_pi_date).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </p>
-                )}
-              </button>
-            ))}
+          <div className="border-2 border-black bg-white">
+            <header className="flex items-center justify-between border-b-2 border-black bg-[#0a0a0a] px-6 py-4 text-white">
+              <h2 className="text-base font-black uppercase tracking-tight">
+                Customer List
+              </h2>
+              <span className="text-xs font-bold uppercase tracking-wider text-white/70">
+                {customers.length} customer{customers.length !== 1 ? "s" : ""}
+              </span>
+            </header>
+
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[820px] text-left text-sm">
+                <thead>
+                  <tr className="border-b-2 border-black bg-[#faf9f6] text-xs font-black uppercase tracking-wider text-[#6b6b6b]">
+                    <th className="px-4 py-3">Customer</th>
+                    <th className="px-4 py-3">Company</th>
+                    <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3">Phone</th>
+                    <th className="px-4 py-3 text-right">PIs</th>
+                    <th className="px-4 py-3 text-right">Last PI</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customers.map((c) => (
+                    <tr
+                      key={c.id}
+                      className="border-b border-[#e5e5e5] transition-colors last:border-b-0 hover:bg-[#faf9f6]"
+                    >
+                      <td className="px-4 py-3 font-black tracking-tight">
+                        {c.customer_name}
+                      </td>
+                      <td className="px-4 py-3 text-[#6b6b6b]">{c.company || "—"}</td>
+                      <td className="px-4 py-3">
+                        {c.email ? (
+                          <a
+                            href={`mailto:${c.email}`}
+                            className="font-bold text-black underline decoration-[#ff4d00] decoration-2 underline-offset-2 hover:text-[#ff4d00]"
+                          >
+                            {c.email}
+                          </a>
+                        ) : (
+                          <span className="text-[#c0c0c0]">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-[#6b6b6b]">{c.phone || "—"}</td>
+                      <td className="px-4 py-3 text-right font-bold">
+                        {c.pi_count}
+                      </td>
+                      <td className="px-4 py-3 text-right text-[#6b6b6b]">
+                        {formatDate(c.last_pi_date)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-4">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditing({
+                                id: c.id,
+                                customer_name: c.customer_name,
+                                company: c.company,
+                                email: c.email,
+                                phone: c.phone,
+                                address: c.address,
+                              })
+                            }
+                            className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-black hover:text-[#ff4d00]"
+                            title={`Edit ${c.customer_name}`}
+                          >
+                            <Pencil className="h-3.5 w-3.5" strokeWidth={2.5} />
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              router.push(`/administered/customers?id=${encodeURIComponent(c.id)}`)
+                            }
+                            className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider text-black hover:text-[#ff4d00]"
+                            title={`View invoices of ${c.customer_name}`}
+                          >
+                            <Eye className="h-3.5 w-3.5" strokeWidth={2.5} />
+                            View PIs
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
+
+        <p className="mt-6 flex items-start gap-2 text-xs text-[#6b6b6b]">
+          <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
+          A customer is grouped by their email address (or by name when they
+          have none). Editing a customer updates every proforma invoice that
+          belongs to them.
+        </p>
       </div>
+
+      {editing && (
+        <CustomerEditDialog
+          customer={editing}
+          onClose={() => setEditing(null)}
+          onDone={async () => {
+            setEditing(null);
+            await fetchCustomers();
+          }}
+        />
+      )}
     </main>
   );
 }
