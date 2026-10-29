@@ -1,0 +1,23 @@
+name: R126 probe - locate the Access application scope
+
+on:
+  push:
+    branches:
+      - "r126/access-probe"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Probe Cloudflare API scope
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PAGES_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          node r126/access/probe-scope.mjs
