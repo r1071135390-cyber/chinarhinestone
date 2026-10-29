@@ -340,60 +340,41 @@ export default function CustomersClient() {
                                   No invoices for this customer.
                                 </p>
                               ) : (
-                                <div className="overflow-x-auto border-2 border-black bg-white">
-                                  <table className="w-full min-w-[640px] text-left text-xs">
-                                    <thead>
-                                      <tr className="border-b-2 border-black bg-[#0a0a0a] text-[10px] font-black uppercase tracking-wider text-white">
-                                        <th className="px-4 py-2">PI Number</th>
-                                        <th className="px-4 py-2">Date</th>
-                                        <th className="px-4 py-2">Amount</th>
-                                        <th className="px-4 py-2">Status</th>
-                                        <th className="px-4 py-2 text-right">Action</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {invoices.map((pi) => (
-                                        <tr
-                                          key={pi.id}
-                                          className="border-b border-[#e5e5e5] last:border-b-0"
+                                <ul className="space-y-2">
+                                  {invoices.map((pi) => (
+                                    <li
+                                      key={pi.id}
+                                      className="flex flex-wrap items-center gap-x-4 gap-y-1 border-2 border-black bg-white px-4 py-3"
+                                    >
+                                      <span className="font-mono text-xs font-black">
+                                        {pi.pi_number ?? "—"}
+                                      </span>
+                                      <span
+                                        className={`border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${statusClass(pi.status)}`}
+                                      >
+                                        {pi.status ?? "unknown"}
+                                      </span>
+                                      <span className="text-xs text-[#6b6b6b]">
+                                        {formatDate(pi.created_at)}
+                                      </span>
+                                      <span className="text-xs font-black">
+                                        {pi.total_amount && pi.currency
+                                          ? `${pi.currency.toUpperCase()} ${pi.total_amount}`
+                                          : "—"}
+                                      </span>
+                                      {pi.pi_number && (
+                                        <a
+                                          href={`/pay/?pi=${encodeURIComponent(pi.pi_number)}`}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="ml-auto text-[10px] font-black uppercase tracking-wider text-black underline decoration-[#ff4d00] decoration-2 underline-offset-2 hover:text-[#ff4d00]"
                                         >
-                                          <td className="px-4 py-2 font-mono font-bold">
-                                            {pi.pi_number ?? "—"}
-                                          </td>
-                                          <td className="px-4 py-2 text-[#6b6b6b]">
-                                            {formatDate(pi.created_at)}
-                                          </td>
-                                          <td className="px-4 py-2 font-bold">
-                                            {pi.total_amount && pi.currency
-                                              ? `${pi.currency.toUpperCase()} ${pi.total_amount}`
-                                              : "—"}
-                                          </td>
-                                          <td className="px-4 py-2">
-                                            <span
-                                              className={`inline-block border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${statusClass(pi.status)}`}
-                                            >
-                                              {pi.status ?? "unknown"}
-                                            </span>
-                                          </td>
-                                          <td className="px-4 py-2 text-right">
-                                            {pi.pi_number ? (
-                                              <a
-                                                href={`/pay/?pi=${encodeURIComponent(pi.pi_number)}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="font-black uppercase tracking-wider text-black hover:text-[#ff4d00]"
-                                              >
-                                                Open PI
-                                              </a>
-                                            ) : (
-                                              <span className="text-[#c0c0c0]">—</span>
-                                            )}
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
+                                          Open PI
+                                        </a>
+                                      )}
+                                    </li>
+                                  ))}
+                                </ul>
                               )}
                             </td>
                           </tr>
