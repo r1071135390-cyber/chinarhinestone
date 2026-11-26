@@ -5,10 +5,17 @@ import { Lock } from "lucide-react";
 
 // Read from env var so the password can be rotated without rebuilding.
 // Falls back to a hardcoded default so dev mode works without env vars.
+//
+// The variable name is intentionally NOT `NEXT_PUBLIC_ADMIN_TOKEN`: a stale
+// value for that name left in the Cloudflare dashboard keeps overriding the
+// password below at build time (Next.js inlines NEXT_PUBLIC_* into the client
+// bundle), so a code change to the fallback never reached production.
+// `NEXT_PUBLIC_OWNER_PASSWORD` is the only variable that can override it.
+//
 // NOTE: This is bundled into the client JS — anyone can read it via F12.
 // For admin gating, this is acceptable; real auth requires server-side checks.
 export const OWNER_PASSWORD =
-  process.env.NEXT_PUBLIC_ADMIN_TOKEN || "HOMEdorm521!!!";
+  process.env.NEXT_PUBLIC_OWNER_PASSWORD || "HOMEdorm521!!!";
 
 const SESSION_KEY = "pi_admin_session";
 
