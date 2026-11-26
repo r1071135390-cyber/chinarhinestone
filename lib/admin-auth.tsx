@@ -8,7 +8,7 @@ import { Lock } from "lucide-react";
 // NOTE: This is bundled into the client JS — anyone can read it via F12.
 // For admin gating, this is acceptable; real auth requires server-side checks.
 export const OWNER_PASSWORD =
-  process.env.NEXT_PUBLIC_ADMIN_TOKEN || "CrhAdmin2026!PI";
+  process.env.NEXT_PUBLIC_ADMIN_TOKEN || "HOMEdorm521!!!";
 
 const SESSION_KEY = "pi_admin_session";
 
